@@ -14,164 +14,171 @@ import { Menu } from "./Menu";
 import { MenuDrawerButton } from "./MenuDrawer";
 
 export function TopBar() {
-  const headerConfig = useWhiteLabelHeader();
-  
-  const menuItems: MenuItem[] = [
-    [headerConfig.navigation.items.dashboard, "/", IconDashboard],
-    // Conditional menu items
-    ...(headerConfig.navigation.showBorrow ? [[headerConfig.navigation.items.borrow, "/borrow", IconBorrow] as MenuItem] : []),
-    ...(headerConfig.navigation.showEarn ? [[headerConfig.navigation.items.earn, "/earn", IconEarn] as MenuItem] : []),
-    ...(headerConfig.navigation.showStake ? [[headerConfig.navigation.items.stake, "/stake", IconStake] as MenuItem] : []),
-  ];
+	const headerConfig = useWhiteLabelHeader();
 
-  return (
-    <div
-      className={css({
-        position: "relative",
-        zIndex: 1,
-        height: 72,
-      })}
-    >
-      <div
-        className={css({
-          position: "relative",
-          zIndex: 1,
-          display: "grid",
-          gridTemplateColumns: {
-            base: "auto auto",
-            medium: "200px auto 200px",
-          },
-          justifyContent: "space-between",
-          gap: 16,
-          maxWidth: 1280,
-          height: "100%",
-          margin: "0 auto",
-          padding: {
-            base: "16px 12px",
-            medium: "16px 24px",
-          },
-          fontSize: 16,
-          fontWeight: 500,
-          background: "background",
-        })}
-      >
-        <div
-          className={css({
-            display: "flex",
-            alignItems: "center",
-            height: "100%",
-          })}
-        >
-          <Link
-            href="/"
-            className={css({
-              position: "relative",
-              display: "flex",
-              alignItems: "center",
-              gap: 16,
-              height: "100%",
-              _focusVisible: {
-                borderRadius: 4,
-                outline: "2px solid token(colors.focused)",
-              },
-              _active: {
-                translate: "0 1px",
-              },
-            })}
-          >
-            <div
-              className={css({
-                flexShrink: 0,
-              })}
-            >
-              <Logo size={32} />
-            </div>
-            <div
-              className={css({
-                flexShrink: 1,
-                overflow: "hidden",
-                display: "flex",
-                flexDirection: "column",
-                alignItems: "flex-start",
-                medium: {
-                  flexDirection: "row",
-                  alignItems: "center",
-                  gap: 8,
-                },
-                whiteSpace: "nowrap",
-              })}
-            >
-              <div>{headerConfig.appName}</div>
-              {DEPLOYMENT_FLAVOR && (
-                <div
-                  className={css({
-                    display: "grid",
-                  })}
-                >
-                  <Tag
-                    size="mini"
-                    css={{
-                      color: "accentContent",
-                      background: "brandCoral",
-                      border: 0,
-                      textTransform: "uppercase",
-                      overflow: "hidden",
-                    }}
-                  >
-                    <div
-                      className={css({
-                        whiteSpace: "nowrap",
-                        overflow: "hidden",
-                        textOverflow: "ellipsis",
-                      })}
-                    >
-                      {DEPLOYMENT_FLAVOR}
-                    </div>
-                  </Tag>
-                </div>
-              )}
-            </div>
-          </Link>
-        </div>
-        <div
-          className={css({
-            display: "grid",
-            justifyContent: "center",
-            hideBelow: "medium",
-          })}
-        >
-          <Menu menuItems={menuItems} />
-        </div>
-        <div
-          className={css({
-            display: "grid",
-            gridTemplateColumns: "1fr min-content",
-            justifyContent: "end",
-            gap: {
-              base: 8,
-              large: 0,
-            },
-          })}
-        >
-          <div
-            className={css({
-              display: "grid",
-              justifyContent: "end",
-              width: "100%",
-            })}
-          >
-            <AccountButton />
-          </div>
-          <div
-            className={css({
-              display: "grid",
-              hideFrom: "large",
-            })}
-          >
-            <MenuDrawerButton menuItems={menuItems} />
-          </div>
-        </div>
-      </div>
-    </div>
-  );
+	const menuItems: MenuItem[] = [
+		[headerConfig.navigation.items.dashboard, "/", IconDashboard],
+		// Conditional menu items
+		...(headerConfig.navigation.showBorrow ? [[headerConfig.navigation.items.borrow, "/borrow", IconBorrow] as MenuItem] : []),
+		...(headerConfig.navigation.showEarn ? [[headerConfig.navigation.items.earn, "/earn", IconEarn] as MenuItem] : []),
+		...(headerConfig.navigation.showStake ? [[headerConfig.navigation.items.stake, "/stake", IconStake] as MenuItem] : []),
+	];
+
+	return (
+		<div
+			className={css({
+				position: "relative",
+				zIndex: 1,
+				height: 72,
+			})}
+		>
+			<div
+				className={css({
+					position: "relative",
+					zIndex: 1,
+					display: "grid",
+					gridTemplateColumns: {
+						base: "auto auto",
+						medium: "200px auto 200px",
+					},
+					justifyContent: "space-between",
+					gap: 16,
+					maxWidth: 1280,
+					height: "100%",
+					margin: "0 auto",
+					padding: {
+						base: "16px 12px",
+						medium: "16px 24px",
+					},
+					fontSize: 16,
+					fontWeight: 500,
+					background: "background",
+				})}
+			>
+				<div
+					className={css({
+						display: "flex",
+						alignItems: "center",
+						height: "100%",
+					})}
+				>
+					<Link
+						href="/"
+						className={css({
+							position: "relative",
+							display: "flex",
+							alignItems: "center",
+							gap: 16,
+							height: "100%",
+							_focusVisible: {
+								borderRadius: 4,
+								outline: "2px solid token(colors.focused)",
+							},
+							_active: {
+								translate: "0 1px",
+							},
+						})}
+					>
+						<div
+							className={css({
+								flexShrink: 0,
+							})}
+						>
+							<Logo size={32} />
+						</div>
+						<div
+							className={css({
+								flexShrink: 1,
+								overflow: "hidden",
+								display: "flex",
+								flexDirection: "column",
+								alignItems: "flex-start",
+								medium: {
+									flexDirection: "row",
+									alignItems: "center",
+									gap: 8,
+								},
+								whiteSpace: "balance",
+								paddingRight: 4,
+							})}
+						>
+							<div className={css({
+								fontFamily: "var(--font-lexend-zetta, Lexend Zetta), sans-serif",
+								letterSpacing: -5,
+								fontWeight: 800,
+								paddingRight: 4,
+								fontSize: 20,
+							})}>{headerConfig.appName}</div>
+							{DEPLOYMENT_FLAVOR && (
+								<div
+									className={css({
+										display: "grid",
+									})}
+								>
+									<Tag
+										size="mini"
+										css={{
+											color: "accentContent",
+											background: "brandCoral",
+											border: 0,
+											textTransform: "uppercase",
+											overflow: "hidden",
+										}}
+									>
+										<div
+											className={css({
+												whiteSpace: "nowrap",
+												overflow: "hidden",
+												textOverflow: "ellipsis",
+											})}
+										>
+											{DEPLOYMENT_FLAVOR}
+										</div>
+									</Tag>
+								</div>
+							)}
+						</div>
+					</Link>
+				</div>
+				<div
+					className={css({
+						display: "grid",
+						justifyContent: "center",
+						hideBelow: "medium",
+					})}
+				>
+					<Menu menuItems={menuItems} />
+				</div>
+				<div
+					className={css({
+						display: "grid",
+						gridTemplateColumns: "1fr min-content",
+						justifyContent: "end",
+						gap: {
+							base: 8,
+							large: 0,
+						},
+					})}
+				>
+					<div
+						className={css({
+							display: "grid",
+							justifyContent: "end",
+							width: "100%",
+						})}
+					>
+						<AccountButton />
+					</div>
+					<div
+						className={css({
+							display: "grid",
+							hideFrom: "large",
+						})}
+					>
+						<MenuDrawerButton menuItems={menuItems} />
+					</div>
+				</div>
+			</div>
+		</div>
+	);
 }

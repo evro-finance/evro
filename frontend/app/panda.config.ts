@@ -32,11 +32,7 @@ export default defineConfig({
   ],
   exclude: [],
   outdir: "styled-system",
-  include: [
-    "../uikit/src/**/*.tsx",
-    "./src/**/*.{ts,tsx}",
-    "./*.tsx",
-  ],
+  include: ["../uikit/src/**/*.tsx", "./src/**/*.{ts,tsx}", "./*.tsx"],
   globalCss: defineGlobalStyles({
     "html, body": {
       height: "100%",
@@ -46,6 +42,8 @@ export default defineConfig({
       fontWeight: 500,
       color: "content",
       background: "background",
+      fontFamily:
+        "var(--font-oswald, Oswald), var(--font-lexend-zetta, Lexend Zetta), sans-serif",
     },
     html: {
       overflowX: "auto",

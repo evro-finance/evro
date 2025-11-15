@@ -1,27 +1,27 @@
 /**
  * WHITE-LABEL CONFIGURATION
- * 
+ *
  * This is the master configuration file for customizing the platform for different clients.
  * When creating a new fork, update all values in this file according to the client's requirements.
  */
 
 export const WHITE_LABEL_CONFIG = {
   brandColors: {
-    primary: "black:700" as const,
+    primary: "black:700" as const, // #1d1c1f (shark dark)
     primaryContent: "white" as const,
     primaryContentAlt: "gray:300" as const,
-    
+
     secondary: "silver:100" as const,
     secondaryContent: "black:700" as const,
     secondaryContentAlt: "black:400" as const,
-    
-    accent1: "red:500" as const,  
+
+    accent1: "evro:orange" as const, // #efa960 (Evro brand orange)
     accent1Content: "white" as const,
-    accent1ContentAlt: "red:100" as const,
-    
-    accent2: "green:500" as const,
-    accent2Content: "black:700" as const,
-    accent2ContentAlt: "green:800" as const,
+    accent1ContentAlt: "white" as const,
+
+    accent2: "evro:blue" as const, // #7176ca (vivid blue for CTAs/links)
+    accent2Content: "white" as const,
+    accent2ContentAlt: "evro:blueLight" as const,
   },
 
   // ===========================
@@ -29,9 +29,9 @@ export const WHITE_LABEL_CONFIG = {
   // ===========================
   typography: {
     // Font family for CSS (used in Panda config)
-    fontFamily: "Geist, sans-serif",
+    fontFamily: "Oswald, Lexend Zetta, sans-serif",
     // Next.js font import name (should match the import)
-    fontImport: "GeistSans" as const,
+    fontImport: "Oswald, Lexend Zetta" as const,
   },
 
   // ===========================
@@ -40,16 +40,17 @@ export const WHITE_LABEL_CONFIG = {
   tokens: {
     // Main protocol stablecoin
     mainToken: {
-      name: "Your Stablecoin",
-      symbol: "YOUR" as const, 
-      ticker: "YOUR",
+      name: "EVRO",
+      symbol: "EVRO" as const,
+      ticker: "EVRO",
       decimals: 18,
-      description: "USD-pegged stablecoin by Your Protocol",
+      description: "Euro-pegged stablecoin by EVRO Finance",
       icon: "main-token",
       // Core protocol contracts (deployment addresses TBD)
       deployments: {
-        646: { // Ronin
-          token: "0x0000000000000000000000000000000000000000", // TBD - YOUR deployment
+        646: {
+          // Ronin
+          token: "0x0000000000000000000000000000000000000000", // TBD - EVRO deployment
           collateralRegistry: "0x0000000000000000000000000000000000000000", // TBD
           governance: "0x0000000000000000000000000000000000000000", // TBD
           hintHelpers: "0x0000000000000000000000000000000000000000", // TBD
@@ -57,7 +58,8 @@ export const WHITE_LABEL_CONFIG = {
           exchangeHelpers: "0x0000000000000000000000000000000000000000", // TBD
         },
         // Placeholder for build compatibility (remove after deployment)
-        1: { // Mainnet (placeholder)
+        1: {
+          // Mainnet (placeholder)
           token: "0x0000000000000000000000000000000000000000",
           collateralRegistry: "0x0000000000000000000000000000000000000000",
           governance: "0x0000000000000000000000000000000000000000",
@@ -65,7 +67,27 @@ export const WHITE_LABEL_CONFIG = {
           multiTroveGetter: "0x0000000000000000000000000000000000000000",
           exchangeHelpers: "0x0000000000000000000000000000000000000000",
         },
-        11155111: { // Sepolia (placeholder)
+        11155111: {
+          // Sepolia (placeholder)
+          token: "0x0000000000000000000000000000000000000000",
+          collateralRegistry: "0x0000000000000000000000000000000000000000",
+          governance: "0x0000000000000000000000000000000000000000",
+          hintHelpers: "0x0000000000000000000000000000000000000000",
+          multiTroveGetter: "0x0000000000000000000000000000000000000000",
+          exchangeHelpers: "0x0000000000000000000000000000000000000000",
+        },
+      },
+    },
+
+    evro: {
+      name: "EVRO",
+      symbol: "EVRO" as const,
+      ticker: "EVRO",
+      icon: "evro",
+      decimals: 18,
+      description: "Euro-pegged stablecoin by EVRO Finance",
+      deployments: {
+        646: {
           token: "0x0000000000000000000000000000000000000000",
           collateralRegistry: "0x0000000000000000000000000000000000000000",
           governance: "0x0000000000000000000000000000000000000000",
@@ -78,23 +100,24 @@ export const WHITE_LABEL_CONFIG = {
 
     // Governance token (exists but no functionality at launch)
     governanceToken: {
-      name: "Your Governance Token",
+      name: "EVRO Governance Token",
       symbol: "GOV" as const,
       ticker: "GOV",
-      icon: "governance-token",
+      icon: "main-token",
       // Only used as collateral, no governance features
       deployments: {
-        646: { // Ronin mainnet
+        646: {
+          // Ronin mainnet
           token: "0x0000000000000000000000000000000000000000",
-          staking: "0x0"
+          staking: "0x0",
         },
         1: {
           token: "0x0000000000000000000000000000000000000000",
-          staking: "0x0"
+          staking: "0x0",
         },
         11155111: {
           token: "0x0000000000000000000000000000000000000000",
-          staking: "0x0"
+          staking: "0x0",
         },
       },
     },
@@ -111,7 +134,8 @@ export const WHITE_LABEL_CONFIG = {
         maxLTV: 0.9091, // 90.91% max LTV
         // Deployment info (per chain)
         deployments: {
-          646: { // Your chain ID (TBD - needs actual deployment)
+          646: {
+            // EVRO Finance chain ID (TBD - needs actual deployment)
             collToken: "0x0000000000000000000000000000000000000000", // TBD
             leverageZapper: "0x0000000000000000000000000000000000000000", // TBD
             stabilityPool: "0x0000000000000000000000000000000000000000", // TBD
@@ -134,13 +158,14 @@ export const WHITE_LABEL_CONFIG = {
       },
       {
         symbol: "RETH" as const,
-        name: "Rocket Pool ETH", 
+        name: "Rocket Pool ETH",
         icon: "reth",
         collateralRatio: 1.1, // 110% MCR for LSTs
         maxDeposit: "25000000", // $25M initial debt limit
         maxLTV: 0.9091, // 90.91% max LTV
         deployments: {
-          646: { // Your chain ID (TBD - needs actual rETH deployment)
+          646: {
+            // EVRO Finance chain ID (TBD - needs actual rETH deployment)
             collToken: "0x0000000000000000000000000000000000000000", // TBD
             leverageZapper: "0x0000000000000000000000000000000000000000", // TBD
             stabilityPool: "0x0000000000000000000000000000000000000000", // TBD
@@ -174,14 +199,14 @@ export const WHITE_LABEL_CONFIG = {
       // SBOLD - yield-bearing version of the main token
       sbold: {
         symbol: "SBOLD" as const,
-        name: "sYOUR Token",
+        name: "sEVRO Token",
         icon: "sbold",
       },
       // Staked version of main token
       staked: {
-        symbol: "sYOUR" as const,
-        name: "Staked YOUR",
-        icon: "staked-main-token",
+        symbol: "sEVRO" as const,
+        name: "Staked EVRO",
+        icon: "main-token",
       },
       lusd: {
         symbol: "LUSD" as const,
@@ -196,30 +221,30 @@ export const WHITE_LABEL_CONFIG = {
   // ===========================
   branding: {
     // Core app identity
-    appName: "Your Protocol V2",        // Full app name for titles, about pages
-    brandName: "Your Protocol",         // Core brand name for protocol/version references
+    appName: "EVRO Portal", // Full app name for titles, about pages
+    brandName: "EVRO", // Core brand name for protocol/version references
     appTagline: "Multi-chain stablecoin protocol",
-    appDescription: "Borrow YOUR against multiple collateral types",
-    appUrl: "https://yourprotocol.com/",
-    
+    appDescription: "Borrow EVRO against multiple collateral types",
+    appUrl: "https://evrofinance.com/",
+
     // External links
     links: {
       docs: {
-        base: "https://docs.yourprotocol.com/",
-        redemptions: "https://docs.yourprotocol.com/redemptions",
-        liquidations: "https://docs.yourprotocol.com/liquidations",
-        delegation: "https://docs.yourprotocol.com/delegation",
-        interestRates: "https://docs.yourprotocol.com/interest-rates",
-        earn: "https://docs.yourprotocol.com/earn",
-        staking: "https://docs.yourprotocol.com/staking",
+        base: "https://docs.evrofinance.com/",
+        redemptions: "https://docs.evrofinance.com/redemptions",
+        liquidations: "https://docs.evrofinance.com/liquidations",
+        delegation: "https://docs.evrofinance.com/delegation",
+        interestRates: "https://docs.evrofinance.com/interest-rates",
+        earn: "https://docs.evrofinance.com/earn",
+        staking: "https://docs.evrofinance.com/staking",
       },
-      dune: "https://dune.com/yourprotocol",
-      discord: "https://discord.gg/yourprotocol",
-      github: "https://github.com/yourorg/yourprotocol",
-      x: "https://x.com/yourprotocol",
-      friendlyForkProgram: "https://yourprotocol.com/ecosystem",
+      dune: "https://dune.com/evrofinance",
+      discord: "https://discord.gg/evrofinance",
+      github: "https://github.com/evrofinance/evrofinance",
+      x: "https://x.com/evrofinance",
+      friendlyForkProgram: "https://evrofinance.com/ecosystem",
     },
-    
+
     // Feature flags and descriptions
     features: {
       showV1Legacy: false, // No V1 legacy content
@@ -229,23 +254,23 @@ export const WHITE_LABEL_CONFIG = {
         description: "A program for collaborative protocol development",
       },
     },
-    
-    // Navigation configuration  
+
+    // Navigation configuration
     navigation: {
       showBorrow: true,
       showEarn: true,
       showStake: false,
     },
-    
+
     // Menu labels (can be customized per deployment)
     menu: {
       dashboard: "Dashboard",
       borrow: "Borrow",
-      multiply: "Multiply", 
+      multiply: "Multiply",
       earn: "Earn",
-      stake: "Stake"
+      stake: "Stake",
     },
-    
+
     // Common UI text
     ui: {
       connectWallet: "Connect",
@@ -260,10 +285,10 @@ export const WHITE_LABEL_CONFIG = {
   // ===========================
   earnPools: {
     enableStakedMainToken: false,
-    
+
     // Enable/disable stability pools for collaterals
     enableStabilityPools: true,
-    
+
     // Custom pools configuration (beyond collateral stability pools)
     customPools: [] as Array<{
       symbol: string;
@@ -278,37 +303,43 @@ export type WhiteLabelConfig = typeof WHITE_LABEL_CONFIG;
 
 // Utility functions for dynamic configuration
 export function getAvailableEarnPools() {
-  const pools: Array<{ symbol: string; name: string; type: 'stability' | 'staked' | 'custom' }> = [];
-  
+  const pools: Array<{
+    symbol: string;
+    name: string;
+    type: "stability" | "staked" | "custom";
+  }> = [];
+
   // Add stability pools for enabled collaterals
   if (WHITE_LABEL_CONFIG.earnPools.enableStabilityPools) {
-    WHITE_LABEL_CONFIG.tokens.collaterals.forEach(collateral => {
+    WHITE_LABEL_CONFIG.tokens.collaterals.forEach((collateral) => {
       pools.push({
         symbol: collateral.symbol.toLowerCase(),
         name: `${collateral.name} Stability Pool`,
-        type: 'stability',
+        type: "stability",
       });
     });
   }
-  
+
   // Add custom pools
-  WHITE_LABEL_CONFIG.earnPools.customPools.forEach(pool => {
+  WHITE_LABEL_CONFIG.earnPools.customPools.forEach((pool) => {
     if (pool.enabled) {
       pools.push({
         symbol: pool.symbol.toLowerCase(),
         name: pool.name,
-        type: 'custom',
+        type: "custom",
       });
     }
   });
-  
+
   return pools;
 }
 
 export function getEarnPoolSymbols() {
-  return getAvailableEarnPools().map(pool => pool.symbol);
+  return getAvailableEarnPools().map((pool) => pool.symbol);
 }
 
 export function getCollateralSymbols() {
-  return WHITE_LABEL_CONFIG.tokens.collaterals.map(collateral => collateral.symbol.toLowerCase());
+  return WHITE_LABEL_CONFIG.tokens.collaterals.map((collateral) =>
+    collateral.symbol.toLowerCase()
+  );
 }

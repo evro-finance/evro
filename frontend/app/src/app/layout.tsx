@@ -18,53 +18,63 @@ import { TransactionFlow } from "@/src/services/TransactionFlow";
 import { SubgraphStatus } from "@/src/services/SubgraphStatus";
 import { UiKit } from "@liquity2/uikit";
 import { Analytics } from "@vercel/analytics/react";
-import { GeistSans } from "geist/font/sans";
+import { Lexend_Zetta, Oswald } from "next/font/google";
+
+const oswald = Oswald({
+	variable: "--font-oswald",
+	subsets: ["latin"],
+});
+
+const lexendZetta = Lexend_Zetta({
+	variable: "--font-lexend-zetta",
+	subsets: ["latin"],
+});
 
 export const metadata: Metadata = {
-  title: content.appName,
-  icons: "/favicon.svg",
+	title: content.appName,
+	icons: "/favicon.svg",
 };
 
 export const viewport: Viewport = {
-  width: "device-width",
-  initialScale: 1,
-  maximumScale: 1,
-  userScalable: false,
+	width: "device-width",
+	initialScale: 1,
+	maximumScale: 1,
+	userScalable: false,
 };
 
 export default function Layout({
-  children,
+	children,
 }: {
-  children: ReactNode;
+	children: ReactNode;
 }) {
-  return (
-    <html lang="en">
-      <body className={GeistSans.className}>
-        <ReactQuery>
-          <UiKit>
-            <StoredState>
-              <BreakpointName>
-                <Ethereum>
-                  <IndicatorManager>
-                    <SubgraphStatus>
-                      <Blocking>
-                        <TransactionFlow>
-                          <About>
-                            <AppLayout>
-                              {children}
-                            </AppLayout>
-                          </About>
-                        </TransactionFlow>
-                      </Blocking>
-                    </SubgraphStatus>
-                  </IndicatorManager>
-                </Ethereum>
-              </BreakpointName>
-            </StoredState>
-          </UiKit>
-        </ReactQuery>
-        {VERCEL_ANALYTICS && <Analytics />}
-      </body>
-    </html>
-  );
+	return (
+		<html lang="en">
+			<body className={`${oswald.variable} ${lexendZetta.variable} antialiased`}>
+				<ReactQuery>
+					<UiKit>
+						<StoredState>
+							<BreakpointName>
+								<Ethereum>
+									<IndicatorManager>
+										<SubgraphStatus>
+											<Blocking>
+												<TransactionFlow>
+													<About>
+														<AppLayout>
+															{children}
+														</AppLayout>
+													</About>
+												</TransactionFlow>
+											</Blocking>
+										</SubgraphStatus>
+									</IndicatorManager>
+								</Ethereum>
+							</BreakpointName>
+						</StoredState>
+					</UiKit>
+				</ReactQuery>
+				{VERCEL_ANALYTICS && <Analytics />}
+			</body>
+		</html>
+	);
 }
