@@ -1295,10 +1295,16 @@ contract BorrowerOperations is LiquityBase, AddRemoveManagers, IBorrowerOperatio
     }
 
     function _pullCollAndSendToActivePool(IActivePool _activePool, uint256 _amount) internal {
-        // Send Coll tokens from sender to active pool
-        collToken.safeTransferFrom(msg.sender, address(_activePool), _amount);
-        // Make sure Active Pool accountancy is right
-        _activePool.accountForReceivedColl(_amount);
+        
+        if (_activePool.isDelegationPool()) {
+            // TODO: do some custom logic to send coll to delegation pool instead.
+            continue;
+        } else {
+            // Send Coll tokens from sender to active pool
+            collToken.safeTransferFrom(msg.sender, address(_activePool), _amount);
+            // Make sure Active Pool accountancy is right
+            _activePool.accountForReceivedColl(_amount);
+        }
     }
 
     function checkBatchManagerExists(address _batchManager) external view returns (bool) {
