@@ -24,6 +24,8 @@ contract ActivePool is IActivePool {
 
     string public constant NAME = "ActivePool";
 
+    bool public immutable isDelegationPool;
+
     IERC20 public immutable collToken;
     address public immutable borrowerOperationsAddress;
     address public immutable troveManagerAddress;
@@ -71,7 +73,7 @@ contract ActivePool is IActivePool {
     event ActivePoolBoldDebtUpdated(uint256 _recordedDebtSum);
     event ActivePoolCollBalanceUpdated(uint256 _collBalance);
 
-    constructor(IAddressesRegistry _addressesRegistry) {
+    constructor(IAddressesRegistry _addressesRegistry, bool _isDelegationPool) {
         collToken = _addressesRegistry.collToken();
         borrowerOperationsAddress = address(_addressesRegistry.borrowerOperations());
         troveManagerAddress = address(_addressesRegistry.troveManager());
@@ -88,6 +90,8 @@ contract ActivePool is IActivePool {
 
         // Allow funds movements between Liquity contracts
         collToken.approve(defaultPoolAddress, type(uint256).max);
+
+        isDelegationPool = _isDelegationPool;
     }
 
     // --- Getters for public variables. Required by IPool interface ---

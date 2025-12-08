@@ -1,3 +1,14 @@
+## Active Pool Changes
+1. New DelegationPool contract used by ActivePool to
+2. Every trove gets its own DelegationPool contract deployed when depositing collateral for the first time.
+3. DelegationPool is 100% controlled by the ActivePool, and can delegate to the trove owner.
+4. Constructor update for ActivePool, so each branch can decide to use DelegationPools or not.
+
+TODO: 
+- [ ] When a trove is transfered using NFT make sure to update the owner here too.
+- [ ] in the constructor for activePool and delegatePool, allow infinite approval for collateral tokens
+
+
 ## Foundry
 
 **Foundry is a blazing fast, portable and modular toolkit for Ethereum application development written in Rust.**
