@@ -741,7 +741,7 @@ contract BorrowerOperations is LiquityBase, AddRemoveManagers, IBorrowerOperatio
         WETH.transferFrom(gasPoolAddress, receiver, ETH_GAS_COMPENSATION);
         // Burn the remainder of the Trove's entire debt from the user
         boldTokenCached.burn(msg.sender, trove.entireDebt);
-
+        // TODO: add internal sendColl function that checks for delegation pool and sends it from the correct pool if delegation pool is set
         // Send the collateral back to the user
         activePoolCached.sendColl(receiver, trove.entireColl);
 
@@ -1289,14 +1289,26 @@ contract BorrowerOperations is LiquityBase, AddRemoveManagers, IBorrowerOperatio
             // Pull coll tokens from sender and move them to the Active Pool
             _pullCollAndSendToActivePool(_activePool, _troveChange.collIncrease);
         } else if (_troveChange.collDecrease > 0) {
+            // T
             // Pull Coll from Active Pool and decrease its recorded Coll balance
             _activePool.sendColl(withdrawalReceiver, _troveChange.collDecrease);
         }
     }
 
     function _pullCollAndSendToActivePool(IActivePool _activePool, uint256 _amount) internal {
-        
+        /** TODO: 
+         1. add delegation pool creation to openTrove  
+         2. in trove manager move coll to active pool during redemption loop, _redeemCollateralFromTrove
+         3. add troveId to the TroveChange struct, ensure that it's set correctly when used.
+         4. add internal sendColl function that checks for delegation pool and sends it from the correct pool if delegation pool is set
+         5. 
+         
+         */
+
         if (_activePool.isDelegationPool()) {
+            address delegationPool = activePool.getDelegationPool(_troveId);
+            collToken.safeTransferFrom(msg.sender, delegationPool, _amount);
+            _activePool.accountForReceivedColl(_amount);
             // TODO: do some custom logic to send coll to delegation pool instead.
             continue;
         } else {
