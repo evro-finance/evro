@@ -203,6 +203,9 @@ contract troveNFTTest is DevTestSetup {
         address owner3 = troveNFTWETH.ownerOf(troveIds[2]);
         assertEq(owner3, A, "Trove 2 owner should be A");
 
+        address owner4 = troveNFTWETH.ownerOf(troveIds[3]);
+        assertEq(owner4, A, "Trove 3 owner should be A");
+
         //transfer a trove to a new address, then test again.
         vm.startPrank(A);
         troveNFTWETH.transferFrom(A, B, troveIds[0]);
@@ -214,19 +217,20 @@ contract troveNFTTest is DevTestSetup {
         // Verify ownerToTroveIds arrays are correct
         uint256[] memory aTroves = troveNFTWETH.ownerToTroveIds(A);
         uint256[] memory bTroves = troveNFTWETH.ownerToTroveIds(B);
-        assertEq(aTroves.length, 2, "A should have 2 troves");
+        assertEq(aTroves.length, 3, "A should have 3 troves");
         assertEq(bTroves.length, 1, "B should have 1 trove");
         assertEq(bTroves[0], troveIds[0], "B should own troveIds[0]");
 
         //deploy CoGNO contract and test the balance of the new address.
         CollateralGNO coGNO = new CollateralGNO(0, address(contractsArray[0].troveManager));
         assertEq(coGNO.balanceOf(B), 10e18, "CoGNO balance of B should be 10e18");
-        assertEq(coGNO.balanceOf(A), 20e18, "CoGNO balance of A should be 20e18 (troveIds[1] + troveIds[2])");
+        assertEq(coGNO.balanceOf(A), 30e18, "CoGNO balance of A should be 30e18 (troveIds[1] + troveIds[2] + troveIds[3])");
         
         // Test that CoGNO is non-transferable
         vm.startPrank(B);
+        uint256 balance = coGNO.balanceOf(B);
         vm.expectRevert("Token is non-transferable");
-        coGNO.transfer(A, coGNO.balanceOf(B));
+        coGNO.transfer(A, balance);
         vm.stopPrank();
 
         // Transfer NFT back to A
@@ -236,7 +240,7 @@ contract troveNFTTest is DevTestSetup {
 
         // Verify balances updated after NFT transfer
         assertEq(coGNO.balanceOf(B), 0, "CoGNO balance of B should be 0 after NFT transfer");
-        assertEq(coGNO.balanceOf(A), 30e18, "CoGNO balance of A should be 30e18 (all 3 troves)");
+        assertEq(coGNO.balanceOf(A), 40e18, "CoGNO balance of A should be 40e18 (all 4 troves)");
     }
 
     function testTroveURIAttributes() public view {

@@ -12,6 +12,8 @@ import "./Interfaces/IAddressesRegistry.sol";
 import {IMetadataNFT} from "./NFTMetadata/MetadataNFT.sol";
 import {ITroveManager} from "./Interfaces/ITroveManager.sol";
 
+import "forge-std/console.sol";
+
 contract TroveNFT is ERC721Enumerable, ITroveNFT {
     ITroveManager public immutable troveManager;
     IERC20Metadata internal immutable collToken;
@@ -24,7 +26,7 @@ contract TroveNFT is ERC721Enumerable, ITroveNFT {
     //mapping from troveId to its index in the owner's array (for O(1) removal)
     mapping(uint256 => uint256) internal _troveIdToIndex;
 
-    constructor(IAddressesRegistry _addressesRegistry, address _governor)
+    constructor(IAddressesRegistry _addressesRegistry)
         ERC721(
             string.concat("Liquity V2 - ", _addressesRegistry.collToken().name()),
             string.concat("LV2_", _addressesRegistry.collToken().symbol())
@@ -55,26 +57,36 @@ contract TroveNFT is ERC721Enumerable, ITroveNFT {
 
     function mint(address _owner, uint256 _troveId) external override {
         _requireCallerIsTroveManager();
+        _beforeTokenTransfer(address(0), _owner, _troveId);
         _mint(_owner, _troveId);
     }
 
     function burn(uint256 _troveId) external override {
         _requireCallerIsTroveManager();
+        _beforeTokenTransfer(ownerOf(_troveId), address(0), _troveId);
         _burn(_troveId);
     }
 
-    function ownerToTroveIds(address owner) external view override returns (uint256[] memory) {
+    function transferFrom(address from, address to, uint256 tokenId) public override(ERC721, IERC721) {
+        _beforeTokenTransfer(from, to, tokenId);
+        super.transferFrom(from, to, tokenId);
+    }
+
+    function safeTransferFrom(address from, address to, uint256 tokenId, bytes memory data) public override(ERC721, IERC721) {
+        _beforeTokenTransfer(from, to, tokenId);
+        super.safeTransferFrom(from, to, tokenId, data);
+    }
+
+    function ownerToTroveIds(address owner) external view returns (uint256[] memory) {
         return _ownerToTroveIds[owner];
     }
 
-    function _beforeTokenTransfer(address from, address to, uint256 firstTokenId, uint256 batchSize)
+    function _beforeTokenTransfer(address from, address to, uint256 firstTokenId)
         internal
         virtual
-        override(ERC721Enumerable)
-    {
-        super._beforeTokenTransfer(from, to, firstTokenId, batchSize);
 
-        // Only handle single token transfers (batchSize is always 1 for this contract)
+    {
+        // Only handle single token transfers
         uint256 troveId = firstTokenId;
 
         if (from == address(0)) {
@@ -96,7 +108,6 @@ contract TroveNFT is ERC721Enumerable, ITroveNFT {
     function _removeTroveFromOwner(address owner, uint256 troveId) internal {
         uint256[] storage troveIds = _ownerToTroveIds[owner];
         uint256 length = troveIds.length;
-        
         // Find the troveId in the array
         uint256 index = length; // Use length as "not found" marker
         for (uint256 i = 0; i < length; i++) {
@@ -105,12 +116,9 @@ contract TroveNFT is ERC721Enumerable, ITroveNFT {
                 break;
             }
         }
-        
         // If not found, nothing to remove
         if (index >= length) return;
-        
         uint256 lastIndex = length - 1;
-        
         // Swap with last element and pop (O(1) removal)
         if (index != lastIndex) {
             uint256 lastTroveId = troveIds[lastIndex];
