@@ -106,7 +106,7 @@ contract DeployLiquity2Script is DeployGovernance, UniPriceConverter, StdCheats,
     address GNO_GNO_ADDRESS = 0x9C58BAcC331c9aa871AFD802DB6379a98e80CEdb;
     address GNO_DAI_ADDRESS = 0xaf204776c7245bF4147c2612BF6e5972Ee483701;
     address GNO_USDC_ADDRESS = 0xDDAfbb505ad214D7b80b1f830fcCc89B60fb7A83;
-    address GNO_WSTETH_RATE_PROVIDER_ADDRESS = 0x0064AC007fF665CF8D0D3Af5E0AD1c26a3f853eA;
+    address GNO_WSTETH_RATE_PROVIDER_ADDRESS = 0x0064AC007fF665CF8D0D3Af5E0AD1c26a3f853eA; // chainlink data feed
     address GNO_WSTETH_ADDRESS = 0x6C76971f98945AE98dD7d4DFcA8711ebea946eA6;
     address GNO_RETH_ADDRESS = 0xc791240D1F2dEf5938E2031364Ff4ed887133C3d;
 
@@ -129,6 +129,8 @@ contract DeployLiquity2Script is DeployGovernance, UniPriceConverter, StdCheats,
     uint256 GNO_WBTC_USD_STALENESS_THRESHOLD = 25 hours;
     uint256 GNO_ETH_USD_STALENESS_THRESHOLD = 25 hours;
     uint256 GNO_WSTETH_USD_STALENESS_THRESHOLD = 25 hours;
+    uint256 GNO_WSTETH_RATE_PROVIDER_STALENESS_THRESHOLD = 25 hours;
+    uint256 GNO_STETH_USD_STALENESS_THRESHOLD = 25 hours;
 
         // gnosis testnet
     address CHIADO_GNO_ADDRESS = 0x19C653Da7c37c66208fbfbE8908A5051B57b4C70;
@@ -1026,15 +1028,19 @@ contract DeployLiquity2Script is DeployGovernance, UniPriceConverter, StdCheats,
                 // Using ETH/USD oracle for both ETH and stETH prices (stETH ≈ ETH)
                 return new WSTETHPriceFeed(
                     GNO_ETH_USD_ORACLE_ADDRESS,  // ETH/USD oracle
-                    GNO_ETH_USD_ORACLE_ADDRESS,  // stETH/USD oracle (using ETH/USD as proxy)
-                    GNO_WSTETH_ADDRESS,          // wstETH token for exchange rate
+                    GNO_STETH_USD_ORACLE_ADDRESS,  // stETH/USD oracle
+                    GNO_WSTETH_RATE_PROVIDER_ADDRESS,   // wstETH chainlink data feed for exchange rate
                     GNO_EUR_USD_ORACLE_ADDRESS,  // EUR/USD oracle for conversion
                     GNO_ETH_USD_STALENESS_THRESHOLD,
-                    GNO_ETH_USD_STALENESS_THRESHOLD,
+                    GNO_STETH_USD_STALENESS_THRESHOLD,
                     GNO_EUR_USD_STALENESS_THRESHOLD,
+                    GNO_WSTETH_RATE_PROVIDER_STALENESS_THRESHOLD,
+                    GNO_WSTETH_RATE_PROVIDER_ADDRESS,
                     _borroweOperationsAddress
                 );
             }
+           
+
         }
 
         // Sepolia
