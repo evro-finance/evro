@@ -35,7 +35,7 @@ contract ZapperWBTCGnosisTest is Test {
     // Helper to get trove collateral
     function _getTroveColl(uint256 _troveId) internal view returns (uint256) {
         (, uint256 coll,,,,,,,,) = troveManager.Troves(_troveId);
-        return coll;
+        return coll; 
     }
 
     // Helper to get trove debt

@@ -13,7 +13,6 @@ fs_permissions = [
     { access = "read-write", path = "./deployment-manifest.json" },
     { access = "read", path = "./addresses/" }
 ]
-cbor_metadata = true
 
 [invariant]
 call_override = false
@@ -40,3 +39,6 @@ broadcast = 'broadcast-e2e'
 no_storage_caching = true
 
 # See more config options https://github.com/foundry-rs/foundry/blob/master/crates/config/README.md#all-options
+[etherscan]
+#                   Paste TENDERLY_ACCESS_TOKEN            Chain ID         Verifier URL: RPC_URL/verify/etherscan
+gnosis = { key = "${TENDERLY_ACCESS_TOKEN}", chain = 100, url = "https://api.tenderly.co/api/v1/account/MrDeadCe11/project/project/etherscan/verify/network/100" }
