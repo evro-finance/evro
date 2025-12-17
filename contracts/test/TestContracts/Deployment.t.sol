@@ -838,15 +838,22 @@ contract TestDeployer is MetadataDeployment {
                 _oracleParams.rEthEthStalenessThreshold,
                 _borrowerOperationsAddress
             );
+   
         }
 
-        // wstETH
+          // wstETH 
+        // TODO: adding 0 address to extra params and 24 hours to staleness threshold to allow
+        // contracts to be deployed without the need for fixing all mainnet fork tests
         return new WSTETHPriceFeed(
             _externalAddresses.ETHOracle,
             _externalAddresses.STETHOracle,
             _externalAddresses.WSTETHToken,
-            _oracleParams.ethUsdStalenessThreshold,
-            _oracleParams.stEthUsdStalenessThreshold,
+            address(0),
+            24 hours,
+            24 hours,
+            24 hours,
+            24 hours,
+            address(0),
             _borrowerOperationsAddress
         );
     }

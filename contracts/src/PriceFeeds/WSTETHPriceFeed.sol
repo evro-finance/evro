@@ -5,20 +5,26 @@ pragma solidity 0.8.24;
 import "./CompositePriceFeed.sol";
 import "../Interfaces/IWSTETH.sol";
 import "../Interfaces/IWSTETHPriceFeed.sol";
+import {FixedPointMathLib} from "solady/utils/FixedPointMathLib.sol";
 
 // import "forge-std/console2.sol";
 
 contract WSTETHPriceFeed is CompositePriceFeed, IWSTETHPriceFeed {
     Oracle public stEthUsdOracle;
-
+    Oracle public eurUsdOracle;
+    Oracle public rateProviderOracle;
     uint256 public constant STETH_USD_DEVIATION_THRESHOLD = 1e16; // 1%
 
     constructor(
         address _ethUsdOracleAddress,
         address _stEthUsdOracleAddress,
         address _wstEthTokenAddress,
+        address _eurUsdOracleAddress,
         uint256 _ethUsdStalenessThreshold,
         uint256 _stEthUsdStalenessThreshold,
+        uint256 _eurUsdStalenessThreshold,
+        uint256 _rateProviderStalenessThreshold,
+        address _rateProviderOracleAddress,
         address _borrowerOperationsAddress
     )
         CompositePriceFeed(_ethUsdOracleAddress, _wstEthTokenAddress, _ethUsdStalenessThreshold, _borrowerOperationsAddress)
@@ -26,6 +32,14 @@ contract WSTETHPriceFeed is CompositePriceFeed, IWSTETHPriceFeed {
         stEthUsdOracle.aggregator = AggregatorV3Interface(_stEthUsdOracleAddress);
         stEthUsdOracle.stalenessThreshold = _stEthUsdStalenessThreshold;
         stEthUsdOracle.decimals = stEthUsdOracle.aggregator.decimals();
+
+        eurUsdOracle.aggregator = AggregatorV3Interface(_eurUsdOracleAddress);
+        eurUsdOracle.stalenessThreshold = _eurUsdStalenessThreshold;
+        eurUsdOracle.decimals = eurUsdOracle.aggregator.decimals();
+
+        rateProviderOracle.aggregator = AggregatorV3Interface(_rateProviderOracleAddress);
+        rateProviderOracle.stalenessThreshold = _rateProviderStalenessThreshold;
+        rateProviderOracle.decimals = rateProviderOracle.aggregator.decimals();
 
         _fetchPricePrimary(false);
 
@@ -38,15 +52,19 @@ contract WSTETHPriceFeed is CompositePriceFeed, IWSTETHPriceFeed {
         (uint256 stEthUsdPrice, bool stEthUsdOracleDown) = _getOracleAnswer(stEthUsdOracle);
         (uint256 stEthPerWstEth, bool exchangeRateIsDown) = _getCanonicalRate();
         (uint256 ethUsdPrice, bool ethUsdOracleDown) = _getOracleAnswer(ethUsdOracle);
+        (uint256 eurUsdPrice, bool eurUsdOracleDown) = _getOracleAnswer(eurUsdOracle);
 
         // - If exchange rate or ETH-USD is down, shut down and switch to last good price. Reasoning:
         // - Exchange rate is used in all price calcs
         // - ETH-USD is used in the fallback calc, and for redemptions in the primary price calc
         if (exchangeRateIsDown) {
-            return (_shutDownAndSwitchToLastGoodPrice(rateProviderAddress), true);
+            return (_shutDownAndSwitchToLastGoodPrice(address(rateProviderOracle.aggregator)), true);
         }
         if (ethUsdOracleDown) {
             return (_shutDownAndSwitchToLastGoodPrice(address(ethUsdOracle.aggregator)), true);
+        }
+        if (eurUsdOracleDown) {
+            return (_shutDownAndSwitchToLastGoodPrice(address(eurUsdOracle.aggregator)), true);
         }
 
         // If the STETH-USD feed is down, shut down and try to substitute it with the ETH-USD price
@@ -65,27 +83,20 @@ contract WSTETHPriceFeed is CompositePriceFeed, IWSTETHPriceFeed {
             wstEthUsdPrice = stEthUsdPrice * stEthPerWstEth / 1e18;
         }
 
-        lastGoodPrice = wstEthUsdPrice;
+        // Convert USD to EUR
+        uint256 wstEthEurPrice = FixedPointMathLib.divWad(wstEthUsdPrice, eurUsdPrice);
 
-        return (wstEthUsdPrice, false);
+        lastGoodPrice = wstEthEurPrice;
+
+        return (wstEthEurPrice, false);
     }
 
     function _getCanonicalRate() internal view override returns (uint256, bool) {
-        uint256 gasBefore = gasleft();
-
-        try IWSTETH(rateProviderAddress).stEthPerToken() returns (uint256 stEthPerWstEth) {
-            // If rate is 0, return true
-            if (stEthPerWstEth == 0) return (0, true);
-
-            return (stEthPerWstEth, false);
-        } catch {
-            // Require that enough gas was provided to prevent an OOG revert in the external call
-            // causing a shutdown. Instead, just revert. Slightly conservative, as it includes gas used
-            // in the check itself.
-            if (gasleft() <= gasBefore / 64) revert InsufficientGasForExternalCall();
-
-            // If call to exchange rate reverted for another reason, return true
+        // since we areon gnosis the rate provider is an oracle
+        (uint256 stEthPerWstEth, bool isDown) =  _getOracleAnswer(rateProviderOracle);
+        if (isDown) {
             return (0, true);
         }
+        return (stEthPerWstEth, false);
     }
 }

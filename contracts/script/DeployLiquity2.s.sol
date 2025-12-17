@@ -89,7 +89,7 @@ contract DeployLiquity2Script is DeployGovernance, UniPriceConverter, StdCheats,
     string constant DEPLOYMENT_MODE_BOLD_ONLY = "bold-only";
     string constant DEPLOYMENT_MODE_USE_EXISTING_BOLD = "use-existing-bold";
 
-    uint256 constant NUM_BRANCHES = 5;
+    uint256 constant NUM_BRANCHES = 6;
 
     address USDC_ADDRESS = 0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48;
 
@@ -106,9 +106,11 @@ contract DeployLiquity2Script is DeployGovernance, UniPriceConverter, StdCheats,
     address GNO_GNO_ADDRESS = 0x9C58BAcC331c9aa871AFD802DB6379a98e80CEdb;
     address GNO_DAI_ADDRESS = 0xaf204776c7245bF4147c2612BF6e5972Ee483701;
     address GNO_USDC_ADDRESS = 0xDDAfbb505ad214D7b80b1f830fcCc89B60fb7A83;
-
+    address GNO_WSTETH_RATE_PROVIDER_ADDRESS = 0x0064AC007fF665CF8D0D3Af5E0AD1c26a3f853eA; // chainlink data feed
     address GNO_WSTETH_ADDRESS = 0x6C76971f98945AE98dD7d4DFcA8711ebea946eA6;
     address GNO_RETH_ADDRESS = 0xc791240D1F2dEf5938E2031364Ff4ed887133C3d;
+
+    address GNO_WSTETH_STETH_ORACLE_ADDRESS = 0x08333e90Ec659fdd686199bDbb491FCa7f70aC2E; // api3 integrated
 
     address GNO_OSGNO_GNO_ORACLE_ADDRESS = 0x9B1b13afA6a57e54C03AD0428a4766C39707D272;// osGNO
     address GNO_GNO_USD_ORACLE_ADDRESS = 0x9145522A13E1D3E2DFcC0B26171Aa7979a969C89; // api3 integrated
@@ -117,6 +119,7 @@ contract DeployLiquity2Script is DeployGovernance, UniPriceConverter, StdCheats,
     address GNO_BTC_USD_ORACLE_ADDRESS = 0xD1913b99254F1C1292130b39cC8AF82FB6d69E1f; // api3 integrated
     address GNO_WBTC_USD_ORACLE_ADDRESS = 0xf7DE3005c55ED9762F7B36D6272A9cCE3Bfbf7Ee; // api3 integrated
     address GNO_ETH_USD_ORACLE_ADDRESS = 0x81037986FeE5CD75d064521262C325F5b0D2Af06; // api3 integrated
+    address GNO_STETH_USD_ORACLE_ADDRESS = 0x686E7f54a42172Da59d616C26727d4B2a2bAa177; // api3 integrated
 
     uint256 GNO_GNO_USD_STALENESS_THRESHOLD = 25 hours;
     uint256 GNO_OSGNO_GNO_STALENESS_THRESHOLD = 25 hours;
@@ -125,6 +128,9 @@ contract DeployLiquity2Script is DeployGovernance, UniPriceConverter, StdCheats,
     uint256 GNO_BTC_USD_STALENESS_THRESHOLD = 25 hours;
     uint256 GNO_WBTC_USD_STALENESS_THRESHOLD = 25 hours;
     uint256 GNO_ETH_USD_STALENESS_THRESHOLD = 25 hours;
+    uint256 GNO_WSTETH_USD_STALENESS_THRESHOLD = 25 hours;
+    uint256 GNO_WSTETH_RATE_PROVIDER_STALENESS_THRESHOLD = 25 hours;
+    uint256 GNO_STETH_USD_STALENESS_THRESHOLD = 25 hours;
 
         // gnosis testnet
     address CHIADO_GNO_ADDRESS = 0x19C653Da7c37c66208fbfbE8908A5051B57b4C70;
@@ -390,7 +396,6 @@ contract DeployLiquity2Script is DeployGovernance, UniPriceConverter, StdCheats,
 
         TroveManagerParams[] memory troveManagerParamsArray = new TroveManagerParams[](NUM_BRANCHES);
 
-
         // // wstETH
         // troveManagerParamsArray[1] = TroveManagerParams({
         //     CCR: CCR_SETH,
@@ -401,8 +406,8 @@ contract DeployLiquity2Script is DeployGovernance, UniPriceConverter, StdCheats,
         //     LIQUIDATION_PENALTY_REDISTRIBUTION: LIQUIDATION_PENALTY_REDISTRIBUTION_SETH
         // });
 
-        // // rETH (same as wstETH)
-        // troveManagerParamsArray[2] = troveManagerParamsArray[1];
+        // rETH (same as wstETH)
+        troveManagerParamsArray[2] = troveManagerParamsArray[1];
 
         // Names/symbols for branches 1..(NUM_BRANCHES-1). Branch 0 (WETH) is excluded.
         string[] memory collNames = new string[](NUM_BRANCHES - 1);
@@ -487,6 +492,18 @@ contract DeployLiquity2Script is DeployGovernance, UniPriceConverter, StdCheats,
         collNames[3] = "Osmosis GNO";
         collSymbols[3] = "OSGNO";
 
+        // wstETH
+        troveManagerParamsArray[5] = TroveManagerParams({
+            CCR: CCR_SETH,
+            MCR: MCR_SETH,
+            SCR: SCR_SETH,
+            BCR: BCR_ALL,
+            LIQUIDATION_PENALTY_SP: LIQUIDATION_PENALTY_SP_SETH,
+            LIQUIDATION_PENALTY_REDISTRIBUTION: LIQUIDATION_PENALTY_REDISTRIBUTION_SETH
+        });
+        // Branch 5 → index 4
+        collNames[4] = "Wrapped liquid staked Ether 2.0";
+        collSymbols[4] = "wstETH";
 
         DeploymentResult memory deployed =
             _deployAndConnectContracts(troveManagerParamsArray, collNames, collSymbols, deployGovernanceParams);
@@ -729,6 +746,9 @@ contract DeployLiquity2Script is DeployGovernance, UniPriceConverter, StdCheats,
 
             // OSGNO
             vars.collaterals[4] = IERC20Metadata(GNO_OSGNO_ADDRESS);
+
+            // wstETH
+            vars.collaterals[5] = IERC20Metadata(GNO_WSTETH_ADDRESS);
         } else {
             // Sepolia
             // Use WETH as collateral for the first branch
@@ -930,7 +950,7 @@ contract DeployLiquity2Script is DeployGovernance, UniPriceConverter, StdCheats,
         contracts.leverageZapper = zappers.leverageZapper;
 
         // Deploy CoGNO token only for GNO branch
-        if (address(_collToken) == GNO_GNO_ADDRESS) {
+        if (address(_collToken) == GNO_GNO_ADDRESS || address(_collToken) == GNO_OSGNO_ADDRESS) {
             contracts.coGNO = new CollateralGNO{salt: SALT}(address(contracts.troveManager));
         }
     }
@@ -1004,6 +1024,23 @@ contract DeployLiquity2Script is DeployGovernance, UniPriceConverter, StdCheats,
                     _borroweOperationsAddress
                 );
             }
+            if(_collTokenAddress == GNO_WSTETH_ADDRESS){
+                // Using ETH/USD oracle for both ETH and stETH prices (stETH ≈ ETH)
+                return new WSTETHPriceFeed(
+                    GNO_ETH_USD_ORACLE_ADDRESS,  // ETH/USD oracle
+                    GNO_STETH_USD_ORACLE_ADDRESS,  // stETH/USD oracle
+                    GNO_WSTETH_RATE_PROVIDER_ADDRESS,   // wstETH chainlink data feed for exchange rate
+                    GNO_EUR_USD_ORACLE_ADDRESS,  // EUR/USD oracle for conversion
+                    GNO_ETH_USD_STALENESS_THRESHOLD,
+                    GNO_STETH_USD_STALENESS_THRESHOLD,
+                    GNO_EUR_USD_STALENESS_THRESHOLD,
+                    GNO_WSTETH_RATE_PROVIDER_STALENESS_THRESHOLD,
+                    GNO_WSTETH_RATE_PROVIDER_ADDRESS,
+                    _borroweOperationsAddress
+                );
+            }
+           
+
         }
 
         // Sepolia
