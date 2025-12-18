@@ -370,7 +370,7 @@ export const FooterInfoCollPrice = memo(
 								fontVariantNumeric: "tabular-nums",
 							})}
 						>
-							{fmtnum(collPriceUsd, { prefix: "$", preset: "2z" })}
+							{fmtnum(collPriceUsd, { prefix: "€", preset: "2z" })}
 						</span>
 						<InfoTooltip {...infoTooltipProps(content.generalInfotooltips.ethPrice)} />
 					</HFlex>

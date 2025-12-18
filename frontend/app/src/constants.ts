@@ -59,7 +59,9 @@ export const DATA_STALE_TIME = 5_000;
 export const LEVERAGE_MAX_SLIPPAGE = 0.05; // 5%
 export const CLOSE_FROM_COLLATERAL_SLIPPAGE = 0.05; // 5%
 export const MAX_UPFRONT_FEE = 1000n * 10n ** 18n;
-export const MIN_DEBT = dn.from(2000, 18);
+// export const MIN_DEBT = dn.from(2000, 18);
+// TODO: set back to 2000 DAI after testing
+export const MIN_DEBT = dn.from(1, 18);
 
 export const TROVE_STATUS_NONEXISTENT = 0;
 export const TROVE_STATUS_ACTIVE = 1;

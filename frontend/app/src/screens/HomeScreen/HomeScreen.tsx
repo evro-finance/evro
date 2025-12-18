@@ -232,14 +232,14 @@ function BorrowingRow({
 			<td>
 				<Amount
 					format="compact"
-					prefix="$"
+					prefix="€"
 					fallback="…"
 					value={branchDebt.data}
 				/>
 				{' / '}
 				<Amount
 					format="compact"
-					prefix="$"
+					prefix="€"
 					fallback="…"
 					value={Number(collateral?.maxDeposit)}
 				/>
@@ -319,7 +319,7 @@ function EarnRewardsRow({
 				<Amount
 					fallback="…"
 					format="compact"
-					prefix="$"
+					prefix="€"
 					value={earnPool.data?.totalDeposited}
 				/>
 			</td>
