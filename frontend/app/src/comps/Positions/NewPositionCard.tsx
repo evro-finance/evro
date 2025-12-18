@@ -20,16 +20,6 @@ const actions = {
 		path: "/borrow",
 		title: "Borrow",
 	},
-	// multiply: {
-	//   colors: {
-	//     background: token("colors.brandGreen"),
-	//     foreground: token("colors.brandGreenContent"),
-	//     foregroundAlt: token("colors.brandGreenContentAlt"),
-	//   },
-	//   description: contentActions.multiply.description,
-	//   path: "/multiply",
-	//   title: "Multiply",
-	// },
 	earn: {
 		colors: {
 			background: token.var("colors.brandBlue"),
@@ -40,16 +30,6 @@ const actions = {
 		path: "/earn",
 		title: "Earn",
 	},
-	// stake: {
-	// 	colors: {
-	// 		background: token.var("colors.brandGolden"),
-	// 		foreground: token.var("colors.brandGoldenContent"),
-	// 		foregroundAlt: token.var("colors.brandGoldenContentAlt"),
-	// 	},
-	// 	description: contentActions.stake.description,
-	// 	path: "/stake",
-	// 	title: "Stake",
-	// },
 } as const;
 
 const actionsEntries = Object.entries(actions);
