@@ -13,23 +13,23 @@ import { findClosestRateIndex, getBranch, useAverageInterestRate, useInterestRat
 import { infoTooltipProps } from "@/src/uikit-utils";
 import { noop } from "@/src/utils";
 import { css } from "@/styled-system/css";
-import { Dropdown, InfoTooltip, InputField, shortenAddress, Slider, TextButton } from "@liquity2/uikit";
+import { Dropdown, InfoTooltip, InputField, /* shortenAddress, */ Slider, TextButton } from "@liquity2/uikit";
 import { a } from "@react-spring/web";
-import { blo } from "blo";
+// import { blo } from "blo";
 import * as dn from "dnum";
-import Image from "next/image";
+// import Image from "next/image";
 import { memo, useCallback, useEffect, useId, useMemo, useRef, useState } from "react";
 import { match } from "ts-pattern";
 import { DelegateModal } from "./DelegateModal";
 import { IcStrategiesModal } from "./IcStrategiesModal";
 import { MiniChart } from "./MiniChart";
 
-import icLogo from "./ic-logo.svg";
+// import icLogo from "./ic-logo.svg";
 
 const DELEGATE_MODES = [
 	"manual",
-	"delegate",
-	"strategy",
+	// "delegate",
+	// "strategy",
 ] as const;
 
 export type DelegateMode = typeof DELEGATE_MODES[number];
@@ -149,7 +149,8 @@ export const InterestRateField = memo(
 		const branch = getBranch(branchId);
 
 		const hasStrategies = branch.strategies.length > 0;
-		const activeDelegateModes = DELEGATE_MODES.filter((mode) => mode !== "strategy" || hasStrategies);
+		// const activeDelegateModes = DELEGATE_MODES.filter((mode) => mode !== "strategy" || hasStrategies);
+		const activeDelegateModes = DELEGATE_MODES.filter(() => hasStrategies);
 
 		const boldInterestPerYear = interestRate && debt && dn.mul(interestRate, debt);
 
@@ -170,72 +171,72 @@ export const InterestRateField = memo(
 								fieldValue={fieldValue}
 							/>
 						))
-						.with("strategy", () => (
-							<TextButton
-								size="large"
-								label={delegate
-									? (
-										<div
-											title={delegate}
-											className={css({
-												display: "flex",
-												alignItems: "center",
-												gap: 8,
-											})}
-										>
-											<Image
-												alt=""
-												src={icLogo}
-												width={24}
-												height={24}
-												className={css({
-													display: "block",
-													borderRadius: 0,
-												})}
-											/>
-											{shortenAddress(delegate, 4).toLowerCase()}
-										</div>
-									)
-									: "Choose strategy"}
-								onClick={() => {
-									setDelegatePicker("strategy");
-								}}
-							/>
-						))
-						.with("delegate", () => (
-							<TextButton
-								size="large"
-								title={delegate ?? undefined}
-								label={delegate
-									? (
-										<div
-											title={delegate}
-											className={css({
-												display: "flex",
-												alignItems: "center",
-												gap: 8,
-												fontSize: 20,
-											})}
-										>
-											<Image
-												alt=""
-												width={24}
-												height={24}
-												src={blo(delegate)}
-												className={css({
-													display: "block",
-													borderRadius: 0,
-												})}
-											/>
-											{shortenAddress(delegate, 4).toLowerCase()}
-										</div>
-									)
-									: "Choose delegate"}
-								onClick={() => {
-									setDelegatePicker("delegate");
-								}}
-							/>
-						))
+						// .with("strategy", () => (
+						// 	<TextButton
+						// 		size="large"
+						// 		label={delegate
+						// 			? (
+						// 				<div
+						// 					title={delegate}
+						// 					className={css({
+						// 						display: "flex",
+						// 						alignItems: "center",
+						// 						gap: 8,
+						// 					})}
+						// 				>
+						// 					<Image
+						// 						alt=""
+						// 						src={icLogo}
+						// 						width={24}
+						// 						height={24}
+						// 						className={css({
+						// 							display: "block",
+						// 							borderRadius: 0,
+						// 						})}
+						// 					/>
+						// 					{shortenAddress(delegate, 4).toLowerCase()}
+						// 				</div>
+						// 			)
+						// 			: "Choose strategy"}
+						// 		onClick={() => {
+						// 			setDelegatePicker("strategy");
+						// 		}}
+						// 	/>
+						// ))
+						// .with("delegate", () => (
+						// 	<TextButton
+						// 		size="large"
+						// 		title={delegate ?? undefined}
+						// 		label={delegate
+						// 			? (
+						// 				<div
+						// 					title={delegate}
+						// 					className={css({
+						// 						display: "flex",
+						// 						alignItems: "center",
+						// 						gap: 8,
+						// 						fontSize: 20,
+						// 					})}
+						// 				>
+						// 					<Image
+						// 						alt=""
+						// 						width={24}
+						// 						height={24}
+						// 						src={blo(delegate)}
+						// 						className={css({
+						// 							display: "block",
+						// 							borderRadius: 0,
+						// 						})}
+						// 					/>
+						// 					{shortenAddress(delegate, 4).toLowerCase()}
+						// 				</div>
+						// 			)
+						// 			: "Choose delegate"}
+						// 		onClick={() => {
+						// 			setDelegatePicker("delegate");
+						// 		}}
+						// 	/>
+						// ))
 						.exhaustive()}
 					label={{
 						start: (

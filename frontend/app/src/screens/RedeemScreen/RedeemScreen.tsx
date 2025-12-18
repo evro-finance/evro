@@ -72,7 +72,7 @@ export function RedeemScreen() {
 								/>
 							))}
 						</TokenIcon.Group>{" "}
-						ETH
+						XDAI
 					</HFlex>
 				),
 			}}
@@ -108,7 +108,7 @@ export function RedeemScreen() {
 							label="Redeeming"
 							placeholder="0.00"
 							secondary={{
-								start: `$${amount.parsed
+								start: `€${amount.parsed
 										? fmtnum(amount.parsed)
 										: "0.00"
 									}`,
@@ -225,7 +225,7 @@ export function RedeemScreen() {
 							},
 						})}
 					>
-						You will be charged a dynamic redemption fee (the more redemptions, the higher the fee). Trading ${WHITE_LABEL_CONFIG.tokens.mainToken.symbol} on an
+						You will be charged a dynamic redemption fee (the more redemptions, the higher the fee). Trading {WHITE_LABEL_CONFIG.tokens.mainToken.symbol} on an
 						exchange could be more favorable.{" "}
 						<Link
 							href="https://docs.liquity.org/v2-faq/redemptions-and-delegation"
