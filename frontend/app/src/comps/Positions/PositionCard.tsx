@@ -76,6 +76,7 @@ export function PositionCard({
 				"group",
 				anchorProps.className,
 				css({
+					backgroundColor: "black",
 					position: "relative",
 					overflow: "hidden",
 					display: "flex",

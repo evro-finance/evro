@@ -3,7 +3,7 @@ import { z } from "zod";
 
 const COINGECKO_URL =
   "https://api.coingecko.com/api/v3/simple/price" +
-  "?ids=gnosis,savings-xdai,gnosis-xdai-bridged-wbtc-gnosis-chain,stakewise-staked-gno-2" +
+  "?ids=gnosis,savings-xdai,gnosis-xdai-bridged-wbtc-gnosis-chain,stakewise-staked-gno-2,bridged-wrapped-steth-gnosis" +
   "&vs_currencies=usd";
 
 const FRANKFURTER_FX_URL = "https://api.frankfurter.dev/v1/latest?from=USD&to=EUR";
@@ -15,6 +15,7 @@ const CoinGeckoSimplePriceSchema = z.object({
   "savings-xdai": z.object({ usd: z.number() }).optional(),
   "gnosis-xdai-bridged-wbtc-gnosis-chain": z.object({ usd: z.number() }).optional(),
   "stakewise-staked-gno-2": z.object({ usd: z.number() }).optional(),
+  "bridged-wrapped-steth-gnosis": z.object({ usd: z.number() }).optional(),
 });
 
 const FrankfurterSchema = z.object({
@@ -31,6 +32,7 @@ const PricesSchema = z.object({
     SDAI: z.string(),
     WBTC: z.string(),
     OSGNO: z.string(),
+    WSTETH: z.string(),
   }),
 });
 
@@ -72,7 +74,8 @@ export async function GET() {
       parsed.gnosis?.usd === undefined ||
       parsed["savings-xdai"]?.usd === undefined ||
       parsed["gnosis-xdai-bridged-wbtc-gnosis-chain"]?.usd === undefined ||
-      parsed["stakewise-staked-gno-2"]?.usd === undefined
+      parsed["stakewise-staked-gno-2"]?.usd === undefined ||
+      parsed["bridged-wrapped-steth-gnosis"]?.usd === undefined
     ) {
       throw new Error("Missing required price(s) from CoinGecko response");
     }
@@ -85,6 +88,7 @@ export async function GET() {
       GNO: usdToEurString(parsed.gnosis.usd, usdToEurRate),
       WBTC: usdToEurString(parsed["gnosis-xdai-bridged-wbtc-gnosis-chain"].usd, usdToEurRate),
       OSGNO: usdToEurString(parsed["stakewise-staked-gno-2"].usd, usdToEurRate),
+      WSTETH: usdToEurString(parsed["bridged-wrapped-steth-gnosis"].usd, usdToEurRate),
     };
 
     const body: PricesResponse = { prices };

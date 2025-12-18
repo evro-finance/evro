@@ -40,16 +40,16 @@ const actions = {
 		path: "/earn",
 		title: "Earn",
 	},
-	stake: {
-		colors: {
-			background: token.var("colors.brandGolden"),
-			foreground: token.var("colors.brandGoldenContent"),
-			foregroundAlt: token.var("colors.brandGoldenContentAlt"),
-		},
-		description: contentActions.stake.description,
-		path: "/stake",
-		title: "Stake",
-	},
+	// stake: {
+	// 	colors: {
+	// 		background: token.var("colors.brandGolden"),
+	// 		foreground: token.var("colors.brandGoldenContent"),
+	// 		foregroundAlt: token.var("colors.brandGoldenContentAlt"),
+	// 	},
+	// 	description: contentActions.stake.description,
+	// 	path: "/stake",
+	// 	title: "Stake",
+	// },
 } as const;
 
 const actionsEntries = Object.entries(actions);
