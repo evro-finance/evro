@@ -142,7 +142,7 @@ export function EarnPositionSummary({
             <Amount
               fallback="-"
               format="compact"
-              prefix="$"
+              prefix="€"
               value={poolDeposit}
             />
           </div>

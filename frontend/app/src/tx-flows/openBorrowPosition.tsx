@@ -27,6 +27,7 @@ import { maxUint256, parseEventLogs } from "viem";
 import { readContract } from "wagmi/actions";
 import { createRequestSchema, verifyTransaction } from "./shared";
 import { WHITE_LABEL_CONFIG } from "@/src/white-label.config";
+import { WBTCZapper } from "../abi/WBTCZapper";
 
 const RequestSchema = createRequestSchema(
   "openBorrowPosition",
@@ -111,7 +112,7 @@ export const openBorrowPosition: FlowDeclaration<OpenBorrowPositionRequest> = {
             <Amount
               key="end"
               fallback="…"
-              prefix="$"
+              prefix="€"
               value={collPrice.data && dn.mul(request.collAmount, collPrice.data)}
             />,
           ]}
@@ -212,9 +213,9 @@ export const openBorrowPosition: FlowDeclaration<OpenBorrowPositionRequest> = {
           value={[
             <div
               key="start"
-              title={`${fmtnum(ETH_GAS_COMPENSATION, "full")} ETH`}
+              title={`${fmtnum(ETH_GAS_COMPENSATION, "full")} xDAI`}
             >
-              {fmtnum(ETH_GAS_COMPENSATION, 4)} ETH
+              {fmtnum(ETH_GAS_COMPENSATION, 4)} xDAI
             </div>,
             "Only used in case of liquidation",
           ]}
@@ -273,6 +274,76 @@ export const openBorrowPosition: FlowDeclaration<OpenBorrowPositionRequest> = {
         return ctx.writeContract({
           ...branch.contracts.LeverageLSTZapper,
           functionName: "openTroveWithRawETH" as const,
+          args: [{
+            owner: ctx.request.owner,
+            ownerIndex: BigInt(ctx.request.ownerIndex),
+            // This requires adding 10 decimals to the coll amount
+            collAmount: ctx.request.collAmount[0],
+            boldAmount: ctx.request.boldAmount[0],
+            upperHint,
+            lowerHint,
+            annualInterestRate: ctx.request.interestRateDelegate
+              ? 0n
+              : ctx.request.annualInterestRate[0],
+            batchManager: ctx.request.interestRateDelegate
+              ? ctx.request.interestRateDelegate
+              : ADDRESS_ZERO,
+            maxUpfrontFee: ctx.request.maxUpfrontFee[0],
+            addManager: ADDRESS_ZERO,
+            removeManager: ADDRESS_ZERO,
+            receiver: ADDRESS_ZERO,
+          }],
+          value: ETH_GAS_COMPENSATION[0],
+        });
+      },
+
+      async verify(ctx, hash) {
+        const receipt = await verifyTransaction(ctx.wagmiConfig, hash, ctx.isSafe);
+
+        // extract trove ID from logs
+        const branch = getBranch(ctx.request.branchId);
+        const [troveOperation] = parseEventLogs({
+          abi: branch.contracts.TroveManager.abi,
+          logs: receipt.logs,
+          eventName: "TroveOperation",
+        });
+
+        if (!troveOperation?.args?._troveId) {
+          throw new Error("Failed to extract trove ID from transaction");
+        }
+
+        // wait for the trove to appear in the subgraph
+        while (true) {
+          const trove = await getIndexedTroveById(
+            branch.branchId,
+            `0x${troveOperation.args._troveId.toString(16)}`,
+          );
+          if (trove !== null) {
+            break;
+          }
+          await sleep(1000);
+        }
+      },
+    },
+
+    // wbtcZapper mode
+    openTroveWbtc: {
+      name: () => "Open Position",
+      Status: TransactionStatus,
+
+      async commit(ctx) {
+        const { upperHint, lowerHint } = await getTroveOperationHints({
+          wagmiConfig: ctx.wagmiConfig,
+          contracts: ctx.contracts,
+          branchId: ctx.request.branchId,
+          interestRate: ctx.request.annualInterestRate[0],
+        });
+
+        const branch = getBranch(ctx.request.branchId);
+        return ctx.writeContract({
+          ...branch.contracts.LeverageLSTZapper,
+          abi: WBTCZapper,
+          functionName: "openTroveWithWBTC" as const,
           args: [{
             owner: ctx.request.owner,
             ownerIndex: BigInt(ctx.request.ownerIndex),
@@ -373,8 +444,8 @@ export const openBorrowPosition: FlowDeclaration<OpenBorrowPositionRequest> = {
   async getSteps(ctx) {
     const branch = getBranch(ctx.request.branchId);
 
-    // ETH doesn't need approval
-    if (branch.symbol === "ETH") {
+    // XDAI doesn't need approval
+    if (branch.symbol === "XDAI") {
       return ["openTroveEth"];
     }
 
@@ -391,7 +462,12 @@ export const openBorrowPosition: FlowDeclaration<OpenBorrowPositionRequest> = {
       steps.push("approveLst");
     }
 
-    steps.push("openTroveLst");
+    if (branch.symbol === "WBTC")
+      steps.push("openTroveWbtc");
+    else {
+      steps.push("openTroveLst");
+    }
+
     return steps;
   },
 

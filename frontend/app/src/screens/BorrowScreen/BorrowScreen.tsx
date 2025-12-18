@@ -241,7 +241,7 @@ export function BorrowScreen() {
 						label={content.borrowScreen.depositField.label}
 						placeholder="0.00"
 						secondary={{
-							start: `$${deposit.parsed && collPrice.data
+							start: `€${deposit.parsed && collPrice.data
 								? fmtnum(dn.mul(collPrice.data, deposit.parsed), "2z")
 								: "0.00"
 								}`,
@@ -293,7 +293,7 @@ export function BorrowScreen() {
 						label={content.borrowScreen.borrowField.label}
 						placeholder="0.00"
 						secondary={{
-							start: `$${debt.parsed
+							start: `€${debt.parsed
 								? fmtnum(debt.parsed)
 								: "0.00"
 								}`,
@@ -306,7 +306,7 @@ export function BorrowScreen() {
 												label={fmtnum(s.debt, {
 													compact: true,
 													digits: 0,
-													prefix: "$",
+													prefix: "€",
 												})}
 												onClick={() => {
 													if (s.debt) {

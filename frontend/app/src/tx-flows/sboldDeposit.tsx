@@ -84,7 +84,7 @@ export const sboldDeposit: FlowDeclaration<SboldDepositRequest> = {
                   suffix={` ${WHITE_LABEL_CONFIG.tokens.mainToken.symbol} Entry Fee`}
                 />
                 <InfoTooltip heading={`${WHITE_LABEL_CONFIG.tokens.otherTokens.staked.symbol} Entry Fee`}>
-                  This fee is charged when you deposit ${WHITE_LABEL_CONFIG.tokens.mainToken.symbol} for ${WHITE_LABEL_CONFIG.tokens.otherTokens.staked.symbol} shares, and has been deducted from the deposit
+                  This fee is charged when you deposit {WHITE_LABEL_CONFIG.tokens.mainToken.symbol} for {WHITE_LABEL_CONFIG.tokens.otherTokens.staked.symbol} shares, and has been deducted from the deposit
                   amount.
                 </InfoTooltip>
               </div>

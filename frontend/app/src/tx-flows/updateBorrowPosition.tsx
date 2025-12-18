@@ -96,7 +96,7 @@ export const updateBorrowPosition: FlowDeclaration<UpdateBorrowPositionRequest> 
               <Amount
                 key="end"
                 fallback="…"
-                prefix="$"
+                prefix="€"
                 value={collPrice.data && dn.mul(dn.abs(collChange), collPrice.data)}
               />,
             ]}
@@ -142,7 +142,7 @@ export const updateBorrowPosition: FlowDeclaration<UpdateBorrowPositionRequest> 
 
         const branch = getBranch(ctx.request.loan.branchId);
 
-        const Controller = branch.symbol === "ETH"
+        const Controller = branch.symbol === "XDAI"
           ? branch.contracts.LeverageWETHZapper
           : branch.contracts.LeverageLSTZapper;
 

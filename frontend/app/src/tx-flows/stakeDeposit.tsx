@@ -53,7 +53,7 @@ export const stakeDeposit: FlowDeclaration<StakeDepositRequest> = {
           />,
           <Amount
             key="end"
-            prefix="$"
+            prefix="€"
             value={lqtyPrice.data && dn.mul(request.lqtyAmount, lqtyPrice.data)}
           />,
         ]}

@@ -88,7 +88,7 @@ export const earnUpdate: FlowDeclaration<EarnUpdateRequest> = {
             />,
             <Amount
               key="end"
-              prefix="$"
+              prefix="€"
               value={usdAmount}
             />,
           ]}

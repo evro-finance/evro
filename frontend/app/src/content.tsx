@@ -39,20 +39,20 @@ export default {
 		loanRedemptionRisk: [
 			"Redemption risk",
 			<>
-				Users paying the lowest interest rate can get redeemed, if the price of ${WHITE_LABEL_CONFIG.tokens.mainToken.symbol} falls below $1. By raising your
+				Users paying the lowest interest rate can get redeemed, if the price of {WHITE_LABEL_CONFIG.tokens.mainToken.symbol} falls below €1. By raising your
 				interest rate, you reduce this risk.
 			</>,
 		],
 		loanLtv: [
 			"Loan-to-value ratio",
 			<>
-				The ratio between the amount of ${WHITE_LABEL_CONFIG.tokens.mainToken.symbol} borrowed and the deposited collateral (in EUR).
+				The ratio between the amount of {WHITE_LABEL_CONFIG.tokens.mainToken.symbol} borrowed and the deposited collateral (in EUR).
 			</>,
 		],
 		loanMaxLtv: [
 			"Maximum Loan-To-Value (LTV) Ratio",
 			<>
-				The maximum ratio between the EUR value of a loan (in ${WHITE_LABEL_CONFIG.tokens.mainToken.symbol}) and the collateral backing it. The LTV will
+				The maximum ratio between the EUR value of a loan (in {WHITE_LABEL_CONFIG.tokens.mainToken.symbol}) and the collateral backing it. The LTV will
 				fluctuate as the price of the collateral changes. To decrease the LTV add more collateral or reduce debt.
 			</>,
 		],
@@ -70,7 +70,7 @@ export default {
 		interestRateBoldPerYear: [
 			"Interest rate",
 			<>
-				The annualized interest amount in ${WHITE_LABEL_CONFIG.tokens.mainToken.symbol} for the selected interest rate. The accumulated interest is added to the
+				The annualized interest amount in {WHITE_LABEL_CONFIG.tokens.mainToken.symbol} for the selected interest rate. The accumulated interest is added to the
 				loan.
 			</>,
 		],
@@ -85,7 +85,7 @@ export default {
 			heading: "Your collateral and debt are reduced by the same value.",
 			body: (
 				<>
-					When ${WHITE_LABEL_CONFIG.tokens.mainToken.symbol} trades for under $1, anyone can redeem positions to get ${WHITE_LABEL_CONFIG.tokens.mainToken.symbol} back at $1. Positions with the lowest
+					When {WHITE_LABEL_CONFIG.tokens.mainToken.symbol} trades for under €1, anyone can redeem positions to get {WHITE_LABEL_CONFIG.tokens.mainToken.symbol} back at €1. Positions with the lowest
 					interest rate get redeemed first.
 				</>
 			),
@@ -101,14 +101,14 @@ export default {
 		title: "Redemptions in a nutshell",
 		subtitle: (
 			<>
-				Redemptions help maintain ${WHITE_LABEL_CONFIG.tokens.mainToken.symbol}’s peg in a decentralized way. If a user is redeemed, their collateral and debt
+				Redemptions help maintain {WHITE_LABEL_CONFIG.tokens.mainToken.symbol}’s peg in a decentralized way. If a user is redeemed, their collateral and debt
 				are reduced equally, resulting in no net loss.
 			</>
 		),
 		infoItems: [
 			{
 				icon: "evro",
-				text: `Redemptions occur when ${WHITE_LABEL_CONFIG.tokens.mainToken.symbol} drops below $1.`,
+				text: `Redemptions occur when ${WHITE_LABEL_CONFIG.tokens.mainToken.symbol} drops below €1.`,
 			},
 			{
 				icon: "redemption",
@@ -268,7 +268,7 @@ export default {
 		action: "Next: Summary",
 		infoTooltips: {
 			interestRateSuggestions: [
-				"Positions with lower interest rates are the first to be redeemed by ${WHITE_LABEL_CONFIG.tokens.mainToken.symbol} holders.",
+				`Positions with lower interest rates are the first to be redeemed by ${WHITE_LABEL_CONFIG.tokens.mainToken.symbol} holders.`,
 			],
 		},
 	},
@@ -300,7 +300,7 @@ export default {
 			],
 			interestRateSuggestions: [
 				<>
-					Positions with lower interest rates are the first to be redeemed by ${WHITE_LABEL_CONFIG.tokens.mainToken.symbol} holders.
+					Positions with lower interest rates are the first to be redeemed by {WHITE_LABEL_CONFIG.tokens.mainToken.symbol} holders.
 				</>,
 			],
 			exposure: [
@@ -323,7 +323,7 @@ export default {
 		),
 		subheading: (
 			<>
-				A ${WHITE_LABEL_CONFIG.tokens.mainToken.symbol} deposit in a stability pool earns rewards from the fees that users pay on their loans. Also, the ${WHITE_LABEL_CONFIG.tokens.mainToken.symbol} may
+				A {WHITE_LABEL_CONFIG.tokens.mainToken.symbol} deposit in a stability pool earns rewards from the fees that users pay on their loans. Also, the {WHITE_LABEL_CONFIG.tokens.mainToken.symbol} may
 				be swapped to collateral in case the system needs to liquidate positions.
 			</>
 		),
@@ -425,7 +425,7 @@ export default {
 		),
 		subheading: (
 			<>
-				By staking ${WHITE_LABEL_CONFIG.tokens.governanceToken.symbol} you can vote on incentives for ${WHITE_LABEL_CONFIG.branding.appName}, while still earning ${WHITE_LABEL_CONFIG.branding.brandName} V1 fees.
+				By staking {WHITE_LABEL_CONFIG.tokens.governanceToken.symbol} you can vote on incentives for {WHITE_LABEL_CONFIG.branding.appName}, while still earning {WHITE_LABEL_CONFIG.branding.brandName} V1 fees.
 			</>
 		),
 		learnMore: [
@@ -466,7 +466,7 @@ export default {
 			title: "Allocate your voting power",
 			intro: (
 				<>
-					Direct incentives from ${WHITE_LABEL_CONFIG.branding.appName} protocol revenues towards liquidity providers for ${WHITE_LABEL_CONFIG.tokens.mainToken.symbol}. Upvote from Thursday
+					Direct incentives from {WHITE_LABEL_CONFIG.branding.appName} protocol revenues towards liquidity providers for {WHITE_LABEL_CONFIG.tokens.mainToken.symbol}. Upvote from Thursday
 					to Tuesday. Downvote all week. <Link href={WHITE_LABEL_CONFIG.branding.links.docs.staking}>Learn more</Link>
 				</>
 			),
