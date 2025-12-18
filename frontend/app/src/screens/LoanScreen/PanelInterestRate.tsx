@@ -13,7 +13,7 @@ import { WHITE_LABEL_CONFIG } from "@/src/white-label.config";
 import { fmtnum, formatRelativeTime } from "@/src/formatting";
 import { formatRisk } from "@/src/formatting";
 import { getLoanDetails } from "@/src/liquity-math";
-import { getBranch, getCollToken, useRedemptionRisk, useTroveRateUpdateCooldown } from "@/src/liquity-utils";
+import { getCollToken, useRedemptionRisk, useTroveRateUpdateCooldown } from "@/src/liquity-utils";
 import { usePrice } from "@/src/services/Prices";
 import { infoTooltipProps, riskLevelToStatusMode } from "@/src/uikit-utils";
 import { useAccount } from "@/src/wagmi-utils";
@@ -39,19 +39,8 @@ export function PanelInterestRate({
     defaultValue: dn.toString(loan.borrowed),
   });
 
-  const { strategies } = getBranch(loan.branchId);
-
-  const { batchManager } = loan;
-  const isIcpDelegated = batchManager && strategies.some((s) => addressesEqual(s.address, batchManager));
-
   const [interestRate, setInterestRate] = useState(loan.interestRate);
-  const [interestRateMode, setInterestRateMode] = useState<DelegateMode>(
-    isIcpDelegated
-      ? "strategy"
-      : loan.batchManager
-      ? "delegate"
-      : "manual",
-  );
+  const [interestRateMode, setInterestRateMode] = useState<DelegateMode>("manual");
   const [interestRateDelegate, setInterestRateDelegate] = useState(
     loan.batchManager,
   );
@@ -248,9 +237,7 @@ export function PanelInterestRate({
           prevLoan: { ...loan },
           loan: {
             ...loan,
-            batchManager: interestRateMode === "delegate" || interestRateMode === "strategy"
-              ? interestRateDelegate
-              : null,
+            batchManager: null,
             interestRate,
           },
         }}
