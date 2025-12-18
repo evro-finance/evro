@@ -322,7 +322,7 @@ export const FooterInfoLiquidationPrice = memo(
 				value={
 					<HFlex gap={4}>
 						{liquidationPrice
-							? fmtnum(liquidationPrice, { prefix: "$", preset: "2z" })
+							? fmtnum(liquidationPrice, { prefix: "€", preset: "2z" })
 							: "−"}
 						<InfoTooltip
 							{...infoTooltipProps(content.generalInfotooltips.loanLiquidationPrice)}

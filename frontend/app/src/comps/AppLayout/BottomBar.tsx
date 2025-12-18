@@ -95,7 +95,7 @@ export function BottomBar() {
 									<Amount
 										fallback="…"
 										format="compact"
-										prefix="$"
+										prefix="€"
 										value={tvl}
 									/>
 								)}

@@ -96,7 +96,7 @@ export const updateBorrowPosition: FlowDeclaration<UpdateBorrowPositionRequest> 
               <Amount
                 key="end"
                 fallback="…"
-                prefix="$"
+                prefix="€"
                 value={collPrice.data && dn.mul(dn.abs(collChange), collPrice.data)}
               />,
             ]}

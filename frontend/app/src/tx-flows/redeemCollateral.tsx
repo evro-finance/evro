@@ -59,7 +59,7 @@ export const redeemCollateral: FlowDeclaration<RedeemCollateralRequest> = {
               suffix={` ${WHITE_LABEL_CONFIG.tokens.mainToken.symbol}`}
             />,
             <Fragment key="end">
-              Estimated ${WHITE_LABEL_CONFIG.tokens.mainToken.symbol} that will be redeemed.
+              Estimated {WHITE_LABEL_CONFIG.tokens.mainToken.symbol} that will be redeemed.
             </Fragment>,
           ]}
         />

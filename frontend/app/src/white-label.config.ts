@@ -49,11 +49,11 @@ export const WHITE_LABEL_CONFIG = {
       // Core protocol contracts (deployment addresses TBD)
       deployments: {
         100: {
-          token: "0x08b8a74e622f810ef67e4850c102b3093627f630",
-          collateralRegistry: "0x78f975dafc51ffce9eda2e6559adf742cf4fe518",
+          token: "0x091b87551e14fc1b82367ce8908739e89d63f13d",
+          collateralRegistry: "0xb9605ae6a03d31e5efc1ddfce4226b0c5a519c0f",
           governance: "0x09d5bd4a4f1da1a965fe24ea54bce3d37661e056",
-          hintHelpers: "0x619f3e62aad50f647f445ab1de8daaf0e60362fd",
-          multiTroveGetter: "0x593c9d9fd8320a2392404fc7b0b581f2fb54d0ba",
+          hintHelpers: "0xc5c1e2cfadb8f86580f5c7ea2f6d2691809c91ab",
+          multiTroveGetter: "0x7a9a2d7ca836838c6fe42818d6d505eccf2e0e04",
           exchangeHelpers: "0x0000000000000000000000000000000000000000",
         },
       },

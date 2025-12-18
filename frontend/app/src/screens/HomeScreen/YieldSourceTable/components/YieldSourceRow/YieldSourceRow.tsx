@@ -35,7 +35,7 @@ export const YieldSourceRow: FC<YieldSourceRowProps> = ({
         <Amount fallback="…" percentage value={weeklyApr} />
       </td>
       <td>
-        <Amount fallback="…" format="compact" prefix="$" value={tvl} />
+        <Amount fallback="…" format="compact" prefix="€" value={tvl} />
       </td>
       {!compact && (
         <td>

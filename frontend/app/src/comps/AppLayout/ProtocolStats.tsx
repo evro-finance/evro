@@ -57,7 +57,7 @@ export function ProtocolStats() {
 							{stats.isLoading ? '…' :
 								stats.error ? 'Error' :
 									tvl ? (
-										<Amount fallback='…' format='compact' prefix='$' value={tvl} />
+										<Amount fallback='…' format='compact' prefix='€' value={tvl} />
 									) : '…'}
 						</span>
 					</HFlex>
