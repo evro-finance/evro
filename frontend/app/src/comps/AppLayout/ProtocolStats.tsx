@@ -176,7 +176,7 @@ function Price({ symbol }: { symbol: TokenSymbol }) {
 			<TokenIcon size={16} symbol={symbol} />
 			<HFlex gap={8}>
 				<span>{symbol}</span>
-				<Amount prefix='$' fallback='…' value={price.data} format='2z' />
+				<Amount prefix='€' fallback='…' value={price.data} format='2z' />
 			</HFlex>
 		</HFlex>
 	);

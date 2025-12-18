@@ -10,7 +10,7 @@ import tokenGno from "./token-icons/gno.webp";
 import tokenSdai from "./token-icons/sdai.webp";
 import tokenWbtc from "./token-icons/wbtc.webp";
 import tokenOsgno from "./token-icons/osgno.webp";
-import tokenWsteth from "./token-icons/wsteth.svg";
+import tokenWsteth from "./token-icons/wsteth.webp";
 
 // Map of available token icons by icon name from config
 const tokenIconMap: Record<string, string> = {
