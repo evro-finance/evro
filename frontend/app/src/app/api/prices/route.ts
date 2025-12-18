@@ -29,7 +29,7 @@ const PricesSchema = z.object({
     XDAI: z.string(),
     GNO: z.string(),
     SDAI: z.string(),
-    WWBTC: z.string(),
+    WBTC: z.string(),
     OSGNO: z.string(),
   }),
 });
@@ -83,7 +83,7 @@ export async function GET() {
       XDAI: usdToEurRate.toString(),
       SDAI: usdToEurString(parsed["savings-xdai"].usd, usdToEurRate),
       GNO: usdToEurString(parsed.gnosis.usd, usdToEurRate),
-      WWBTC: usdToEurString(parsed["gnosis-xdai-bridged-wbtc-gnosis-chain"].usd, usdToEurRate),
+      WBTC: usdToEurString(parsed["gnosis-xdai-bridged-wbtc-gnosis-chain"].usd, usdToEurRate),
       OSGNO: usdToEurString(parsed["stakewise-staked-gno-2"].usd, usdToEurRate),
     };
 

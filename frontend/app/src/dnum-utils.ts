@@ -12,6 +12,13 @@ export function dnum18(value: string | bigint | number | null | undefined): Dnum
   return value === undefined || value === null ? null : [BigInt(value), 18];
 }
 
+export function dnum8(value: null | undefined): null;
+export function dnum8(value: string | bigint | number): Dnum;
+export function dnum8(value: string | bigint | number | null | undefined): Dnum | null;
+export function dnum8(value: string | bigint | number | null | undefined): Dnum | null {
+  return value === undefined || value === null ? null : [BigInt(value), 8];
+}
+
 export function dnumOrNull(value: Numberish | null | undefined, decimals: number): Dnum | null {
   if (value == null || value === undefined) {
     return null;

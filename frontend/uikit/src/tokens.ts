@@ -8,7 +8,7 @@ import { WHITE_LABEL_CONFIG } from "../../app/src/white-label.config";
 import tokenXdai from "./token-icons/xdai.webp";
 import tokenGno from "./token-icons/gno.webp";
 import tokenSdai from "./token-icons/sdai.webp";
-import tokenWwbtc from "./token-icons/wwbtc.webp";
+import tokenWbtc from "./token-icons/wbtc.webp";
 import tokenOsgno from "./token-icons/osgno.webp";
 import tokenWsteth from "./token-icons/wsteth.svg";
 
@@ -22,7 +22,7 @@ const tokenIconMap: Record<string, string> = {
   xdai: tokenXdai,
   gno: tokenGno,
   sdai: tokenSdai,
-  wwbtc: tokenWwbtc,
+  wbtc: tokenWbtc,
   osgno: tokenOsgno,
   wsteth: tokenWsteth,
 };

@@ -128,9 +128,9 @@ export const WHITE_LABEL_CONFIG = {
         },
       },
       {
-        symbol: "WWBTC" as const,
+        symbol: "WBTC" as const,
         name: "Gnosis xDai Bridged WBTC",
-        icon: "wwbtc",
+        icon: "wbtc",
         collateralRatio: 1.15, // 115% MCR
         maxDeposit: "25000000", // €25M initial debt limit
         maxLTV: 0.8696, // 86.96% max LTV

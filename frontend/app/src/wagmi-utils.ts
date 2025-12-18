@@ -1,7 +1,7 @@
 import type { Dnum, Token } from "@/src/types";
 import type { Address } from "@liquity2/uikit";
 
-import { dnum18 } from "@/src/dnum-utils";
+import { dnum8, dnum18 } from "@/src/dnum-utils";
 import { CONTRACT_MAIN_TOKEN, CONTRACT_LQTY_TOKEN, CONTRACT_LUSD_TOKEN } from "@/src/env";
 import { getBranch } from "@/src/liquity-utils";
 import { WHITE_LABEL_CONFIG } from "@/src/white-label.config";
@@ -83,6 +83,15 @@ export function useBalances(
         data: ethBalance.data ? dnum18(ethBalance.data.value) : undefined,
         isLoading: ethBalance.isLoading,
       };
+    } else if (token === "WBTC"){
+      const erc20Index = erc20Tokens.findIndex((config) => config.token === token);
+      if (erc20Index !== -1) {
+        const balance = erc20Balances.data?.[erc20Index];
+        result[token] = {
+          data: balance?.result !== undefined ? dnum8(balance.result) : undefined,
+          isLoading: erc20Balances.isLoading,
+        };
+      }
     } else {
       const erc20Index = erc20Tokens.findIndex((config) => config.token === token);
       if (erc20Index !== -1) {
