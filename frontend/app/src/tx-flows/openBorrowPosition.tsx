@@ -111,7 +111,7 @@ export const openBorrowPosition: FlowDeclaration<OpenBorrowPositionRequest> = {
             <Amount
               key="end"
               fallback="…"
-              prefix="$"
+              prefix="€"
               value={collPrice.data && dn.mul(request.collAmount, collPrice.data)}
             />,
           ]}
@@ -212,9 +212,9 @@ export const openBorrowPosition: FlowDeclaration<OpenBorrowPositionRequest> = {
           value={[
             <div
               key="start"
-              title={`${fmtnum(ETH_GAS_COMPENSATION, "full")} ETH`}
+              title={`${fmtnum(ETH_GAS_COMPENSATION, "full")} xDAI`}
             >
-              {fmtnum(ETH_GAS_COMPENSATION, 4)} ETH
+              {fmtnum(ETH_GAS_COMPENSATION, 4)} xDAI
             </div>,
             "Only used in case of liquidation",
           ]}
@@ -373,8 +373,8 @@ export const openBorrowPosition: FlowDeclaration<OpenBorrowPositionRequest> = {
   async getSteps(ctx) {
     const branch = getBranch(ctx.request.branchId);
 
-    // ETH doesn't need approval
-    if (branch.symbol === "ETH") {
+    // XDAI doesn't need approval
+    if (branch.symbol === "XDAI") {
       return ["openTroveEth"];
     }
 

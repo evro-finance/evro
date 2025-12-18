@@ -26,7 +26,7 @@ const FrankfurterSchema = z.object({
 const PricesSchema = z.object({
   prices: z.object({
     EVRO: z.string(),
-    WXDAI: z.string(),
+    XDAI: z.string(),
     GNO: z.string(),
     SDAI: z.string(),
     WWBTC: z.string(),
@@ -80,7 +80,7 @@ export async function GET() {
     const prices: PricesResponse["prices"] = {
       EVRO: "1",
 
-      WXDAI: usdToEurRate.toString(),
+      XDAI: usdToEurRate.toString(),
       SDAI: usdToEurString(parsed["savings-xdai"].usd, usdToEurRate),
       GNO: usdToEurString(parsed.gnosis.usd, usdToEurRate),
       WWBTC: usdToEurString(parsed["gnosis-xdai-bridged-wbtc-gnosis-chain"].usd, usdToEurRate),

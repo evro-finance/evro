@@ -34,9 +34,9 @@ export function useBalances(
   const tokenConfigs = tokens.map((token) => {
     const tokenAddress = match(token)
       .when(
-        (symbol) => Boolean(symbol && isCollateralSymbol(symbol) && symbol !== "ETH"),
+        (symbol) => Boolean(symbol && isCollateralSymbol(symbol) && symbol !== "XDAI"),
         (symbol) => {
-          if (!symbol || !isCollateralSymbol(symbol) || symbol === "ETH") {
+          if (!symbol || !isCollateralSymbol(symbol) || symbol === "XDAI") {
             return null;
           }
           return getBranch(symbol).contracts.CollToken.address;
@@ -50,7 +50,7 @@ export function useBalances(
     return {
       token,
       tokenAddress,
-      isEth: token === "ETH",
+      isEth: token === "XDAI",
     };
   });
 
@@ -78,7 +78,7 @@ export function useBalances(
 
   // combine results
   return tokens.reduce((result, token) => {
-    if (token === "ETH") {
+    if (token === "XDAI") {
       result[token] = {
         data: ethBalance.data ? dnum18(ethBalance.data.value) : undefined,
         isLoading: ethBalance.isLoading,

@@ -59,25 +59,6 @@ export const WHITE_LABEL_CONFIG = {
       },
     },
 
-    evro: {
-      name: "EVRO",
-      symbol: "EVRO" as const,
-      ticker: "EVRO",
-      icon: "evro",
-      decimals: 18,
-      description: "Euro-pegged stablecoin by EVRO Finance",
-      deployments: {
-        100: {
-          token: "0x08b8a74e622f810ef67e4850c102b3093627f630",
-          collateralRegistry: "0x78f975dafc51ffce9eda2e6559adf742cf4fe518",
-          governance: "0x09d5bd4a4f1da1a965fe24ea54bce3d37661e056",
-          hintHelpers: "0x619f3e62aad50f647f445ab1de8daaf0e60362fd",
-          multiTroveGetter: "0x593c9d9fd8320a2392404fc7b0b581f2fb54d0ba",
-          exchangeHelpers: "0x0000000000000000000000000000000000000000",
-        },
-      },
-    },
-
     // Governance token (exists but no functionality at launch)
     governanceToken: {
       name: "EVRO Governance Token",
@@ -96,18 +77,19 @@ export const WHITE_LABEL_CONFIG = {
     // Collateral tokens (for borrowing) - Multi-chain support
     collaterals: [
       {
-        symbol: "WXDAI" as const,
-        name: "wxDAI",
-        icon: "wxdai",
+        symbol: "XDAI" as const,
+        name: "xDAI",
+        icon: "xdai",
         collateralRatio: 1.1, // 110% MCR
-        maxDeposit: "100000000", // $100M initial debt limit
+        maxDeposit: "100000000", // €100M initial debt limit
         maxLTV: 0.9091, // 90.91% max LTV
         deployments: {
           100: {
-            collToken: "0x6a023ccd1ff6f2045c3309768ead9e68f978f6e1",
-            leverageZapper: "0x0000000000000000000000000000000000000000",
-            stabilityPool: "0x172b2bb699c354a8758075b00c121126a4a6ee18",
-            troveManager: "0x9c7987c8bed7a669b6857f014459e0e98ebd723d",
+            collToken: "0xe91d153e0b41518a2ce8dd3d7944fa863463a97d",
+            leverageZapper: "0x21c26321e43a0ff9170ce010c25ce7a3f73b2d77",
+            stabilityPool: "0x68d0d846c89b3b7017d12a9a3ae51ddde9ccf56c",
+            troveManager: "0x6e995ce9897840131fef1ff7871f96b67a343517",
+            sortedTroves: "0x762e4127446c029030a3208538645b24243f6bce",
           },
         },
       },
@@ -116,14 +98,15 @@ export const WHITE_LABEL_CONFIG = {
         name: "Gnosis",
         icon: "gno",
         collateralRatio: 1.4, // 140% MCR
-        maxDeposit: "25000000", // $25M initial debt limit
+        maxDeposit: "25000000", // €25M initial debt limit
         maxLTV: 0.7143, // 71.43% max LTV
         deployments: {
           100: {
             collToken: "0x9c58bacc331c9aa871afd802db6379a98e80cedb",
-            leverageZapper: "0x0000000000000000000000000000000000000000",
-            stabilityPool: "0x7cb2a8624f3bbc25c46d251d097ce971840eb0a5",
-            troveManager: "0x7e3f9edf299aa789e7b69af6d4f3c599ccaac4e6",
+            leverageZapper: "0xb8648cbd215f97faf2c4c0eee5302bbed4f2aaec",
+            stabilityPool: "0xb91f03813346d0b3371860b022909f6b0758adf4",
+            troveManager: "0x315f40df9e11322e80369e496aec5ed617122d00",
+            sortedTroves: "0x891307d242cf3249bbabf6778eb098aba10c3729",
           },
         },
       },
@@ -132,14 +115,15 @@ export const WHITE_LABEL_CONFIG = {
         name: "Savings xDAI",
         icon: "sdai",
         collateralRatio: 1.3, // 130% MCR
-        maxDeposit: "25000000", // $25M initial debt limit
+        maxDeposit: "25000000", // €25M initial debt limit
         maxLTV: 0.7692, // 76.92% max LTV
         deployments: {
           100: {
             collToken: "0xaf204776c7245bf4147c2612bf6e5972ee483701",
-            leverageZapper: "0x0000000000000000000000000000000000000000",
-            stabilityPool: "0x4feb230c602a813674f261072ea2d31115ce1ab3",
-            troveManager: "0x5c21c09b120907262824a542d4cfd818e9e1a32f",
+            leverageZapper: "0x063b0d2d57d5ff770e0188c80887adea87dbaa7d",
+            stabilityPool: "0x33d1c95678c47acc31617725dc606c7d86602ad9",
+            troveManager: "0x79e7c6b871b4b8c52b8df07e01b5cb3320159654",
+            sortedTroves: "0x80e6c800e7a28b5005c32ecb77e3f4c671ef78cd",
           },
         },
       },
@@ -148,14 +132,15 @@ export const WHITE_LABEL_CONFIG = {
         name: "Gnosis xDai Bridged WBTC",
         icon: "wwbtc",
         collateralRatio: 1.15, // 115% MCR
-        maxDeposit: "25000000", // $25M initial debt limit
+        maxDeposit: "25000000", // €25M initial debt limit
         maxLTV: 0.8696, // 86.96% max LTV
         deployments: {
           100: {
-            collToken: "0x95c0302bd25fb04258377d280e3d7f9c96d7b407",
-            leverageZapper: "0x0000000000000000000000000000000000000000",
-            stabilityPool: "0xf653fa22fa6e4d982db4f084e54ad0f39cbf73b3",
-            troveManager: "0x0b99b1a449160af496d4b50885c08d11704f2583",
+            collToken: "0x8e5bbbb09ed1ebde8674cda39a0c169401db4252",
+            leverageZapper: "0x128ceaf0b986aeeb1f6c57d2e9965e54f2e201a1",
+            stabilityPool: "0x37a0fcf6c5c20ec57ebe0b6b96299359637a286a",
+            troveManager: "0xc47e2197d9380ccd56692d26ea0542a5fe2b8ce4",
+            sortedTroves: "0xde8493a814e06ec366fefc5a335cffc8a00c1005",
           },
         },
       },
@@ -164,14 +149,32 @@ export const WHITE_LABEL_CONFIG = {
         name: "StakeWise Staked GNO",
         icon: "osgno",
         collateralRatio: 1.4, // 140% MCR
-        maxDeposit: "25000000", // $25M initial debt limit
+        maxDeposit: "25000000", // €25M initial debt limit
         maxLTV: 0.7143, // 71.43% max LTV
         deployments: {
           100: {
             collToken: "0xf490c80aae5f2616d3e3bda2483e30c4cb21d1a0",
-            leverageZapper: "0x0000000000000000000000000000000000000000",
-            stabilityPool: "0x434696ce4b3c3d02e82931c37de7b9a8fa208fbd",
-            troveManager: "0x4d83ac3a1131c6ca5b0add168bde6d24a3ad889a",
+            leverageZapper: "0xce20c227e74a95b9288a47878146584a89d55785",
+            stabilityPool: "0x82ab6396483ce5889809f34fff619f4c411539f7",
+            troveManager: "0x9d16b7e044b3fc04cc040e853e7a080333d18b66",
+            sortedTroves: "0xd8e0436774f0f9a2973542a7fbb5b14dd0c0c04c",
+          },
+        },
+      },
+      {
+        symbol: "WSTETH" as const,
+        name: "Wrapped Staked ETH",
+        icon: "wsteth",
+        collateralRatio: 1.3, // 130% MCR
+        maxDeposit: "25000000", // €25M initial debt limit
+        maxLTV: 0.7692, // 76.92% max LTV
+        deployments: {
+          100: {
+            collToken: "0x6c76971f98945ae98dd7d4dfca8711ebea946ea6",
+            leverageZapper: "0x865824c0b85325ec23a41257ebcd289e0caaaddc",
+            stabilityPool: "0x1d6f305fdf625fdf76c0be0d2a5cd19aeb897e22",
+            troveManager: "0x9ce05112a2f1b9d395af3ce16ba58f0031dfb977",
+            sortedTroves: "0x79ae05720b4148d03efc2219bb623b3c7664abb2",
           },
         },
       },
@@ -181,9 +184,9 @@ export const WHITE_LABEL_CONFIG = {
     otherTokens: {
       // ETH for display purposes
       eth: {
-        symbol: "ETH" as const,
-        name: "ETH",
-        icon: "eth",
+        symbol: "XDAI" as const,
+        name: "xDAI",
+        icon: "xdai",
       },
       // SBOLD - yield-bearing version of the main token
       sbold: {
