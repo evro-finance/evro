@@ -136,7 +136,7 @@ export const sboldDeposit: FlowDeclaration<SboldDepositRequest> = {
           ctx.request.prevSboldPosition.bold,
         );
         return ctx.writeContract({
-          ...ctx.contracts.BoldToken,
+          ...ctx.contracts.EvroToken,
           functionName: "approve",
           args: [
             SboldContract.address,
@@ -174,7 +174,7 @@ export const sboldDeposit: FlowDeclaration<SboldDepositRequest> = {
     const depositChange = sboldPosition.bold[0] - prevSboldPosition.bold[0];
 
     const allowance = await ctx.readContract({
-      ...ctx.contracts.BoldToken,
+      ...ctx.contracts.EvroToken,
       functionName: "allowance",
       args: [ctx.account, SboldContract.address],
     });

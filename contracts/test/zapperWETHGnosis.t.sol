@@ -8,7 +8,7 @@ import "src/Interfaces/IAddressesRegistry.sol";
 import "src/Interfaces/IBorrowerOperations.sol";
 import "src/Interfaces/ITroveManager.sol";
 import "src/Interfaces/ITroveNFT.sol";
-import "src/Interfaces/IBoldToken.sol";
+import {IERC20} from "openzeppelin-contracts/contracts/token/ERC20/IERC20.sol";
 import "src/Interfaces/IWETH.sol";
 import "src/Dependencies/Constants.sol";
 
@@ -22,7 +22,7 @@ contract ZapperWETHGnosisTest is Test {
     IBorrowerOperations borrowerOperations;
     ITroveManager troveManager;
     ITroveNFT troveNFT;
-    IBoldToken boldToken;
+    IERC20 boldToken;
     IWETH weth;
 
     // Helper to get trove collateral
@@ -54,7 +54,10 @@ contract ZapperWETHGnosisTest is Test {
         borrowerOperations = wethZapper.borrowerOperations();
         troveManager = wethZapper.troveManager();
         troveNFT = troveManager.troveNFT();
-        boldToken = wethZapper.boldToken();
+        // Deployed contract has boldToken(), local code has evroToken() - use low-level call
+        (bool success, bytes memory data) = WETH_ZAPPER.staticcall(abi.encodeWithSignature("boldToken()"));
+        require(success, "Failed to get boldToken");
+        boldToken = IERC20(abi.decode(data, (address)));
         weth = IWETH(wethZapper.WETH());
         
         // Also load the registry for reference
@@ -250,7 +253,7 @@ contract ZapperWETHGnosisTest is Test {
         assertTrue(address(borrowerOperations) != address(0), "BorrowerOps should be set");
         assertTrue(address(troveManager) != address(0), "TroveManager should be set");
         assertTrue(address(troveNFT) != address(0), "TroveNFT should be set");
-        assertTrue(address(boldToken) != address(0), "BoldToken should be set");
+        assertTrue(address(boldToken) != address(0), "EvroToken should be set");
         assertTrue(address(weth) != address(0), "WETH should be set");
         
         // Log the addresses for debugging
@@ -258,7 +261,7 @@ contract ZapperWETHGnosisTest is Test {
         console.log("BorrowerOperations:", address(borrowerOperations));
         console.log("TroveManager:", address(troveManager));
         console.log("TroveNFT:", address(troveNFT));
-        console.log("BoldToken:", address(boldToken));
+        console.log("EvroToken:", address(boldToken));
         console.log("WETH:", address(weth));
         console.log("WETHZapper:", address(wethZapper));
         console.log("Zapper's BorrowerOps:", address(wethZapper.borrowerOperations()));

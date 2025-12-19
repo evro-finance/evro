@@ -12,7 +12,7 @@ contract("All Liquity functions with onlyOwner modifier", async (accounts) => {
   const [bountyAddress, lpRewardsAddress, multisig] = accounts.slice(997, 1000);
 
   let contracts;
-  let boldToken;
+  let evroToken;
   let sortedTroves;
   let troveManager;
   let activePool;
@@ -26,7 +26,7 @@ contract("All Liquity functions with onlyOwner modifier", async (accounts) => {
       BorrowerOperations: BorrowerOperationsTester,
     });
 
-    boldToken = contracts.boldToken;
+    evroToken = contracts.evroToken;
     sortedTroves = contracts.sortedTroves;
     troveManager = contracts.troveManager;
     activePool = contracts.activePool;
@@ -77,12 +77,12 @@ contract("All Liquity functions with onlyOwner modifier", async (accounts) => {
     }
   };
 
-  describe("BoldToken", async (accounts) => {
+  describe("EvroToken", async (accounts) => {
     it("setBranchAddresses(): reverts when called by non-owner, with wrong addresses", async () => {
-      await testDeploymentSetter(boldToken, 4, false, false, "setBranchAddresses");
+      await testDeploymentSetter(evroToken, 4, false, false, "setBranchAddresses");
     });
     it("setCollateralRegistry(): reverts when called by non-owner, with wrong address, or twice", async () => {
-      await testDeploymentSetter(boldToken, 1, false, true, "setCollateralRegistry");
+      await testDeploymentSetter(evroToken, 1, false, true, "setCollateralRegistry");
     });
   });
 

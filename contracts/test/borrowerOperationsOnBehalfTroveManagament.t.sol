@@ -109,7 +109,7 @@ contract BorrowerOperationsOnBehalfTroveManagamentTest is DevTestSetup {
 
         // Close trove (B opens first, so it’s not the last one)
         openTroveNoHints100pct(B, 100 ether, 10000e18, 1e17);
-        deal(address(boldToken), A, troveManager.getTroveEntireDebt(ATroveId));
+        deal(address(evroToken), A, troveManager.getTroveEntireDebt(ATroveId));
         closeTrove(A, ATroveId);
 
         // Try to reopen trove
@@ -482,30 +482,30 @@ contract BorrowerOperationsOnBehalfTroveManagamentTest is DevTestSetup {
 
         // Owner can repay bold
         vm.startPrank(A);
-        uint256 AInitialBoldBalance = boldToken.balanceOf(A);
+        uint256 AInitialBoldBalance = evroToken.balanceOf(A);
         uint256 initialDebt = troveManager.getTroveEntireDebt(ATroveId);
 
         borrowerOperations.repayBold(ATroveId, 10e18);
         vm.stopPrank();
 
         assertEq(troveManager.getTroveEntireDebt(ATroveId), initialDebt - 10e18, "Wrong trove debt 1");
-        assertEq(boldToken.balanceOf(A), AInitialBoldBalance - 10e18, "Wrong owner balance 1");
+        assertEq(evroToken.balanceOf(A), AInitialBoldBalance - 10e18, "Wrong owner balance 1");
 
         // Manager can repay bold
-        deal(address(boldToken), B, 100e18);
+        deal(address(evroToken), B, 100e18);
         vm.startPrank(B);
-        uint256 BInitialBoldBalance = boldToken.balanceOf(B);
+        uint256 BInitialBoldBalance = evroToken.balanceOf(B);
 
         borrowerOperations.repayBold(ATroveId, 10e18);
         vm.stopPrank();
 
         assertEq(troveManager.getTroveEntireDebt(ATroveId), initialDebt - 20e18, "Wrong trove debt 2");
-        assertEq(boldToken.balanceOf(B), BInitialBoldBalance - 10e18, "Wrong manager balance 2");
+        assertEq(evroToken.balanceOf(B), BInitialBoldBalance - 10e18, "Wrong manager balance 2");
 
         // Others can’t repay bold
-        deal(address(boldToken), C, 100e18);
+        deal(address(evroToken), C, 100e18);
         vm.startPrank(C);
-        uint256 CInitialBoldBalance = boldToken.balanceOf(C);
+        uint256 CInitialBoldBalance = evroToken.balanceOf(C);
 
         vm.expectRevert(AddRemoveManagers.NotOwnerNorAddManager.selector);
         borrowerOperations.repayBold(ATroveId, 10e18);
@@ -521,7 +521,7 @@ contract BorrowerOperationsOnBehalfTroveManagamentTest is DevTestSetup {
         vm.stopPrank();
 
         assertEq(troveManager.getTroveEntireDebt(ATroveId), initialDebt - 30e18, "Wrong trove debt 3");
-        assertEq(boldToken.balanceOf(C), CInitialBoldBalance - 10e18, "Wrong manager balance 3");
+        assertEq(evroToken.balanceOf(C), CInitialBoldBalance - 10e18, "Wrong manager balance 3");
     }
 
     function testRepayBoldWithoutAddManager() public {
@@ -529,27 +529,27 @@ contract BorrowerOperationsOnBehalfTroveManagamentTest is DevTestSetup {
 
         // Owner can repay bold
         vm.startPrank(A);
-        uint256 AInitialBoldBalance = boldToken.balanceOf(A);
+        uint256 AInitialBoldBalance = evroToken.balanceOf(A);
         uint256 initialDebt = troveManager.getTroveEntireDebt(ATroveId);
 
         borrowerOperations.repayBold(ATroveId, 10e18);
 
         assertEq(troveManager.getTroveEntireDebt(ATroveId), initialDebt - 10e18, "Wrong trove debt");
-        assertEq(boldToken.balanceOf(A), AInitialBoldBalance - 10e18, "Wrong owner balance");
+        assertEq(evroToken.balanceOf(A), AInitialBoldBalance - 10e18, "Wrong owner balance");
         vm.stopPrank();
 
         assertEq(borrowerOperations.addManagerOf(ATroveId), address(0));
 
         // Others can repay bold
-        deal(address(boldToken), B, 100e18);
-        uint256 BInitialBoldBalance = boldToken.balanceOf(B);
+        deal(address(evroToken), B, 100e18);
+        uint256 BInitialBoldBalance = evroToken.balanceOf(B);
 
         vm.startPrank(B);
         borrowerOperations.repayBold(ATroveId, 10e18);
         vm.stopPrank();
 
         assertEq(troveManager.getTroveEntireDebt(ATroveId), initialDebt - 20e18, "Wrong trove debt");
-        assertEq(boldToken.balanceOf(B), BInitialBoldBalance - 10e18, "Wrong manager balance");
+        assertEq(evroToken.balanceOf(B), BInitialBoldBalance - 10e18, "Wrong manager balance");
     }
 
     function testWithdrawBoldWithRemoveManager() public {
@@ -561,33 +561,33 @@ contract BorrowerOperationsOnBehalfTroveManagamentTest is DevTestSetup {
         vm.stopPrank();
 
         // Owner can withdraw bold
-        uint256 AInitialBoldBalance = boldToken.balanceOf(A);
+        uint256 AInitialBoldBalance = evroToken.balanceOf(A);
 
         withdrawBold100pct(A, ATroveId, 10e18);
 
-        assertEq(boldToken.balanceOf(A), AInitialBoldBalance + 10e18, "Wrong owner balance");
+        assertEq(evroToken.balanceOf(A), AInitialBoldBalance + 10e18, "Wrong owner balance");
 
         // Manager can withdraw bold
-        uint256 BInitialBoldBalance = boldToken.balanceOf(B);
+        uint256 BInitialBoldBalance = evroToken.balanceOf(B);
 
         withdrawBold100pct(B, ATroveId, 10e18);
 
-        assertEq(boldToken.balanceOf(A), AInitialBoldBalance + 20e18, "Wrong owner balance");
-        assertEq(boldToken.balanceOf(B), BInitialBoldBalance, "Wrong manager balance");
+        assertEq(evroToken.balanceOf(A), AInitialBoldBalance + 20e18, "Wrong owner balance");
+        assertEq(evroToken.balanceOf(B), BInitialBoldBalance, "Wrong manager balance");
     }
 
     function testWithdrawBoldWithoutRemoveManager() public {
         uint256 ATroveId = openTroveNoHints100pct(A, 100 ether, 10000e18, 1e17);
 
         // Owner can withdraw bold
-        uint256 AInitialBoldBalance = boldToken.balanceOf(A);
+        uint256 AInitialBoldBalance = evroToken.balanceOf(A);
 
         withdrawBold100pct(A, ATroveId, 10e18);
 
-        assertEq(boldToken.balanceOf(A), AInitialBoldBalance + 10e18, "Wrong owner balance");
+        assertEq(evroToken.balanceOf(A), AInitialBoldBalance + 10e18, "Wrong owner balance");
 
         // Manager can’t withdraw bold
-        uint256 BInitialBoldBalance = boldToken.balanceOf(B);
+        uint256 BInitialBoldBalance = evroToken.balanceOf(B);
 
         vm.expectRevert(AddRemoveManagers.NotOwnerNorRemoveManager.selector);
         this.withdrawBold100pct(B, ATroveId, 10e18);
@@ -600,8 +600,8 @@ contract BorrowerOperationsOnBehalfTroveManagamentTest is DevTestSetup {
         vm.expectRevert(AddRemoveManagers.NotOwnerNorRemoveManager.selector);
         this.withdrawBold100pct(B, ATroveId, 10e18);
 
-        assertEq(boldToken.balanceOf(A), AInitialBoldBalance + 10e18, "Wrong owner balance");
-        assertEq(boldToken.balanceOf(B), BInitialBoldBalance, "Wrong manager balance");
+        assertEq(evroToken.balanceOf(A), AInitialBoldBalance + 10e18, "Wrong owner balance");
+        assertEq(evroToken.balanceOf(B), BInitialBoldBalance, "Wrong manager balance");
     }
 
     // Close trove
@@ -619,7 +619,7 @@ contract BorrowerOperationsOnBehalfTroveManagamentTest is DevTestSetup {
         uint256 AInitialCollBalance = collToken.balanceOf(A);
 
         // Owner can close trove
-        deal(address(boldToken), A, troveManager.getTroveEntireDebt(ATroveId));
+        deal(address(evroToken), A, troveManager.getTroveEntireDebt(ATroveId));
         vm.startPrank(A);
         borrowerOperations.closeTrove(ATroveId);
         vm.stopPrank();
@@ -642,7 +642,7 @@ contract BorrowerOperationsOnBehalfTroveManagamentTest is DevTestSetup {
         uint256 BInitialCollBalance = collToken.balanceOf(B);
 
         // Manager can close trove
-        deal(address(boldToken), B, troveManager.getTroveEntireDebt(ATroveId));
+        deal(address(evroToken), B, troveManager.getTroveEntireDebt(ATroveId));
         vm.startPrank(B);
         borrowerOperations.closeTrove(ATroveId);
         vm.stopPrank();
@@ -663,7 +663,7 @@ contract BorrowerOperationsOnBehalfTroveManagamentTest is DevTestSetup {
         vm.stopPrank();
 
         // Other cannot close trove
-        deal(address(boldToken), C, troveManager.getTroveEntireDebt(ATroveId));
+        deal(address(evroToken), C, troveManager.getTroveEntireDebt(ATroveId));
         vm.startPrank(C);
         vm.expectRevert(AddRemoveManagers.NotOwnerNorRemoveManager.selector);
         borrowerOperations.closeTrove(ATroveId);
@@ -678,7 +678,7 @@ contract BorrowerOperationsOnBehalfTroveManagamentTest is DevTestSetup {
         uint256 BInitialCollBalance = collToken.balanceOf(B);
 
         // Other can’t close trove
-        deal(address(boldToken), B, troveManager.getTroveEntireDebt(ATroveId));
+        deal(address(evroToken), B, troveManager.getTroveEntireDebt(ATroveId));
         vm.startPrank(B);
         vm.expectRevert(AddRemoveManagers.NotOwnerNorRemoveManager.selector);
         borrowerOperations.closeTrove(ATroveId);
@@ -689,7 +689,7 @@ contract BorrowerOperationsOnBehalfTroveManagamentTest is DevTestSetup {
         borrowerOperations.setAddManager(ATroveId, B);
         vm.stopPrank();
 
-        deal(address(boldToken), B, troveManager.getTroveEntireDebt(ATroveId));
+        deal(address(evroToken), B, troveManager.getTroveEntireDebt(ATroveId));
         vm.startPrank(B);
         vm.expectRevert(AddRemoveManagers.NotOwnerNorRemoveManager.selector);
         borrowerOperations.closeTrove(ATroveId);
@@ -698,7 +698,7 @@ contract BorrowerOperationsOnBehalfTroveManagamentTest is DevTestSetup {
         // Owner can close trove
         uint256 AInitialCollBalance = collToken.balanceOf(A);
 
-        deal(address(boldToken), A, troveManager.getTroveEntireDebt(ATroveId));
+        deal(address(evroToken), A, troveManager.getTroveEntireDebt(ATroveId));
         vm.startPrank(A);
         borrowerOperations.closeTrove(ATroveId);
         vm.stopPrank();

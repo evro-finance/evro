@@ -80,7 +80,7 @@ contract GasCompZapper is BaseZapper {
                 borrowerOperations.openTroveAndJoinInterestBatchManager(openTroveAndJoinInterestBatchManagerParams);
         }
 
-        boldToken.transfer(msg.sender, _params.boldAmount);
+        evroToken.transfer(msg.sender, _params.boldAmount);
 
         // Set add/remove managers
         _setAddManager(troveId, _params.addManager);
@@ -120,7 +120,7 @@ contract GasCompZapper is BaseZapper {
         borrowerOperations.withdrawBold(_troveId, _boldAmount, _maxUpfrontFee);
 
         // Send Bold
-        boldToken.transfer(receiver, _boldAmount);
+        evroToken.transfer(receiver, _boldAmount);
     }
 
     function repayBold(uint256 _troveId, uint256 _boldAmount) external {
@@ -129,10 +129,10 @@ contract GasCompZapper is BaseZapper {
 
         // Set initial balances to make sure there are not lefovers
         InitialBalances memory initialBalances;
-        _setInitialTokensAndBalances(collToken, boldToken, initialBalances);
+        _setInitialTokensAndBalances(collToken, evroToken, initialBalances);
 
         // Pull Bold
-        boldToken.transferFrom(msg.sender, address(this), _boldAmount);
+        evroToken.transferFrom(msg.sender, address(this), _boldAmount);
 
         borrowerOperations.repayBold(_troveId, _boldAmount);
 
@@ -187,7 +187,7 @@ contract GasCompZapper is BaseZapper {
         address receiver = _checkAdjustTroveManagers(_troveId, _collChange, _isCollIncrease, _isDebtIncrease);
 
         // Set initial balances to make sure there are not lefovers
-        _setInitialTokensAndBalances(collToken, boldToken, _initialBalances);
+        _setInitialTokensAndBalances(collToken, evroToken, _initialBalances);
 
         // Pull coll
         if (_isCollIncrease) {
@@ -196,7 +196,7 @@ contract GasCompZapper is BaseZapper {
 
         // Pull Bold
         if (!_isDebtIncrease) {
-            boldToken.transferFrom(msg.sender, address(this), _boldChange);
+            evroToken.transferFrom(msg.sender, address(this), _boldChange);
         }
 
         return receiver;
@@ -217,7 +217,7 @@ contract GasCompZapper is BaseZapper {
 
         // Send Bold
         if (_isDebtIncrease) {
-            boldToken.transfer(_receiver, _boldChange);
+            evroToken.transfer(_receiver, _boldChange);
         }
 
         // return leftovers to user
@@ -231,7 +231,7 @@ contract GasCompZapper is BaseZapper {
 
         // pull Bold for repayment
         LatestTroveData memory trove = troveManager.getLatestTroveData(_troveId);
-        boldToken.transferFrom(msg.sender, address(this), trove.entireDebt);
+        evroToken.transferFrom(msg.sender, address(this), trove.entireDebt);
 
         borrowerOperations.closeTrove(_troveId);
 
@@ -262,7 +262,7 @@ contract GasCompZapper is BaseZapper {
         // Set initial balances to make sure there are not lefovers
         InitialBalances memory initialBalances;
         initialBalances.tokens[0] = collToken;
-        initialBalances.tokens[1] = boldToken;
+        initialBalances.tokens[1] = evroToken;
         _setInitialBalancesAndReceiver(initialBalances, receiver);
 
         // Flash loan coll

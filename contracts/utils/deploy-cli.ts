@@ -271,7 +271,7 @@ Deploying Liquity contracts with the following settings:
 
   const deploymentManifestJson = fs.readFileSync("deployment-manifest.json", "utf-8");
   const deploymentManifest = JSON.parse(deploymentManifestJson) as {
-    boldToken: string;
+    evroToken: string;
     branches: Record<string, string>[];
     collateralRegistry: string;
     hintHelpers: string;
@@ -279,12 +279,12 @@ Deploying Liquity contracts with the following settings:
   };
 
   if (options.mode === "bold-only") {
-    echo("BoldToken address:", deploymentManifest.boldToken);
+    echo("EvroToken address:", deploymentManifest.evroToken);
     return;
   }
 
   const protocolContracts = {
-    BoldToken: deploymentManifest.boldToken,
+    EvroToken: deploymentManifest.evroToken,
     CollateralRegistry: deploymentManifest.collateralRegistry,
     HintHelpers: deploymentManifest.hintHelpers,
     MultiTroveGetter: deploymentManifest.multiTroveGetter,

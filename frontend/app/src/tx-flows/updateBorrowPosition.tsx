@@ -147,7 +147,7 @@ export const updateBorrowPosition: FlowDeclaration<UpdateBorrowPositionRequest> 
           : branch.contracts.LeverageLSTZapper;
 
         return ctx.writeContract({
-          ...ctx.contracts.BoldToken,
+          ...ctx.contracts.EvroToken,
           functionName: "approve",
           args: [
             Controller.address,
@@ -447,7 +447,7 @@ export const updateBorrowPosition: FlowDeclaration<UpdateBorrowPositionRequest> 
       dn.abs(debtChange),
       [
         (await ctx.readContract({
-          ...ctx.contracts.BoldToken,
+          ...ctx.contracts.EvroToken,
           functionName: "allowance",
           args: [ctx.account, Controller.address],
         })) ?? 0n,

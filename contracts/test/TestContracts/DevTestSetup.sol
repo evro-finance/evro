@@ -50,7 +50,7 @@ contract DevTestSetup is BaseTest {
         TestDeployer deployer = new TestDeployer();
         TestDeployer.LiquityContractsDev memory contracts;
         TestDeployer.Zappers memory zappers;
-        (contracts, collateralRegistry, boldToken, hintHelpers,, WETH, zappers) = deployer.deployAndConnectContracts();
+        (contracts, collateralRegistry, evroToken, hintHelpers,, WETH, zappers) = deployer.deployAndConnectContracts();
         addressesRegistry = contracts.addressesRegistry;
         collToken = contracts.collToken;
         activePool = contracts.activePool;
@@ -159,8 +159,8 @@ contract DevTestSetup is BaseTest {
         liquidate(A, troveIDs.C);
 
         // D sends BOLD to A and B so they have some to use in tests
-        transferBold(D, A, boldToken.balanceOf(D) / 2);
-        transferBold(D, B, boldToken.balanceOf(D));
+        transferBold(D, A, evroToken.balanceOf(D) / 2);
+        transferBold(D, B, evroToken.balanceOf(D));
 
         assertEq(uint8(troveManager.getTroveStatus(troveIDs.C)), uint8(ITroveManager.Status.closedByLiquidation));
     }
@@ -172,8 +172,8 @@ contract DevTestSetup is BaseTest {
         liquidate(A, troveIDs.C);
 
         // D sends BOLD to A and B so they have some to use in tests
-        transferBold(D, A, boldToken.balanceOf(D) / 2);
-        transferBold(D, B, boldToken.balanceOf(D));
+        transferBold(D, A, evroToken.balanceOf(D) / 2);
+        transferBold(D, B, evroToken.balanceOf(D));
 
         assertEq(uint8(troveManager.getTroveStatus(troveIDs.C)), uint8(ITroveManager.Status.closedByLiquidation));
     }
@@ -188,8 +188,8 @@ contract DevTestSetup is BaseTest {
         liquidate(A, troveIDs.C);
 
         // D sends BOLD to A and B so they have some to use in tests
-        transferBold(D, A, boldToken.balanceOf(D) / 2);
-        transferBold(D, B, boldToken.balanceOf(D));
+        transferBold(D, A, evroToken.balanceOf(D) / 2);
+        transferBold(D, B, evroToken.balanceOf(D));
 
         assertEq(uint8(troveManager.getTroveStatus(troveIDs.C)), uint8(ITroveManager.Status.closedByLiquidation));
     }
@@ -259,10 +259,10 @@ contract DevTestSetup is BaseTest {
         }
 
         // A, B, C, D transfer all their Bold to E
-        transferBold(A, E, boldToken.balanceOf(A));
-        transferBold(B, E, boldToken.balanceOf(B));
-        transferBold(C, E, boldToken.balanceOf(C));
-        transferBold(D, E, boldToken.balanceOf(D));
+        transferBold(A, E, evroToken.balanceOf(A));
+        transferBold(B, E, evroToken.balanceOf(B));
+        transferBold(C, E, evroToken.balanceOf(C));
+        transferBold(D, E, evroToken.balanceOf(D));
     }
 
     function _setupForRedemptionAscendingInterest() internal returns (uint256, uint256, ABCDEF memory) {

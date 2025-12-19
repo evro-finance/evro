@@ -4,7 +4,7 @@ pragma solidity ^0.8.0;
 
 import "./IActivePool.sol";
 import "./ILiquityBase.sol";
-import "./IBoldToken.sol";
+import "./IEvroToken.sol";
 import "./ITroveManager.sol";
 import "./IBoldRewardsReceiver.sol";
 
@@ -29,7 +29,7 @@ import "./IBoldRewardsReceiver.sol";
  *
 */
 interface IStabilityPool is ILiquityBase, IBoldRewardsReceiver {
-    function boldToken() external view returns (IBoldToken);
+    function evroToken() external view returns (IEvroToken);
     function troveManager() external view returns (ITroveManager);
 
     /*  provideToSP():

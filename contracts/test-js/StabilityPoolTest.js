@@ -52,7 +52,7 @@ contract("StabilityPool", async (accounts) => {
 
   let contracts;
   let priceFeed;
-  let boldToken;
+  let evroToken;
   let sortedTroves;
   let troveManager;
   let activePool;
@@ -74,7 +74,7 @@ contract("StabilityPool", async (accounts) => {
       const result = await deployFixture();
       contracts = result.contracts;
       priceFeed = contracts.priceFeed;
-      boldToken = contracts.boldToken;
+      evroToken = contracts.evroToken;
       sortedTroves = contracts.sortedTroves;
       troveManager = contracts.troveManager;
       activePool = contracts.activePool;
@@ -134,13 +134,13 @@ contract("StabilityPool", async (accounts) => {
 
       // --- TEST ---
       // get user's deposit record before
-      const alice_BoldBalance_Before = await boldToken.balanceOf(alice);
+      const alice_BoldBalance_Before = await evroToken.balanceOf(alice);
 
       // provideToSP()
       await th.provideToSPAndClaim(contracts, 200, { from: alice });
 
       // check user's Bold balance change
-      const alice_BoldBalance_After = await boldToken.balanceOf(alice);
+      const alice_BoldBalance_After = await evroToken.balanceOf(alice);
       assert.equal(
         alice_BoldBalance_Before.sub(alice_BoldBalance_After),
         "200",
@@ -173,7 +173,7 @@ contract("StabilityPool", async (accounts) => {
         ICR: toBN(dec(2, 18)),
         extraParams: { from: whale, value: dec(50, "ether") },
       });
-      const whaleBold = await boldToken.balanceOf(whale);
+      const whaleBold = await evroToken.balanceOf(whale);
       await th.provideToSPAndClaim(contracts, whaleBold, { from: whale });
 
       // 2 Troves opened, each withdraws minimum debt
@@ -245,7 +245,7 @@ contract("StabilityPool", async (accounts) => {
         ICR: toBN(dec(2, 18)),
         extraParams: { from: whale, value: dec(50, "ether") },
       });
-      const whaleBold = await boldToken.balanceOf(whale);
+      const whaleBold = await evroToken.balanceOf(whale);
       await th.provideToSPAndClaim(contracts, whaleBold, { from: whale });
 
       // 3 Troves opened. Two users withdraw 160 Bold each
@@ -371,8 +371,8 @@ contract("StabilityPool", async (accounts) => {
         ICR: toBN(dec(2, 18)),
         extraParams: { from: bob, value: dec(50, "ether") },
       });
-      const aliceBoldbal = await boldToken.balanceOf(alice);
-      const bobBoldbal = await boldToken.balanceOf(bob);
+      const aliceBoldbal = await evroToken.balanceOf(alice);
+      const bobBoldbal = await evroToken.balanceOf(bob);
 
       // Alice, attempts to deposit 1 wei more than her balance
 
@@ -887,8 +887,8 @@ contract("StabilityPool", async (accounts) => {
       });
 
       // Whale transfers Bold to A, B
-      await boldToken.transfer(A, dec(100, 18), { from: whale });
-      await boldToken.transfer(B, dec(200, 18), { from: whale });
+      await evroToken.transfer(A, dec(100, 18), { from: whale });
+      await evroToken.transfer(B, dec(200, 18), { from: whale });
 
       // C, D open troves
       await openTrove({
@@ -963,8 +963,8 @@ contract("StabilityPool", async (accounts) => {
       });
 
       // Whale transfers Bold to A, B
-      await boldToken.transfer(A, dec(1000, 18), { from: whale });
-      await boldToken.transfer(B, dec(1000, 18), { from: whale });
+      await evroToken.transfer(A, dec(1000, 18), { from: whale });
+      await evroToken.transfer(B, dec(1000, 18), { from: whale });
 
       // C, D open troves
       await openTrove({
@@ -1087,8 +1087,8 @@ contract("StabilityPool", async (accounts) => {
       });
 
       // Whale transfers Bold to C, D
-      await boldToken.transfer(C, dec(100, 18), { from: whale });
-      await boldToken.transfer(D, dec(100, 18), { from: whale });
+      await evroToken.transfer(C, dec(100, 18), { from: whale });
+      await evroToken.transfer(D, dec(100, 18), { from: whale });
 
       txPromise_A = stabilityPool.provideToSP(0, { from: A });
       txPromise_B = stabilityPool.provideToSP(0, { from: B });
@@ -1692,8 +1692,8 @@ contract("StabilityPool", async (accounts) => {
       await priceFeed.setPrice(dec(105, 18));
       await troveManager.liquidate(defaulter_1_TroveId);
 
-      const aliceBalBefore = await boldToken.balanceOf(alice);
-      const bobBalBefore = await boldToken.balanceOf(bob);
+      const aliceBalBefore = await evroToken.balanceOf(alice);
+      const bobBalBefore = await evroToken.balanceOf(bob);
 
       /* From an offset of 10000 Bold, each depositor receives
          BoldLoss = 1666.6666666666666666 Bold
@@ -1709,7 +1709,7 @@ contract("StabilityPool", async (accounts) => {
 
       // Expect Alice's Bold balance increase be very close to 8333.3333333333333333 Bold
       await th.withdrawFromSPAndClaim(contracts, dec(10000, 18), { from: alice });
-      const aliceBalance = await boldToken.balanceOf(alice);
+      const aliceBalance = await evroToken.balanceOf(alice);
 
       assert.isAtMost(
         th.getDifference(
@@ -1721,7 +1721,7 @@ contract("StabilityPool", async (accounts) => {
 
       // expect Bob's Bold balance increase to be very close to  13333.33333333333333333 Bold
       await th.withdrawFromSPAndClaim(contracts, dec(10000, 18), { from: bob });
-      const bobBalance = await boldToken.balanceOf(bob);
+      const bobBalance = await evroToken.balanceOf(bob);
       assert.isAtMost(
         th.getDifference(
           bobBalance.sub(bobBalBefore),
@@ -2294,8 +2294,8 @@ contract("StabilityPool", async (accounts) => {
       // Liquidate defaulter 1
       await troveManager.liquidate(defaulter_1_TroveId);
 
-      const alice_Bold_Balance_Before = await boldToken.balanceOf(alice);
-      const bob_Bold_Balance_Before = await boldToken.balanceOf(bob);
+      const alice_Bold_Balance_Before = await evroToken.balanceOf(alice);
+      const bob_Bold_Balance_Before = await evroToken.balanceOf(bob);
 
       const alice_Deposit_Before = await stabilityPool.getCompoundedBoldDeposit(
         alice,
@@ -2318,7 +2318,7 @@ contract("StabilityPool", async (accounts) => {
         .add(bob_Deposit_Before)
         .toString();
       const bob_Bold_Balance_After = (
-        await boldToken.balanceOf(bob)
+        await evroToken.balanceOf(bob)
       ).toString();
       assert.equal(bob_Bold_Balance_After, bob_expectedBoldBalance);
 
@@ -2332,7 +2332,7 @@ contract("StabilityPool", async (accounts) => {
         .add(alice_Deposit_Before)
         .toString();
       const alice_Bold_Balance_After = (
-        await boldToken.balanceOf(alice)
+        await evroToken.balanceOf(alice)
       ).toString();
       assert.equal(alice_Bold_Balance_After, alice_expectedBoldBalance);
 
@@ -2395,7 +2395,7 @@ contract("StabilityPool", async (accounts) => {
       // Liquidate defaulter 1
       await troveManager.liquidate(defaulter_1_TroveId);
 
-      const bob_Bold_Balance_Before = await boldToken.balanceOf(bob);
+      const bob_Bold_Balance_Before = await evroToken.balanceOf(bob);
 
       const bob_Deposit_Before = await stabilityPool.getCompoundedBoldDeposit(
         bob,
@@ -2414,7 +2414,7 @@ contract("StabilityPool", async (accounts) => {
         .add(bob_Deposit_Before)
         .toString();
       const bob_Bold_Balance_After = (
-        await boldToken.balanceOf(bob)
+        await evroToken.balanceOf(bob)
       ).toString();
       assert.equal(bob_Bold_Balance_After, bob_expectedBoldBalance);
 
@@ -2496,9 +2496,9 @@ contract("StabilityPool", async (accounts) => {
       await troveManager.liquidate(defaulter_1_TroveId);
       assert.isFalse(await sortedTroves.contains(defaulter_1_TroveId));
 
-      const alice_Bold_Balance_Before = await boldToken.balanceOf(alice);
-      const bob_Bold_Balance_Before = await boldToken.balanceOf(bob);
-      const carol_Bold_Balance_Before = await boldToken.balanceOf(carol);
+      const alice_Bold_Balance_Before = await evroToken.balanceOf(alice);
+      const bob_Bold_Balance_Before = await evroToken.balanceOf(bob);
+      const carol_Bold_Balance_Before = await evroToken.balanceOf(carol);
 
       const alice_ETH_Balance_Before = web3.utils.toBN(
         await contracts.WETH.balanceOf(alice),
@@ -2568,14 +2568,14 @@ contract("StabilityPool", async (accounts) => {
         .toString();
 
       const alice_Bold_Balance_After = (
-        await boldToken.balanceOf(alice)
+        await evroToken.balanceOf(alice)
       ).toString();
 
       const bob_Bold_Balance_After = (
-        await boldToken.balanceOf(bob)
+        await evroToken.balanceOf(bob)
       ).toString();
       const carol_Bold_Balance_After = (
-        await boldToken.balanceOf(carol)
+        await evroToken.balanceOf(carol)
       ).toString();
 
       assert.equal(alice_Bold_Balance_After, alice_expectedBoldBalance);
@@ -2782,8 +2782,8 @@ contract("StabilityPool", async (accounts) => {
       // --- TEST ---
 
       // Whale transfers to A, B
-      await boldToken.transfer(A, dec(10000, 18), { from: whale });
-      await boldToken.transfer(B, dec(20000, 18), { from: whale });
+      await evroToken.transfer(A, dec(10000, 18), { from: whale });
+      await evroToken.transfer(B, dec(20000, 18), { from: whale });
 
       await priceFeed.setPrice(dec(200, 18));
 

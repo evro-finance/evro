@@ -16,7 +16,7 @@ abstract contract BaseZapper is AddRemoveManagers, LeftoversSweep, IFlashLoanRec
     IBorrowerOperations public immutable borrowerOperations; // LST branch (i.e., not WETH as collateral)
     ITroveManager public immutable troveManager;
     IWETH public immutable WETH;
-    IBoldToken public immutable boldToken;
+    IEvroToken public immutable evroToken;
 
     IFlashLoanProvider public immutable flashLoanProvider;
     IExchange public immutable exchange;
@@ -26,7 +26,7 @@ abstract contract BaseZapper is AddRemoveManagers, LeftoversSweep, IFlashLoanRec
     {
         borrowerOperations = _addressesRegistry.borrowerOperations();
         troveManager = _addressesRegistry.troveManager();
-        boldToken = _addressesRegistry.boldToken();
+        evroToken = _addressesRegistry.evroToken();
         WETH = _addressesRegistry.WETH();
 
         flashLoanProvider = _flashLoanProvider;

@@ -9,7 +9,7 @@ const GasPool = artifacts.require("./GasPool.sol");
 const CollSurplusPool = artifacts.require("./CollSurplusPool.sol");
 const BorrowerOperations = artifacts.require("./BorrowerOperations.sol");
 const HintHelpers = artifacts.require("./HintHelpers.sol");
-const BoldToken = artifacts.require("./BoldTokenTester.sol");
+const EvroToken = artifacts.require("./EvroTokenTester.sol");
 const StabilityPool = artifacts.require("./StabilityPool.sol");
 const PriceFeedMock = artifacts.require("./PriceFeedMock.sol");
 const MockInterestRouter = artifacts.require("./MockInterestRouter.sol");
@@ -48,7 +48,7 @@ class DeploymentHelper {
         SortedTroves,
         StabilityPool,
         TroveManager,
-        BoldToken,
+        EvroToken,
         HintHelpers,
         CollateralRegistry,
         Constants,
@@ -78,9 +78,9 @@ class DeploymentHelper {
     const stabilityPool = await Contracts.StabilityPool.new(WETH.address);
     const constants = await Contracts.Constants.new();
 
-    const boldToken = await Contracts.BoldToken.new();
+    const evroToken = await Contracts.EvroToken.new();
 
-    const collateralRegistry = await Contracts.CollateralRegistry.new(boldToken.address, [WETH.address]);
+    const collateralRegistry = await Contracts.CollateralRegistry.new(evroToken.address, [WETH.address]);
     const troveManagerParams = {
       liquidationPenaltySP: "100000000000000000",
       liquidationPenaltyRedistribution: "100000000000000000",
@@ -92,7 +92,7 @@ class DeploymentHelper {
       gasPoolAddress: gasPool.address,
       collSurplusPool: collSurplusPool.address,
       priceFeed: priceFeedTestnet.address,
-      boldToken: boldToken.address,
+      evroToken: evroToken.address,
       sortedTroves: sortedTroves.address,
       weth: WETH.address,
       collateralRegistry: collateralRegistry.address
@@ -113,7 +113,7 @@ class DeploymentHelper {
 
     // TODO: setAsDeployed all above?
 
-    Contracts.BoldToken.setAsDeployed(boldToken);
+    Contracts.EvroToken.setAsDeployed(evroToken);
     Contracts.DefaultPool.setAsDeployed(defaultPool);
     Contracts.PriceFeedTestnet.setAsDeployed(priceFeedTestnet);
     Contracts.SortedTroves.setAsDeployed(sortedTroves);
@@ -131,7 +131,7 @@ class DeploymentHelper {
     const coreContracts = {
       WETH,
       priceFeedTestnet,
-      boldToken,
+      evroToken,
       sortedTroves,
       troveManager,
       troveNFT,
@@ -151,7 +151,7 @@ class DeploymentHelper {
 
   // Connect contracts to their dependencies
   static async connectCoreContracts(contracts) {
-    await contracts.boldToken.setBranchAddresses(
+    await contracts.evroToken.setBranchAddresses(
       contracts.troveManager.address,
       contracts.stabilityPool.address,
       contracts.borrowerOperations.address,
@@ -162,7 +162,7 @@ class DeploymentHelper {
       contracts.borrowerOperations.address,
       contracts.troveManager.address,
       contracts.activePool.address,
-      contracts.boldToken.address,
+      contracts.evroToken.address,
       contracts.sortedTroves.address,
       contracts.priceFeedTestnet.address,
     );
@@ -181,7 +181,7 @@ class DeploymentHelper {
       contracts.collSurplusPool.address,
       contracts.priceFeedTestnet.address,
       contracts.sortedTroves.address,
-      contracts.boldToken.address,
+      contracts.evroToken.address,
       // contracts.stETH.address
     );
 
@@ -192,7 +192,7 @@ class DeploymentHelper {
       contracts.troveManager.address,
       contracts.stabilityPool.address,
       contracts.defaultPool.address,
-      contracts.boldToken.address,
+      contracts.evroToken.address,
       contracts.mockInterestRouter.address,
       // contracts.stETH.address,
     );
@@ -215,7 +215,7 @@ class DeploymentHelper {
       contracts.troveManager.address
     );
 
-    await contracts.boldToken.setCollateralRegistry(
+    await contracts.evroToken.setCollateralRegistry(
       contracts.collateralRegistry.address,
     );
 

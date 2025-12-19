@@ -46,7 +46,7 @@ contract OraclesMainnet is TestAccounts {
 
     TestDeployer.LiquityContracts[] contractsArray;
     CollateralRegistryTester collateralRegistry;
-    IBoldToken boldToken;
+    IEvroToken evroToken;
 
     struct StoredOracle {
         AggregatorV3Interface aggregator;
@@ -120,7 +120,7 @@ contract OraclesMainnet is TestAccounts {
         TestDeployer.DeploymentResultMainnet memory result =
             deployer.deployAndConnectContractsMainnet(troveManagerParamsArray);
         collateralRegistry = result.collateralRegistry;
-        boldToken = result.boldToken;
+        evroToken = result.evroToken;
 
         ethOracle = AggregatorV3Interface(result.externalAddresses.ETHOracle);
         rethOracle = AggregatorV3Interface(result.externalAddresses.RETHOracle);
@@ -1708,13 +1708,13 @@ contract OraclesMainnet is TestAccounts {
         uint256 branch0DebtBefore = contractsArray[0].activePool.getBoldDebt();
         assertGt(branch0DebtBefore, 0);
 
-        uint256 boldBalBefore_A = boldToken.balanceOf(A);
+        uint256 boldBalBefore_A = evroToken.balanceOf(A);
 
         // Redeem
         redeem(A, totalBoldRedeemAmount);
 
         // Confirm A lost no BOLD
-        assertEq(boldToken.balanceOf(A), boldBalBefore_A);
+        assertEq(evroToken.balanceOf(A), boldBalBefore_A);
 
         // Confirm WETH branch did not get redeemed from
         assertEq(contractsArray[0].activePool.getBoldDebt(), branch0DebtBefore);
@@ -1752,13 +1752,13 @@ contract OraclesMainnet is TestAccounts {
         uint256 branch1DebtBefore = contractsArray[1].activePool.getBoldDebt();
         assertGt(branch1DebtBefore, 0);
 
-        uint256 boldBalBefore_A = boldToken.balanceOf(A);
+        uint256 boldBalBefore_A = evroToken.balanceOf(A);
 
         // Redeem
         redeem(A, totalBoldRedeemAmount);
 
         // Confirm A lost no BOLD
-        assertEq(boldToken.balanceOf(A), boldBalBefore_A);
+        assertEq(evroToken.balanceOf(A), boldBalBefore_A);
 
         // Confirm RETH branch did not get redeemed from
         assertEq(contractsArray[1].activePool.getBoldDebt(), branch1DebtBefore);
@@ -1796,13 +1796,13 @@ contract OraclesMainnet is TestAccounts {
         uint256 branch2DebtBefore = contractsArray[2].activePool.getBoldDebt();
         assertGt(branch2DebtBefore, 0);
 
-        uint256 boldBalBefore_A = boldToken.balanceOf(A);
+        uint256 boldBalBefore_A = evroToken.balanceOf(A);
 
         // Redeem
         redeem(A, totalBoldRedeemAmount);
 
         // Confirm A lost no BOLD
-        assertEq(boldToken.balanceOf(A), boldBalBefore_A);
+        assertEq(evroToken.balanceOf(A), boldBalBefore_A);
 
         // Confirm RETH branch did not get redeemed from
         assertEq(contractsArray[2].activePool.getBoldDebt(), branch2DebtBefore);

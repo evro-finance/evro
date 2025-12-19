@@ -8,7 +8,7 @@ import "openzeppelin-contracts/contracts/utils/math/Math.sol";
 import "./Dependencies/Constants.sol";
 import "./Interfaces/IActivePool.sol";
 import "./Interfaces/IAddressesRegistry.sol";
-import "./Interfaces/IBoldToken.sol";
+import "./Interfaces/IEvroToken.sol";
 import "./Interfaces/IInterestRouter.sol";
 import "./Interfaces/IDefaultPool.sol";
 
@@ -29,7 +29,7 @@ contract ActivePool is IActivePool {
     address public immutable troveManagerAddress;
     address public immutable defaultPoolAddress;
 
-    IBoldToken public immutable boldToken;
+    IEvroToken public immutable evroToken;
 
     IInterestRouter public immutable interestRouter;
     IBoldRewardsReceiver public immutable stabilityPool;
@@ -78,7 +78,7 @@ contract ActivePool is IActivePool {
         stabilityPool = IBoldRewardsReceiver(_addressesRegistry.stabilityPool());
         defaultPoolAddress = address(_addressesRegistry.defaultPool());
         interestRouter = _addressesRegistry.interestRouter();
-        boldToken = _addressesRegistry.boldToken();
+        evroToken = _addressesRegistry.evroToken();
 
         emit CollTokenAddressChanged(address(collToken));
         emit BorrowerOperationsAddressChanged(borrowerOperationsAddress);
@@ -253,10 +253,10 @@ contract ActivePool is IActivePool {
             uint256 spYield = SP_YIELD_SPLIT * mintedAmount / DECIMAL_PRECISION;
             uint256 remainderToLPs = mintedAmount - spYield;
 
-            boldToken.mint(address(interestRouter), remainderToLPs);
+            evroToken.mint(address(interestRouter), remainderToLPs);
 
             if (spYield > 0) {
-                boldToken.mint(address(stabilityPool), spYield);
+                evroToken.mint(address(stabilityPool), spYield);
                 stabilityPool.triggerBoldRewards(spYield);
             }
         }
@@ -291,7 +291,7 @@ contract ActivePool is IActivePool {
 
         // mint fee to batch address
         if (_troveChange.batchAccruedManagementFee > 0) {
-            boldToken.mint(_batchAddress, _troveChange.batchAccruedManagementFee);
+            evroToken.mint(_batchAddress, _troveChange.batchAccruedManagementFee);
         }
 
         lastAggBatchManagementFeesUpdateTime = block.timestamp;

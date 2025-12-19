@@ -6,7 +6,7 @@ import "./Interfaces/ITroveManager.sol";
 import "./Interfaces/IAddressesRegistry.sol";
 import "./Interfaces/IStabilityPool.sol";
 import "./Interfaces/ICollSurplusPool.sol";
-import "./Interfaces/IBoldToken.sol";
+import "./Interfaces/IEvroToken.sol";
 import "./Interfaces/ISortedTroves.sol";
 import "./Interfaces/ITroveEvents.sol";
 import "./Interfaces/ITroveNFT.sol";
@@ -22,7 +22,7 @@ contract TroveManager is LiquityBase, ITroveManager, ITroveEvents {
     IStabilityPool public stabilityPool;
     address internal gasPoolAddress;
     ICollSurplusPool internal collSurplusPool;
-    IBoldToken internal boldToken;
+    IEvroToken internal evroToken;
     // A doubly linked list of Troves, sorted by their interest rate
     ISortedTroves public sortedTroves;
     ICollateralRegistry internal collateralRegistry;
@@ -179,7 +179,7 @@ contract TroveManager is LiquityBase, ITroveManager, ITroveEvents {
 
     event TroveNFTAddressChanged(address _newTroveNFTAddress);
     event BorrowerOperationsAddressChanged(address _newBorrowerOperationsAddress);
-    event BoldTokenAddressChanged(address _newBoldTokenAddress);
+    event EvroTokenAddressChanged(address _newEvroTokenAddress);
     event StabilityPoolAddressChanged(address _stabilityPoolAddress);
     event GasPoolAddressChanged(address _gasPoolAddress);
     event CollSurplusPoolAddressChanged(address _collSurplusPoolAddress);
@@ -198,7 +198,7 @@ contract TroveManager is LiquityBase, ITroveManager, ITroveEvents {
         stabilityPool = _addressesRegistry.stabilityPool();
         gasPoolAddress = _addressesRegistry.gasPoolAddress();
         collSurplusPool = _addressesRegistry.collSurplusPool();
-        boldToken = _addressesRegistry.boldToken();
+        evroToken = _addressesRegistry.evroToken();
         sortedTroves = _addressesRegistry.sortedTroves();
         WETH = _addressesRegistry.WETH();
         collateralRegistry = _addressesRegistry.collateralRegistry();
@@ -208,7 +208,7 @@ contract TroveManager is LiquityBase, ITroveManager, ITroveEvents {
         emit StabilityPoolAddressChanged(address(stabilityPool));
         emit GasPoolAddressChanged(gasPoolAddress);
         emit CollSurplusPoolAddressChanged(address(collSurplusPool));
-        emit BoldTokenAddressChanged(address(boldToken));
+        emit EvroTokenAddressChanged(address(evroToken));
         emit SortedTrovesAddressChanged(address(sortedTroves));
         emit CollateralRegistryAddressChanged(address(collateralRegistry));
     }
@@ -874,7 +874,7 @@ contract TroveManager is LiquityBase, ITroveManager, ITroveEvents {
     function urgentRedemption(uint256 _boldAmount, uint256[] calldata _troveIds, uint256 _minCollateral) external {
         _requireIsShutDown();
         _requireAmountGreaterThanZero(_boldAmount);
-        _requireBoldBalanceCoversRedemption(boldToken, msg.sender, _boldAmount);
+        _requireBoldBalanceCoversRedemption(evroToken, msg.sender, _boldAmount);
 
         IActivePool activePoolCached = activePool;
         TroveChange memory totalsTroveChange;
@@ -928,7 +928,7 @@ contract TroveManager is LiquityBase, ITroveManager, ITroveEvents {
         // Send the redeemed coll to caller
         activePoolCached.sendColl(msg.sender, totalsTroveChange.collDecrease);
         // Burn bold
-        boldToken.burn(msg.sender, totalsTroveChange.debtDecrease);
+        evroToken.burn(msg.sender, totalsTroveChange.debtDecrease);
     }
 
     function shutdown() external {
@@ -1202,11 +1202,11 @@ contract TroveManager is LiquityBase, ITroveManager, ITroveEvents {
         }
     }
 
-    function _requireBoldBalanceCoversRedemption(IBoldToken _boldToken, address _redeemer, uint256 _amount)
+    function _requireBoldBalanceCoversRedemption(IEvroToken _evroToken, address _redeemer, uint256 _amount)
         internal
         view
     {
-        uint256 boldBalance = _boldToken.balanceOf(_redeemer);
+        uint256 boldBalance = _evroToken.balanceOf(_redeemer);
         if (boldBalance < _amount) {
             revert NotEnoughBoldBalance();
         }

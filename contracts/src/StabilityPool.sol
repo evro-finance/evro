@@ -8,7 +8,7 @@ import "./Interfaces/IStabilityPool.sol";
 import "./Interfaces/IAddressesRegistry.sol";
 import "./Interfaces/IStabilityPoolEvents.sol";
 import "./Interfaces/ITroveManager.sol";
-import "./Interfaces/IBoldToken.sol";
+import "./Interfaces/IEvroToken.sol";
 import "./Dependencies/LiquityBase.sol";
 
 /*
@@ -122,7 +122,7 @@ contract StabilityPool is LiquityBase, IStabilityPool, IStabilityPoolEvents {
 
     IERC20 public immutable collToken;
     ITroveManager public immutable troveManager;
-    IBoldToken public immutable boldToken;
+    IEvroToken public immutable evroToken;
 
     uint256 internal collBalance; // deposited coll tracker
 
@@ -187,15 +187,15 @@ contract StabilityPool is LiquityBase, IStabilityPool, IStabilityPoolEvents {
     // --- Events ---
 
     event TroveManagerAddressChanged(address _newTroveManagerAddress);
-    event BoldTokenAddressChanged(address _newBoldTokenAddress);
+    event EvroTokenAddressChanged(address _newEvroTokenAddress);
 
     constructor(IAddressesRegistry _addressesRegistry) LiquityBase(_addressesRegistry) {
         collToken = _addressesRegistry.collToken();
         troveManager = _addressesRegistry.troveManager();
-        boldToken = _addressesRegistry.boldToken();
+        evroToken = _addressesRegistry.evroToken();
 
         emit TroveManagerAddressChanged(address(troveManager));
-        emit BoldTokenAddressChanged(address(boldToken));
+        emit EvroTokenAddressChanged(address(evroToken));
     }
 
     // --- Getters for public variables. Required by IPool interface ---
@@ -251,7 +251,7 @@ contract StabilityPool is LiquityBase, IStabilityPool, IStabilityPoolEvents {
         );
 
         _updateDepositAndSnapshots(msg.sender, newDeposit, newStashedColl);
-        boldToken.sendToPool(msg.sender, address(this), _topUp);
+        evroToken.sendToPool(msg.sender, address(this), _topUp);
         _updateTotalBoldDeposits(_topUp + keptYieldGain, 0);
         _decreaseYieldGainsOwed(currentYieldGain);
         _sendBoldtoDepositor(msg.sender, yieldGainToSend);
@@ -421,7 +421,7 @@ contract StabilityPool is LiquityBase, IStabilityPool, IStabilityPoolEvents {
         _updateTotalBoldDeposits(0, _debtToOffset);
 
         // Burn the debt that was successfully offset
-        boldToken.burn(address(this), _debtToOffset);
+        evroToken.burn(address(this), _debtToOffset);
 
         // Update internal Coll balance tracker
         uint256 newCollBalance = collBalance + _collToAdd;
@@ -547,7 +547,7 @@ contract StabilityPool is LiquityBase, IStabilityPool, IStabilityPoolEvents {
     // Send Bold to user and decrease Bold in Pool
     function _sendBoldtoDepositor(address _depositor, uint256 _boldToSend) internal {
         if (_boldToSend == 0) return;
-        boldToken.returnFromPool(address(this), _depositor, _boldToSend);
+        evroToken.returnFromPool(address(this), _depositor, _boldToSend);
     }
 
     // --- Stability Pool Deposit Functionality ---

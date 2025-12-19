@@ -137,7 +137,7 @@ contract ZapperLeverageMainnet is DevTestSetup {
         TestDeployer.DeploymentResultMainnet memory result =
             deployer.deployAndConnectContractsMainnet(troveManagerParamsArray);
         collateralRegistry = result.collateralRegistry;
-        boldToken = result.boldToken;
+        evroToken = result.evroToken;
         // Record contracts
         baseZapperArray.push(result.zappersArray[0].wethZapper);
         for (uint256 c = 1; c < NUM_COLLATERALS; c++) {
@@ -201,11 +201,11 @@ contract ZapperLeverageMainnet is DevTestSetup {
             uint256 collAmount = 1000 ether;
             boldAmount = collAmount * price / DECIMAL_PRECISION;
             deal(address(_contractsArray[i].collToken), A, collAmount);
-            deal(address(boldToken), A, boldAmount);
+            deal(address(evroToken), A, boldAmount);
             vm.startPrank(A);
             // approve
             _contractsArray[i].collToken.approve(address(curvePool), collAmount);
-            boldToken.approve(address(curvePool), boldAmount);
+            evroToken.approve(address(curvePool), boldAmount);
             uint256[2] memory amounts;
             amounts[0] = boldAmount;
             amounts[1] = collAmount;
@@ -218,11 +218,11 @@ contract ZapperLeverageMainnet is DevTestSetup {
         uint256 usdcAmount = 1e15; // 1B with 6 decimals
         boldAmount = usdcAmount * 1e12; // from 6 to 18 decimals
         deal(address(USDC), A, usdcAmount);
-        deal(address(boldToken), A, boldAmount);
+        deal(address(evroToken), A, boldAmount);
         vm.startPrank(A);
         // approve
         USDC.approve(address(usdcCurvePool), usdcAmount);
-        boldToken.approve(address(usdcCurvePool), boldAmount);
+        evroToken.approve(address(usdcCurvePool), boldAmount);
         uint256[] memory amountsDynamic = new uint256[](2);
         amountsDynamic[0] = boldAmount;
         amountsDynamic[1] = usdcAmount;
@@ -241,16 +241,16 @@ contract ZapperLeverageMainnet is DevTestSetup {
             uint256 boldAmount = collAmount * price / DECIMAL_PRECISION;
             address[2] memory tokens;
             uint256[2] memory amounts;
-            if (address(boldToken) < address(_contractsArray[i].collToken)) {
+            if (address(evroToken) < address(_contractsArray[i].collToken)) {
                 //console2.log("b < c");
-                tokens[0] = address(boldToken);
+                tokens[0] = address(evroToken);
                 tokens[1] = address(_contractsArray[i].collToken);
                 amounts[0] = boldAmount;
                 amounts[1] = collAmount;
             } else {
                 //console2.log("c < b");
                 tokens[0] = address(_contractsArray[i].collToken);
-                tokens[1] = address(boldToken);
+                tokens[1] = address(evroToken);
                 amounts[0] = collAmount;
                 amounts[1] = boldAmount;
             }
@@ -261,13 +261,13 @@ contract ZapperLeverageMainnet is DevTestSetup {
 
             // deal and approve
             deal(address(_contractsArray[i].collToken), A, collAmount);
-            deal(address(boldToken), A, boldAmount);
+            deal(address(evroToken), A, boldAmount);
             _contractsArray[i].collToken.approve(address(uniV3PositionManager), collAmount);
-            boldToken.approve(address(uniV3PositionManager), boldAmount);
+            evroToken.approve(address(uniV3PositionManager), boldAmount);
 
             // mint new position
             address uniV3PoolAddress =
-                uniswapV3Factory.getPool(address(boldToken), address(_contractsArray[i].collToken), UNIV3_FEE);
+                uniswapV3Factory.getPool(address(evroToken), address(_contractsArray[i].collToken), UNIV3_FEE);
             //console2.log(uniV3PoolAddress, "uniV3PoolAddress");
             int24 TICK_SPACING = IUniswapV3Pool(uniV3PoolAddress).tickSpacing();
             (, int24 tick,,,,,) = IUniswapV3Pool(uniV3PoolAddress).slot0();
@@ -359,13 +359,13 @@ contract ZapperLeverageMainnet is DevTestSetup {
         internal
         view
     {
-        vars.boldBalanceBeforeA = boldToken.balanceOf(A);
+        vars.boldBalanceBeforeA = evroToken.balanceOf(A);
         vars.ethBalanceBeforeA = A.balance;
         vars.collBalanceBeforeA = contractsArray[_branch].collToken.balanceOf(A);
-        vars.boldBalanceBeforeZapper = boldToken.balanceOf(address(_leverageZapper));
+        vars.boldBalanceBeforeZapper = evroToken.balanceOf(address(_leverageZapper));
         vars.ethBalanceBeforeZapper = address(_leverageZapper).balance;
         vars.collBalanceBeforeZapper = contractsArray[_branch].collToken.balanceOf(address(_leverageZapper));
-        vars.boldBalanceBeforeExchange = boldToken.balanceOf(address(_leverageZapper.exchange()));
+        vars.boldBalanceBeforeExchange = evroToken.balanceOf(address(_leverageZapper.exchange()));
         vars.ethBalanceBeforeExchange = address(_leverageZapper.exchange()).balance;
         vars.collBalanceBeforeExchange =
             contractsArray[_branch].collToken.balanceOf(address(_leverageZapper.exchange()));
@@ -468,12 +468,12 @@ contract ZapperLeverageMainnet is DevTestSetup {
         uint256 ICR = contractsArray[_branch].troveManager.getCurrentICR(vars.troveId, vars.price);
         assertTrue(ICR >= vars.resultingCollateralRatio || vars.resultingCollateralRatio - ICR < 3e16, "Wrong CR");
         // token balances
-        assertEq(boldToken.balanceOf(A), vars.boldBalanceBeforeA, "BOLD bal mismatch");
+        assertEq(evroToken.balanceOf(A), vars.boldBalanceBeforeA, "BOLD bal mismatch");
         assertEq(
-            boldToken.balanceOf(address(_leverageZapper)), vars.boldBalanceBeforeZapper, "Zapper should not keep BOLD"
+            evroToken.balanceOf(address(_leverageZapper)), vars.boldBalanceBeforeZapper, "Zapper should not keep BOLD"
         );
         assertEq(
-            boldToken.balanceOf(address(_leverageZapper.exchange())),
+            evroToken.balanceOf(address(_leverageZapper.exchange())),
             vars.boldBalanceBeforeExchange,
             "Exchange should not keep BOLD"
         );
@@ -668,14 +668,14 @@ contract ZapperLeverageMainnet is DevTestSetup {
         uint256 ICR = contractsArray[_branch].troveManager.getCurrentICR(vars.troveId, vars.price);
         assertTrue(ICR >= vars.resultingCollateralRatio || vars.resultingCollateralRatio - ICR < 2e16, "Wrong CR");
         // token balances
-        assertEq(boldToken.balanceOf(A), vars.boldBalanceBeforeA, "BOLD bal mismatch");
+        assertEq(evroToken.balanceOf(A), vars.boldBalanceBeforeA, "BOLD bal mismatch");
         assertEq(A.balance, vars.ethBalanceBeforeA, "ETH bal mismatch");
         assertGe(contractsArray[_branch].collToken.balanceOf(A), vars.collBalanceBeforeA, "Coll bal mismatch");
         assertEq(
-            boldToken.balanceOf(address(_leverageZapper)), vars.boldBalanceBeforeZapper, "Zapper should not keep BOLD"
+            evroToken.balanceOf(address(_leverageZapper)), vars.boldBalanceBeforeZapper, "Zapper should not keep BOLD"
         );
         assertEq(
-            boldToken.balanceOf(address(_leverageZapper.exchange())),
+            evroToken.balanceOf(address(_leverageZapper.exchange())),
             vars.boldBalanceBeforeExchange,
             "Exchange should not keep BOLD"
         );
@@ -1133,14 +1133,14 @@ contract ZapperLeverageMainnet is DevTestSetup {
             ICR >= vars.resultingCollateralRatio || vars.resultingCollateralRatio - ICR < CRTolerance, "Wrong CR"
         );
         // token balances
-        assertEq(boldToken.balanceOf(A), vars.boldBalanceBeforeA, "BOLD bal mismatch");
+        assertEq(evroToken.balanceOf(A), vars.boldBalanceBeforeA, "BOLD bal mismatch");
         assertEq(A.balance, vars.ethBalanceBeforeA, "ETH bal mismatch");
         assertGe(contractsArray[_branch].collToken.balanceOf(A), vars.collBalanceBeforeA, "Coll bal mismatch");
         assertEq(
-            boldToken.balanceOf(address(_leverageZapper)), vars.boldBalanceBeforeZapper, "Zapper should not keep BOLD"
+            evroToken.balanceOf(address(_leverageZapper)), vars.boldBalanceBeforeZapper, "Zapper should not keep BOLD"
         );
         assertEq(
-            boldToken.balanceOf(address(_leverageZapper.exchange())),
+            evroToken.balanceOf(address(_leverageZapper.exchange())),
             vars.boldBalanceBeforeExchange,
             "Exchange should not keep BOLD"
         );
@@ -1562,7 +1562,7 @@ contract ZapperLeverageMainnet is DevTestSetup {
         // open a 2nd trove so we can close the 1st one
         openTrove(_zapper, B, 0, 100 ether, 10000e18, lst);
 
-        uint256 boldBalanceBefore = boldToken.balanceOf(A);
+        uint256 boldBalanceBefore = evroToken.balanceOf(A);
         uint256 collBalanceBefore = contractsArray[_branch].collToken.balanceOf(A);
         uint256 ethBalanceBefore = A.balance;
         (uint256 price,) = contractsArray[_branch].priceFeed.fetchPrice();
@@ -1574,8 +1574,8 @@ contract ZapperLeverageMainnet is DevTestSetup {
 
         assertEq(getTroveEntireColl(contractsArray[_branch].troveManager, troveId), 0, "Coll mismatch");
         assertEq(getTroveEntireDebt(contractsArray[_branch].troveManager, troveId), 0, "Debt mismatch");
-        assertGe(boldToken.balanceOf(A), boldBalanceBefore, "BOLD bal should not decrease");
-        assertLe(boldToken.balanceOf(A), boldBalanceBefore * 105 / 100, "BOLD bal can only increase by slippage margin");
+        assertGe(evroToken.balanceOf(A), boldBalanceBefore, "BOLD bal should not decrease");
+        assertLe(evroToken.balanceOf(A), boldBalanceBefore * 105 / 100, "BOLD bal can only increase by slippage margin");
         if (lst) {
             assertGe(contractsArray[_branch].collToken.balanceOf(A), collBalanceBefore, "Coll bal should not decrease");
             assertApproxEqAbs(
@@ -1973,7 +1973,7 @@ contract ZapperLeverageMainnet is DevTestSetup {
         returns (uint256)
     {
         IQuoterV2.QuoteExactOutputSingleParams memory params = IQuoterV2.QuoteExactOutputSingleParams({
-            tokenIn: address(boldToken),
+            tokenIn: address(evroToken),
             tokenOut: address(_collToken),
             amount: _minCollAmount,
             fee: UNIV3_FEE,

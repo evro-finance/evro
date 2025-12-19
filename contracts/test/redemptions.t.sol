@@ -453,7 +453,7 @@ contract Redemptions is DevTestSetup {
         uint256 debt_B = troveManager.getTroveEntireDebt(troveIDs.B);
         assertGt(debt_B, 0, "B debt should be non zero");
 
-        deal(address(boldToken), B, debt_B);
+        deal(address(evroToken), B, debt_B);
         closeTrove(B, troveIDs.B);
 
         // Check B is closed
@@ -479,7 +479,7 @@ contract Redemptions is DevTestSetup {
         uint256 debt_B = troveManager.getTroveEntireDebt(troveIDs.B);
         assertGt(debt_B, 0, "B debt should be non zero");
 
-        deal(address(boldToken), B, debt_B);
+        deal(address(evroToken), B, debt_B);
         closeTrove(B, troveIDs.B);
 
         // Check B is closed
@@ -662,8 +662,8 @@ contract Redemptions is DevTestSetup {
         _redeemAndCreateZombieTrovesAAndB(troveIDs);
 
         // E sends bold back to A and B so they can close
-        transferBold(E, A, boldToken.balanceOf(E) / 2);
-        transferBold(E, B, boldToken.balanceOf(E));
+        transferBold(E, A, evroToken.balanceOf(E) / 2);
+        transferBold(E, B, evroToken.balanceOf(E));
 
         assertEq(uint8(troveManager.getTroveStatus(troveIDs.A)), uint8(ITroveManager.Status.zombie));
         assertEq(uint8(troveManager.getTroveStatus(troveIDs.B)), uint8(ITroveManager.Status.zombie));
@@ -821,8 +821,8 @@ contract Redemptions is DevTestSetup {
         uint256 debtRepayment = 1;
 
         // E sends Bold back to A and B
-        transferBold(E, A, boldToken.balanceOf(E) / 2);
-        transferBold(E, B, boldToken.balanceOf(E));
+        transferBold(E, A, evroToken.balanceOf(E) / 2);
+        transferBold(E, B, evroToken.balanceOf(E));
 
         vm.startPrank(A);
         vm.expectRevert(BorrowerOperations.TroveNotActive.selector);
@@ -983,7 +983,7 @@ contract Redemptions is DevTestSetup {
         uint256 troveColl_E = 25000e18;
         // E  opens new Trove and deposits to SP
         openTroveNoHints100pct(E, troveColl_E, troveDebtRequest_E, interestRate_E);
-        makeSPDepositAndClaim(E, boldToken.balanceOf(E));
+        makeSPDepositAndClaim(E, evroToken.balanceOf(E));
         assertGt(stabilityPool.getTotalBoldDeposits(), troveManager.getTroveEntireDebt(troveIDs.B));
 
         // Price drops, B becomes liquidateable

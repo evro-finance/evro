@@ -3,7 +3,7 @@ pragma solidity 0.8.24;
 
 import {IERC20} from "openzeppelin-contracts/contracts/token/ERC20/IERC20.sol";
 import {IBorrowerOperations} from "src/Interfaces/IBorrowerOperations.sol";
-import {IBoldToken} from "src/Interfaces/IBoldToken.sol";
+import {IEvroToken} from "src/Interfaces/IEvroToken.sol";
 import {IStabilityPool} from "src/Interfaces/IStabilityPool.sol";
 import {ITroveManager} from "src/Interfaces/ITroveManager.sol";
 import {ICollSurplusPool} from "src/Interfaces/ICollSurplusPool.sol";
@@ -41,7 +41,7 @@ contract SPInvariantsTestHandler is BaseHandler, TroveId {
     using StringFormatting for uint256;
 
     struct Contracts {
-        IBoldToken boldToken;
+        IEvroToken evroToken;
         IBorrowerOperations borrowerOperations;
         IERC20 collateralToken;
         IPriceFeedTestnet priceFeed;
@@ -50,7 +50,7 @@ contract SPInvariantsTestHandler is BaseHandler, TroveId {
         ICollSurplusPool collSurplusPool;
     }
 
-    IBoldToken immutable boldToken;
+    IEvroToken immutable evroToken;
     IBorrowerOperations immutable borrowerOperations;
     IERC20 collateralToken;
     IPriceFeedTestnet immutable priceFeed;
@@ -71,7 +71,7 @@ contract SPInvariantsTestHandler is BaseHandler, TroveId {
     uint256[] fixtureDeposited;
 
     constructor(Contracts memory contracts, HintHelpers hintHelpers_) {
-        boldToken = contracts.boldToken;
+        evroToken = contracts.evroToken;
         borrowerOperations = contracts.borrowerOperations;
         collateralToken = contracts.collateralToken;
         priceFeed = contracts.priceFeed;
@@ -118,8 +118,8 @@ contract SPInvariantsTestHandler is BaseHandler, TroveId {
 
         // Sweep funds
         vm.prank(msg.sender);
-        boldToken.transfer(address(this), borrowed);
-        assertEqDecimal(boldToken.balanceOf(msg.sender), 0, 18, "Incomplete BOLD sweep");
+        evroToken.transfer(address(this), borrowed);
+        assertEqDecimal(evroToken.balanceOf(msg.sender), 0, 18, "Incomplete BOLD sweep");
         myBold += borrowed;
 
         // Use these interesting values as SP deposit amounts later
@@ -144,7 +144,7 @@ contract SPInvariantsTestHandler is BaseHandler, TroveId {
 
         logCall("provideToSp", deposited.decimal(), "false");
 
-        boldToken.transfer(msg.sender, deposited);
+        evroToken.transfer(msg.sender, deposited);
         vm.prank(msg.sender);
         // Provide to SP and claim Coll and BOLD gains
         stabilityPool.provideToSP(deposited, true);
@@ -157,8 +157,8 @@ contract SPInvariantsTestHandler is BaseHandler, TroveId {
 
         // Sweep BOLD gain
         vm.prank(msg.sender);
-        boldToken.transfer(address(this), boldGain);
-        assertEqDecimal(boldToken.balanceOf(msg.sender), 0, 18, "Incomplete BOLD sweep");
+        evroToken.transfer(address(this), boldGain);
+        assertEqDecimal(evroToken.balanceOf(msg.sender), 0, 18, "Incomplete BOLD sweep");
         myBold += boldGain;
 
         myBold -= deposited;

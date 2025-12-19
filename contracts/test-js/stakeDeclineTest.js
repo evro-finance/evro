@@ -22,7 +22,7 @@ contract("TroveManager", async (accounts) => {
 
   let contracts;
   let priceFeed;
-  let boldToken;
+  let evroToken;
   let sortedTroves;
   let troveManager;
   let activePool;
@@ -51,7 +51,7 @@ contract("TroveManager", async (accounts) => {
     const result = await deployFixture();
     contracts = result.contracts;
     priceFeed = contracts.priceFeedTestnet;
-    boldToken = contracts.boldToken;
+    evroToken = contracts.evroToken;
     sortedTroves = contracts.sortedTroves;
     troveManager = contracts.troveManager;
     activePool = contracts.activePool;

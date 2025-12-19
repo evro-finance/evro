@@ -27,7 +27,7 @@ contract InitiativeSmarDEX is E2EHelpers {
         uint256 donationAmount = 10_000 ether;
         _openTrove(0, borrower, 0, Math.max(REGISTRATION_FEE, MIN_DEBT) + donationAmount);
         vm.startPrank(borrower);
-        boldToken.transfer(registrant, REGISTRATION_FEE);
+        evroToken.transfer(registrant, REGISTRATION_FEE);
         vm.stopPrank();
 
         // Stake LQTY and accumulate voting power
@@ -41,7 +41,7 @@ contract InitiativeSmarDEX is E2EHelpers {
 
         // Register initiative
         vm.startPrank(registrant);
-        boldToken.approve(address(governance), REGISTRATION_FEE);
+        evroToken.approve(address(governance), REGISTRATION_FEE);
         governance.registerInitiative(INITIATIVE_ADDRESS);
         vm.stopPrank();
 
@@ -56,13 +56,13 @@ contract InitiativeSmarDEX is E2EHelpers {
 
         // Donate
         vm.startPrank(borrower);
-        boldToken.transfer(address(governance), donationAmount);
+        evroToken.transfer(address(governance), donationAmount);
         vm.stopPrank();
 
         skip(7 days);
 
         /*
-        console2.log(boldToken.balanceOf(address(governance)), "boldToken.balanceOf(address(governance))");
+        console2.log(evroToken.balanceOf(address(governance)), "evroToken.balanceOf(address(governance))");
         console2.log(governance.getLatestVotingThreshold(), "voting threshold");
         (Governance.VoteSnapshot memory voteSnapshot, Governance.InitiativeVoteSnapshot memory initiativeVoteSnapshot) =
             governance.snapshotVotesForInitiative(INITIATIVE_ADDRESS);
@@ -75,7 +75,7 @@ contract InitiativeSmarDEX is E2EHelpers {
         */
         // Claim for initiative
         governance.claimForInitiative(INITIATIVE_ADDRESS);
-        //console2.log(boldToken.balanceOf(INITIATIVE_ADDRESS), "boldToken.balanceOf(INITIATIVE_ADDRESS)");
-        assertGt(boldToken.balanceOf(INITIATIVE_ADDRESS), 0, "Initiative should have received incentives");
+        //console2.log(evroToken.balanceOf(INITIATIVE_ADDRESS), "evroToken.balanceOf(INITIATIVE_ADDRESS)");
+        assertGt(evroToken.balanceOf(INITIATIVE_ADDRESS), 0, "Initiative should have received incentives");
     }
 }

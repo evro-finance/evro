@@ -6,7 +6,7 @@ import "./ILiquityBase.sol";
 import "./ITroveNFT.sol";
 import "./IBorrowerOperations.sol";
 import "./IStabilityPool.sol";
-import "./IBoldToken.sol";
+import "./IEvroToken.sol";
 import "./ISortedTroves.sol";
 import "../Types/LatestTroveData.sol";
 import "../Types/LatestBatchData.sol";
@@ -25,7 +25,7 @@ interface ITroveManager is ILiquityBase {
 
     function troveNFT() external view returns (ITroveNFT);
     function stabilityPool() external view returns (IStabilityPool);
-    //function boldToken() external view returns (IBoldToken);
+    //function evroToken() external view returns (IEvroToken);
     function sortedTroves() external view returns (ISortedTroves);
     function borrowerOperations() external view returns (IBorrowerOperations);
 

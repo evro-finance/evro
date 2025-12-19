@@ -282,12 +282,12 @@ contract TroveEventsTest is EventsTest, ITroveEvents {
         openTroveHelper(B, 0, 100 ether, 10_000 ether, 0.01 ether);
 
         uint256 debt = troveManager.getTroveEntireDebt(troveId);
-        uint256 balance = boldToken.balanceOf(A);
+        uint256 balance = evroToken.balanceOf(A);
         assertGe(debt, balance, "expected debt >= balance");
 
         // B helps A close their Trove
         vm.prank(B);
-        boldToken.transfer(A, debt - balance);
+        evroToken.transfer(A, debt - balance);
 
         vm.expectEmit();
         emit TroveUpdated(
@@ -312,12 +312,12 @@ contract TroveEventsTest is EventsTest, ITroveEvents {
         openTroveHelper(B, 0, 100 ether, 10_000 ether, 0.01 ether);
 
         uint256 debt = troveManager.getTroveEntireDebt(troveId);
-        uint256 balance = boldToken.balanceOf(A);
+        uint256 balance = evroToken.balanceOf(A);
         assertGe(debt, balance, "expected debt >= balance");
 
         // B helps A close their Trove
         vm.prank(B);
-        boldToken.transfer(A, debt - balance);
+        evroToken.transfer(A, debt - balance);
 
         vm.expectEmit();
         emit TroveOperation(

@@ -51,8 +51,8 @@ contract TroveManagerTester is ITroveManagerTester, TroveManager {
         return LIQUIDATION_PENALTY_REDISTRIBUTION;
     }
 
-    function getBoldToken() external view returns (IBoldToken) {
-        return boldToken;
+    function getEvroToken() external view returns (IEvroToken) {
+        return evroToken;
     }
 
     function getBorrowerOperations() external view returns (IBorrowerOperations) {

@@ -75,7 +75,7 @@ contract MulticollateralTest is DevTestSetup {
 
         TestDeployer deployer = new TestDeployer();
         TestDeployer.LiquityContractsDev[] memory _contractsArray;
-        (_contractsArray, collateralRegistry, boldToken,,, WETH,) =
+        (_contractsArray, collateralRegistry, evroToken,,, WETH,) =
             deployer.deployAndConnectContractsMultiColl(troveManagerParamsArray);
         // Unimplemented feature (...):Copying of type struct LiquityContracts memory[] memory to storage not yet supported.
         for (uint256 c = 0; c < NUM_COLLATERALS; c++) {
@@ -171,7 +171,7 @@ contract MulticollateralTest is DevTestSetup {
         vm.warp(block.timestamp + 1 days);
 
         // Check A’s final bal
-        assertEq(boldToken.balanceOf(A), 16000e18, "Wrong Bold balance before redemption");
+        assertEq(evroToken.balanceOf(A), 16000e18, "Wrong Bold balance before redemption");
 
         // initial balances
         testValues1.collInitialBalance = contractsArray[0].collToken.balanceOf(A);
@@ -211,7 +211,7 @@ contract MulticollateralTest is DevTestSetup {
             "Wrong redemption fee with decay"
         );
 
-        uint256 initialBoldSupply = boldToken.totalSupply();
+        uint256 initialBoldSupply = evroToken.totalSupply();
 
         // A redeems 1.6k
         redeem(A, redeemAmount);
@@ -225,7 +225,7 @@ contract MulticollateralTest is DevTestSetup {
         );
 
         // Check bold balance
-        assertApproxEqAbs(boldToken.balanceOf(A), 14400e18, 10, "Wrong Bold balance after redemption");
+        assertApproxEqAbs(evroToken.balanceOf(A), 14400e18, 10, "Wrong Bold balance after redemption");
 
         // Check collateral balances
         // final balances
@@ -329,10 +329,10 @@ contract MulticollateralTest is DevTestSetup {
         openMulticollateralTroveNoHints100pctWithIndex(3, A, 0, 10e18, _boldAmount, 5e16);
         if (_spBoldAmount4 > 0) makeMulticollateralSPDepositAndClaim(3, A, _spBoldAmount4);
 
-        uint256 boldBalance = boldToken.balanceOf(A);
+        uint256 boldBalance = evroToken.balanceOf(A);
         // Check A’s final bal
         // TODO: change when we switch to new gas compensation
-        //assertEq(boldToken.balanceOf(A), _boldAmount * 4 - _spBoldAmount1 - _spBoldAmount2 - _spBoldAmount3 - _spBoldAmount4, "Wrong Bold balance before redemption");
+        //assertEq(evroToken.balanceOf(A), _boldAmount * 4 - _spBoldAmount1 - _spBoldAmount2 - _spBoldAmount3 - _spBoldAmount4, "Wrong Bold balance before redemption");
         // Stack too deep
         //assertEq(boldBalance, _boldAmount * 4 - _spBoldAmount1 - _spBoldAmount2 - _spBoldAmount3 - _spBoldAmount4 - 800e18, "Wrong Bold balance before redemption");
 
@@ -374,7 +374,7 @@ contract MulticollateralTest is DevTestSetup {
         vm.stopPrank();
 
         // Check bold balance
-        assertApproxEqAbs(boldToken.balanceOf(A), boldBalance - redeemAmount, 10, "Wrong Bold balance after redemption");
+        assertApproxEqAbs(evroToken.balanceOf(A), boldBalance - redeemAmount, 10, "Wrong Bold balance after redemption");
 
         // Check collateral balances
         // final balances
@@ -448,7 +448,7 @@ contract MulticollateralTest is DevTestSetup {
         openMulticollateralTroveNoHints100pctWithIndex(3, A, 0, 100e18, boldAmount, 5e16);
         makeMulticollateralSPDepositAndClaim(3, A, testValues3.spBoldAmount);
 
-        uint256 boldBalance = boldToken.balanceOf(A);
+        uint256 boldBalance = evroToken.balanceOf(A);
 
         uint256 redeemAmount = boldBalance * redemptionFraction / DECIMAL_PRECISION;
         uint256 expectedFeePct =
@@ -542,7 +542,7 @@ contract MulticollateralTest is DevTestSetup {
 
         // Check A’s final bal
         // 10k of first branch - 3 * 100 in the other SPs
-        assertEq(boldToken.balanceOf(A), 9700e18, "Wrong Bold balance before redemption");
+        assertEq(evroToken.balanceOf(A), 9700e18, "Wrong Bold balance before redemption");
 
         // initial balances
         testValues1.collInitialBalance = contractsArray[0].collToken.balanceOf(A);
@@ -592,7 +592,7 @@ contract MulticollateralTest is DevTestSetup {
         redeem(A, redeemAmount);
 
         // Check bold balance
-        assertApproxEqAbs(boldToken.balanceOf(A), 8100e18, 10, "Wrong Bold balance after redemption");
+        assertApproxEqAbs(evroToken.balanceOf(A), 8100e18, 10, "Wrong Bold balance after redemption");
 
         // Check collateral balances
         // final balances
@@ -651,7 +651,7 @@ contract MulticollateralTest is DevTestSetup {
 
         // Check A’s final bal
         // 10k of first branch - 3 * 100 in the other SPs
-        assertEq(boldToken.balanceOf(A), 9700e18, "Wrong Bold balance before redemption");
+        assertEq(evroToken.balanceOf(A), 9700e18, "Wrong Bold balance before redemption");
 
         // initial balances
         testValues1.collInitialBalance = contractsArray[0].collToken.balanceOf(A);
@@ -705,7 +705,7 @@ contract MulticollateralTest is DevTestSetup {
         redeem(A, redeemAmount);
 
         // Check bold balance
-        assertApproxEqAbs(boldToken.balanceOf(A), 8100e18, 10, "Wrong Bold balance after redemption");
+        assertApproxEqAbs(evroToken.balanceOf(A), 8100e18, 10, "Wrong Bold balance after redemption");
 
         // Check collateral balances
         // final balances
@@ -744,7 +744,7 @@ contract MulticollateralTest is DevTestSetup {
 contract CsBold013 is TestAccounts {
     uint256 constant INITIAL_PRICE = 2_000 ether;
 
-    IBoldToken boldToken;
+    IEvroToken evroToken;
     ICollateralRegistry collateralRegistry;
     IHintHelpers hintHelpers;
     IWETH weth;
@@ -794,7 +794,7 @@ contract CsBold013 is TestAccounts {
 
         TestDeployer deployer = new TestDeployer();
         TestDeployer.LiquityContractsDev[] memory _branches;
-        (_branches, collateralRegistry, boldToken, hintHelpers,, weth,) =
+        (_branches, collateralRegistry, evroToken, hintHelpers,, weth,) =
             deployer.deployAndConnectContractsMultiColl(params);
 
         for (uint256 i = 0; i < _branches.length; ++i) {
@@ -930,9 +930,9 @@ contract CsBold013 is TestAccounts {
         vm.startPrank(A);
         {
             // A redemption of more than 2K should be truncated
-            uint256 boldBefore = boldToken.balanceOf(A);
+            uint256 boldBefore = evroToken.balanceOf(A);
             collateralRegistry.redeemCollateral(10_000 ether, 0, 1 ether);
-            uint256 actuallyRedeemed = boldBefore - boldToken.balanceOf(A);
+            uint256 actuallyRedeemed = boldBefore - evroToken.balanceOf(A);
             assertEqDecimal(actuallyRedeemed, 2_000 ether, 18, "wrong amount redeemed");
 
             // The rest should be redeemed in proportion to remaining branch debt (99K vs. 9K)

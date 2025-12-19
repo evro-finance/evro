@@ -68,7 +68,7 @@ contract WETHZapper is BaseZapper {
                 borrowerOperations.openTroveAndJoinInterestBatchManager(openTroveAndJoinInterestBatchManagerParams);
         }
 
-        boldToken.transfer(msg.sender, _params.boldAmount);
+        evroToken.transfer(msg.sender, _params.boldAmount);
 
         // Set add/remove managers
         _setAddManager(troveId, _params.addManager);
@@ -107,7 +107,7 @@ contract WETHZapper is BaseZapper {
         borrowerOperations.withdrawBold(_troveId, _boldAmount, _maxUpfrontFee);
 
         // Send Bold
-        boldToken.transfer(receiver, _boldAmount);
+        evroToken.transfer(receiver, _boldAmount);
     }
 
     function repayBold(uint256 _troveId, uint256 _boldAmount) external {
@@ -116,10 +116,10 @@ contract WETHZapper is BaseZapper {
 
         // Set initial balances to make sure there are not lefovers
         InitialBalances memory initialBalances;
-        _setInitialTokensAndBalances(WETH, boldToken, initialBalances);
+        _setInitialTokensAndBalances(WETH, evroToken, initialBalances);
 
         // Pull Bold
-        boldToken.transferFrom(msg.sender, address(this), _boldAmount);
+        evroToken.transferFrom(msg.sender, address(this), _boldAmount);
 
         borrowerOperations.repayBold(_troveId, _boldAmount);
 
@@ -181,7 +181,7 @@ contract WETHZapper is BaseZapper {
             payable(_checkAdjustTroveManagers(_troveId, _collChange, _isCollIncrease, _isDebtIncrease));
 
         // Set initial balances to make sure there are not lefovers
-        _setInitialTokensAndBalances(WETH, boldToken, _initialBalances);
+        _setInitialTokensAndBalances(WETH, evroToken, _initialBalances);
 
         // ETH -> WETH
         if (_isCollIncrease) {
@@ -190,7 +190,7 @@ contract WETHZapper is BaseZapper {
 
         // Pull Bold
         if (!_isDebtIncrease) {
-            boldToken.transferFrom(msg.sender, address(this), _boldChange);
+            evroToken.transferFrom(msg.sender, address(this), _boldChange);
         }
 
         return receiver;
@@ -206,13 +206,13 @@ contract WETHZapper is BaseZapper {
     ) internal {
         // Send Bold
         if (_isDebtIncrease) {
-            boldToken.transfer(_receiver, _boldChange);
+            evroToken.transfer(_receiver, _boldChange);
         }
 
         // return BOLD leftovers to user (trying to repay more than possible)
-        uint256 currentBoldBalance = boldToken.balanceOf(address(this));
+        uint256 currentBoldBalance = evroToken.balanceOf(address(this));
         if (currentBoldBalance > _initialBalances.balances[1]) {
-            boldToken.transfer(_initialBalances.receiver, currentBoldBalance - _initialBalances.balances[1]);
+            evroToken.transfer(_initialBalances.receiver, currentBoldBalance - _initialBalances.balances[1]);
         }
         // There shouldn’t be Collateral leftovers, everything sent should end up in the trove
         // But ETH and WETH balance can be non-zero if someone accidentally send it to this contract
@@ -232,7 +232,7 @@ contract WETHZapper is BaseZapper {
 
         // pull Bold for repayment
         LatestTroveData memory trove = troveManager.getLatestTroveData(_troveId);
-        boldToken.transferFrom(msg.sender, address(this), trove.entireDebt);
+        evroToken.transferFrom(msg.sender, address(this), trove.entireDebt);
 
         borrowerOperations.closeTrove(_troveId);
 
@@ -259,7 +259,7 @@ contract WETHZapper is BaseZapper {
         // Set initial balances to make sure there are not lefovers
         InitialBalances memory initialBalances;
         initialBalances.tokens[0] = WETH;
-        initialBalances.tokens[1] = boldToken;
+        initialBalances.tokens[1] = evroToken;
         _setInitialBalancesAndReceiver(initialBalances, receiver);
 
         // Flash loan coll

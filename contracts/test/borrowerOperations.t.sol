@@ -11,7 +11,7 @@ contract BorrowerOperationsTest is DevTestSetup {
 
         // Artificially mint to Alice so she has enough to close her trove
         uint256 aliceDebt = troveManager.getTroveEntireDebt(ATroveId);
-        deal(address(boldToken), A, aliceDebt);
+        deal(address(evroToken), A, aliceDebt);
 
         // check is not below CT
         checkBelowCriticalThreshold(false);
@@ -25,7 +25,7 @@ contract BorrowerOperationsTest is DevTestSetup {
 
     function testRepayingTooMuchDebtCapsAtMinDebt() public {
         uint256 troveId = openTroveNoHints100pct(A, 100 ether, 2_000 ether, 0.01 ether);
-        deal(address(boldToken), A, 3_000 ether);
+        deal(address(evroToken), A, 3_000 ether);
         vm.prank(A);
         borrowerOperations.repayBold(troveId, 3_000 ether);
 

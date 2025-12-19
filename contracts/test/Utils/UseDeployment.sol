@@ -12,7 +12,7 @@ import {ILeverageZapper} from "src/Zappers/Interfaces/ILeverageZapper.sol";
 import {IZapper} from "src/Zappers/Interfaces/IZapper.sol";
 import {IActivePool} from "src/Interfaces/IActivePool.sol";
 import {IAddressesRegistry} from "src/Interfaces/IAddressesRegistry.sol";
-import {IBoldToken} from "src/Interfaces/IBoldToken.sol";
+import {IEvroToken} from "src/Interfaces/IEvroToken.sol";
 import {IBorrowerOperations} from "src/Interfaces/IBorrowerOperations.sol";
 import {ICollateralRegistry} from "src/Interfaces/ICollateralRegistry.sol";
 import {IDefaultPool} from "src/Interfaces/IDefaultPool.sol";
@@ -71,7 +71,7 @@ contract UseDeployment is CommonBase {
     IERC20 lusd;
 
     ICollateralRegistry collateralRegistry;
-    IBoldToken boldToken;
+    IEvroToken evroToken;
     IHintHelpers hintHelpers;
     Governance governance;
     ICurveStableSwapNG curveUsdcBold;
@@ -87,7 +87,7 @@ contract UseDeployment is CommonBase {
     function _loadDeploymentFromManifest(string memory deploymentManifestJson) internal {
         string memory json = vm.readFile(deploymentManifestJson);
         collateralRegistry = ICollateralRegistry(json.readAddress(".collateralRegistry"));
-        boldToken = IBoldToken(BOLD = json.readAddress(".boldToken"));
+        evroToken = IEvroToken(BOLD = json.readAddress(".evroToken"));
         hintHelpers = IHintHelpers(json.readAddress(".hintHelpers"));
         governance = Governance(json.readAddress(".governance.governance"));
         curveUsdcBold = ICurveStableSwapNG(json.readAddress(".governance.curveUsdcBoldPool"));

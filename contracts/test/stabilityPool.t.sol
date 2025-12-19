@@ -226,12 +226,12 @@ contract SPTest is DevTestSetup {
         uint256 currentBoldGain = stabilityPool.getDepositorYieldGain(A);
         assertGt(currentBoldGain, 0);
 
-        uint256 boldBal_A = boldToken.balanceOf(A);
+        uint256 boldBal_A = evroToken.balanceOf(A);
 
         uint256 topUp = 1e18;
         makeSPDepositAndClaim(A, topUp);
 
-        assertEq(boldToken.balanceOf(A), boldBal_A + currentBoldGain - topUp);
+        assertEq(evroToken.balanceOf(A), boldBal_A + currentBoldGain - topUp);
     }
 
     function testProvideToSPWithClaim_WithCurrentBOLDGainsZerosCurrentBOLDGains() public {
@@ -419,12 +419,12 @@ contract SPTest is DevTestSetup {
         uint256 currentBoldGain = stabilityPool.getDepositorYieldGain(A);
         assertGt(currentBoldGain, 0);
 
-        uint256 boldBalBefore_A = boldToken.balanceOf(A);
+        uint256 boldBalBefore_A = evroToken.balanceOf(A);
 
         uint256 topUp = 1e18;
         makeSPDepositNoClaim(A, topUp);
 
-        assertEq(boldToken.balanceOf(A), boldBalBefore_A - topUp);
+        assertEq(evroToken.balanceOf(A), boldBalBefore_A - topUp);
     }
 
     // --- withdrawFromSP, doClaim == true, Coll gains ---
@@ -539,13 +539,13 @@ contract SPTest is DevTestSetup {
         uint256 currentBoldGain = stabilityPool.getDepositorYieldGain(A);
         assertGt(currentBoldGain, 0);
 
-        uint256 boldBal_A = boldToken.balanceOf(A);
+        uint256 boldBal_A = evroToken.balanceOf(A);
 
         uint256 withdrawal = 1e18;
 
         makeSPWithdrawalAndClaim(A, withdrawal);
 
-        assertEq(boldToken.balanceOf(A), boldBal_A + withdrawal + currentBoldGain);
+        assertEq(evroToken.balanceOf(A), boldBal_A + withdrawal + currentBoldGain);
     }
 
     function testWithdrawFromSPWithClaim_WithCurrentBOLDGainsZerosCurrentBoldGains() public {
@@ -733,12 +733,12 @@ contract SPTest is DevTestSetup {
         uint256 currentBoldGain = stabilityPool.getDepositorYieldGain(A);
         assertGt(currentBoldGain, 0);
 
-        uint256 boldBalBefore_A = boldToken.balanceOf(A);
+        uint256 boldBalBefore_A = evroToken.balanceOf(A);
 
         uint256 withdrawal = 1e18;
         makeSPWithdrawalNoClaim(A, withdrawal);
 
-        assertEq(boldToken.balanceOf(A), boldBalBefore_A + withdrawal);
+        assertEq(evroToken.balanceOf(A), boldBalBefore_A + withdrawal);
     }
 
     // --- claimAllCollGains ---
@@ -941,7 +941,7 @@ contract SPTest is DevTestSetup {
 
         // F sends E his bold so he can close
         vm.startPrank(F);
-        boldToken.transfer(E, boldToken.balanceOf(F));
+        evroToken.transfer(E, evroToken.balanceOf(F));
         vm.stopPrank();
         closeTrove(E, troveIDs.E);
 
@@ -1177,7 +1177,7 @@ contract SPTest is DevTestSetup {
 
         // F sends E his bold so he can close
         vm.startPrank(F);
-        boldToken.transfer(E, boldToken.balanceOf(F));
+        evroToken.transfer(E, evroToken.balanceOf(F));
         vm.stopPrank();
         closeTrove(E, troveIDs.E);
 
@@ -1916,7 +1916,7 @@ contract SPTest is DevTestSetup {
         _surplus = bound(_surplus, debtDelta + 1e9, debtDelta + 10e18);
 
         // B transfers BOLD to A so he can slightly top up the SP
-        transferBold(B, A, boldToken.balanceOf(B) / 2);
+        transferBold(B, A, evroToken.balanceOf(B) / 2);
 
         // A adds surplus to SP
         makeSPDepositAndClaim(A, _surplus);
@@ -1931,7 +1931,7 @@ contract SPTest is DevTestSetup {
         assertGt(scale2, scale1, "scale didnt change");
 
         // D sends some BOLD to C
-        uint256 freshDeposit = boldToken.balanceOf(D) / 2;
+        uint256 freshDeposit = evroToken.balanceOf(D) / 2;
         assertGt(freshDeposit, 0);
 
         transferBold(D, C, freshDeposit);
@@ -1981,8 +1981,8 @@ contract SPTest is DevTestSetup {
         assertApproximatelyEqual(testVars.expectedShareOfColl, testVars.ethGainD, 1e7, "D share of coll mismatch");
 
         // E makes deposit after 2nd liq
-        transferBold(C, E, boldToken.balanceOf(C));
-        makeSPDepositAndClaim(E, boldToken.balanceOf(E));
+        transferBold(C, E, evroToken.balanceOf(C));
+        makeSPDepositAndClaim(E, evroToken.balanceOf(E));
 
         vm.warp(block.timestamp + 90 days);
 
@@ -2093,8 +2093,8 @@ contract SPTest is DevTestSetup {
         testVars.troveDebt_D = troveManager.getTroveEntireDebt(troveIDs.D);
 
         // D makes fresh deposit so that SP can cover the liq
-        transferBold(B, D, boldToken.balanceOf(B));
-        makeSPDepositAndClaim(D, boldToken.balanceOf(D));
+        transferBold(B, D, evroToken.balanceOf(B));
+        makeSPDepositAndClaim(D, evroToken.balanceOf(D));
         testVars.totalSPBeforeLiq_D = stabilityPool.getTotalBoldDeposits();
         assertGt(testVars.totalSPBeforeLiq_D, testVars.troveDebt_D);
 
@@ -2640,7 +2640,7 @@ contract SPTest is DevTestSetup {
         assertEq(stabilityPool.getCompoundedBoldDeposit(A), 2e18);
         assertEq(stabilityPool.getTotalBoldDeposits(), 2e18);
 
-        uint256 ABalBefore = boldToken.balanceOf(A);
+        uint256 ABalBefore = evroToken.balanceOf(A);
         // A has some accrued yield from upfront fee of first Trove
         uint256 accruedYieldGains = stabilityPool.getDepositorYieldGainWithPending(A);
 
@@ -2649,7 +2649,7 @@ contract SPTest is DevTestSetup {
 
         // Check deposit decreases and A's balance increases by correct amt
         assertEq(stabilityPool.getCompoundedBoldDeposit(A), 2e18 - _withdrawal);
-        assertEq(boldToken.balanceOf(A), ABalBefore + _withdrawal + accruedYieldGains);
+        assertEq(evroToken.balanceOf(A), ABalBefore + _withdrawal + accruedYieldGains);
 
         // Confirm SP has >= 1e18
         assertGe(stabilityPool.getTotalBoldDeposits(), 1e18);

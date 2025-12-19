@@ -30,13 +30,13 @@ contract AnchoredSPInvariantsTest is DevTestSetup {
         super.setUp();
 
         TestDeployer deployer = new TestDeployer();
-        (TestDeployer.LiquityContractsDev memory contracts,, IBoldToken boldToken, HintHelpers hintHelpers,,,) =
+        (TestDeployer.LiquityContractsDev memory contracts,, IEvroToken evroToken, HintHelpers hintHelpers,,,) =
             deployer.deployAndConnectContracts();
         stabilityPool = contracts.stabilityPool;
 
         handler = new SPInvariantsTestHandler(
             SPInvariantsTestHandler.Contracts({
-                boldToken: boldToken,
+                evroToken: evroToken,
                 borrowerOperations: contracts.borrowerOperations,
                 collateralToken: contracts.collToken,
                 priceFeed: contracts.priceFeed,

@@ -4,7 +4,7 @@ pragma solidity 0.8.24;
 
 import "openzeppelin-contracts/contracts/token/ERC20/utils/SafeERC20.sol";
 
-import "../../../Interfaces/IBoldToken.sol";
+import "../../../Interfaces/IEvroToken.sol";
 import "./Curve/ICurveStableswapNGPool.sol";
 import "../../Interfaces/IExchange.sol";
 
@@ -12,20 +12,20 @@ contract CurveNGExchange is IExchange {
     using SafeERC20 for IERC20;
 
     IERC20 public immutable collToken;
-    IBoldToken public immutable boldToken;
+    IEvroToken public immutable evroToken;
     ICurveStableswapNGPool public immutable curvePool;
     int128 public immutable COLL_TOKEN_INDEX;
     int128 public immutable BOLD_TOKEN_INDEX;
 
     constructor(
         IERC20 _collToken,
-        IBoldToken _boldToken,
+        IEvroToken _evroToken,
         ICurveStableswapNGPool _curvePool,
         int128 _collIndex,
         int128 _boldIndex
     ) {
         collToken = _collToken;
-        boldToken = _boldToken;
+        evroToken = _evroToken;
         curvePool = _curvePool;
         COLL_TOKEN_INDEX = _collIndex;
         BOLD_TOKEN_INDEX = _boldIndex;
@@ -33,16 +33,16 @@ contract CurveNGExchange is IExchange {
 
     function swapFromBold(uint256 _boldAmount, uint256 _minCollAmount) external {
         ICurveStableswapNGPool curvePoolCached = curvePool;
-        uint256 initialBoldBalance = boldToken.balanceOf(address(this));
-        boldToken.transferFrom(msg.sender, address(this), _boldAmount);
-        boldToken.approve(address(curvePoolCached), _boldAmount);
+        uint256 initialBoldBalance = evroToken.balanceOf(address(this));
+        evroToken.transferFrom(msg.sender, address(this), _boldAmount);
+        evroToken.approve(address(curvePoolCached), _boldAmount);
 
         uint256 output = curvePoolCached.exchange(BOLD_TOKEN_INDEX, COLL_TOKEN_INDEX, _boldAmount, _minCollAmount);
         collToken.safeTransfer(msg.sender, output);
 
-        uint256 currentBoldBalance = boldToken.balanceOf(address(this));
+        uint256 currentBoldBalance = evroToken.balanceOf(address(this));
         if (currentBoldBalance > initialBoldBalance) {
-            boldToken.transfer(msg.sender, currentBoldBalance - initialBoldBalance);
+            evroToken.transfer(msg.sender, currentBoldBalance - initialBoldBalance);
         }
     }
 
@@ -53,7 +53,7 @@ contract CurveNGExchange is IExchange {
         collToken.approve(address(curvePoolCached), _collAmount);
 
         uint256 output = curvePoolCached.exchange(COLL_TOKEN_INDEX, BOLD_TOKEN_INDEX, _collAmount, _minBoldAmount);
-        boldToken.transfer(msg.sender, output);
+        evroToken.transfer(msg.sender, output);
 
         uint256 currentCollBalance = collToken.balanceOf(address(this));
         if (currentCollBalance > initialCollBalance) {

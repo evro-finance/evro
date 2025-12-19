@@ -11,7 +11,7 @@ import {
   stringToBytes,
 } from "viem";
 
-import BoldToken from "../out/BoldToken.sol/BoldToken.json";
+import EvroToken from "../out/EvroToken.sol/EvroToken.json";
 
 const DEPLOYER = "0xbEC25C5590e89596BDE2DfCdc71579E66858772c";
 const SALT_PREFIX = "beBOLD";
@@ -22,11 +22,11 @@ const computeCreate2Address = (salt: ByteArray, initCodeHash: ByteArray): ByteAr
   keccak256(concatBytes([CREATE2_PREFIX, salt, initCodeHash]), "bytes").slice(12);
 
 const startsWith = <T extends string>(str: string, prefix: T): str is `${T}${string}` => str.startsWith(prefix);
-assert(startsWith(BoldToken.bytecode.object, "0x"));
+assert(startsWith(EvroToken.bytecode.object, "0x"));
 
 const boldInitCodeHash = keccak256(
   concatBytes([
-    hexToBytes(BoldToken.bytecode.object),
+    hexToBytes(EvroToken.bytecode.object),
     padBytes(hexToBytes(DEPLOYER)),
   ]),
   "bytes",

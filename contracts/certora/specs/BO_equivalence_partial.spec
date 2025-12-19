@@ -28,7 +28,7 @@ methods {
     function LiquityBase._calcInterest(uint256 _weightedDebt, uint256 _period) internal returns (uint256) => ALWAYS(0);
     function LiquityMath._computeCR(uint256 _coll, uint256 _debt, uint256 _price) internal returns (uint256) => NONDET;
     function ActivePool.calcPendingAggInterest() external returns (uint256) => ALWAYS(0);
-    function ActivePool._mintAggInterest(address _boldToken, uint256 _upfrontFee) internal returns (uint256) => NONDET;
+    function ActivePool._mintAggInterest(address _evroToken, uint256 _upfrontFee) internal returns (uint256) => NONDET;
 }
 
 //////////////////// Ghosts ///////////////////////////////

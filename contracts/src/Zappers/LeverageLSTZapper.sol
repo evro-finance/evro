@@ -15,7 +15,7 @@ contract LeverageLSTZapper is GasCompZapper, ILeverageZapper {
     {
         // Approval of WETH and Coll to BorrowerOperations is done in parent GasCompZapper
         // Approve Bold to exchange module (Coll is approved in parent GasCompZapper)
-        boldToken.approve(address(_exchange), type(uint256).max);
+        evroToken.approve(address(_exchange), type(uint256).max);
     }
 
     function openLeveragedTroveWithRawETH(OpenLeveragedTroveParams memory _params) external payable {
@@ -30,7 +30,7 @@ contract LeverageLSTZapper is GasCompZapper, ILeverageZapper {
 
         // Set initial balances to make sure there are not lefovers
         InitialBalances memory initialBalances;
-        _setInitialTokensAndBalances(collToken, boldToken, initialBalances);
+        _setInitialTokensAndBalances(collToken, evroToken, initialBalances);
 
         // Convert ETH to WETH
         WETH.deposit{value: msg.value}();
@@ -115,7 +115,7 @@ contract LeverageLSTZapper is GasCompZapper, ILeverageZapper {
 
         // Set initial balances to make sure there are not lefovers
         InitialBalances memory initialBalances;
-        _setInitialTokensBalancesAndReceiver(collToken, boldToken, initialBalances, receiver);
+        _setInitialTokensBalancesAndReceiver(collToken, evroToken, initialBalances, receiver);
 
         // Flash loan coll
         flashLoanProvider.makeFlashLoan(
@@ -161,7 +161,7 @@ contract LeverageLSTZapper is GasCompZapper, ILeverageZapper {
 
         // Set initial balances to make sure there are not lefovers
         InitialBalances memory initialBalances;
-        _setInitialTokensBalancesAndReceiver(collToken, boldToken, initialBalances, receiver);
+        _setInitialTokensBalancesAndReceiver(collToken, evroToken, initialBalances, receiver);
 
         // Flash loan coll
         flashLoanProvider.makeFlashLoan(

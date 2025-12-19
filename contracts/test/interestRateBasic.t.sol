@@ -751,7 +751,7 @@ contract InterestRateBasic is DevTestSetup {
         uint256 redeemAmount = troveData.entireDebt;
 
         // Fully redeem A
-        deal(address(boldToken), E, redeemAmount);
+        deal(address(evroToken), E, redeemAmount);
         redeem(E, redeemAmount);
         troveData = troveManager.getLatestTroveData(ATroveId);
         assertEq(troveData.entireDebt, 0, "Trove A should be fully redeemed");
@@ -853,7 +853,7 @@ contract InterestRateBasic is DevTestSetup {
         uint256 fee = calcUpfrontFee(debtWithoutFee, interestRate);
 
         assertEqDecimal(
-            boldToken.balanceOf(address(stabilityPool)) + boldToken.balanceOf(address(mockInterestRouter)),
+            evroToken.balanceOf(address(stabilityPool)) + evroToken.balanceOf(address(mockInterestRouter)),
             fee,
             18,
             "Wrong amount minted to interest receivers"

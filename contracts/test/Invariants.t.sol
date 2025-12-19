@@ -86,7 +86,7 @@ contract InvariantsTest is Assertions, Logging, BaseInvariantTest, BaseMultiColl
 
         TestDeployer deployer = new TestDeployer();
         Contracts memory contracts;
-        (contracts.branches, contracts.collateralRegistry, contracts.boldToken, contracts.hintHelpers,, contracts.weth,)
+        (contracts.branches, contracts.collateralRegistry, contracts.evroToken, contracts.hintHelpers,, contracts.weth,)
         = deployer.deployAndConnectContractsMultiColl(p);
         setupContracts(contracts);
 
@@ -100,7 +100,7 @@ contract InvariantsTest is Assertions, Logging, BaseInvariantTest, BaseMultiColl
         for (uint256 i = 0; i < actors.length; ++i) {
             address actor = actors[i].account;
 
-            assertEqDecimal(boldToken.balanceOf(actor), 0, 18, "Incomplete BOLD sweep");
+            assertEqDecimal(evroToken.balanceOf(actor), 0, 18, "Incomplete BOLD sweep");
             assertEqDecimal(weth.balanceOf(actor), 0, 18, "Incomplete WETH sweep");
 
             for (uint256 j = 0; j < branches.length; ++j) {
@@ -232,7 +232,7 @@ contract InvariantsTest is Assertions, Logging, BaseInvariantTest, BaseMultiColl
     }
 
     function invariant_AllBoldBackedByTroveDebt() external view {
-        uint256 totalBold = boldToken.totalSupply();
+        uint256 totalBold = evroToken.totalSupply();
         uint256 totalPendingInterest = 0;
         uint256 totalPendingBatchManagementFees = 0;
         uint256 totalDebt = 0;
@@ -305,7 +305,7 @@ contract InvariantsTest is Assertions, Logging, BaseInvariantTest, BaseMultiColl
 
             // This only holds as long as no one sends BOLD directly to the SP's address other than ActivePool
             assertLt(
-                boldToken.balanceOf(address(stabilityPool)) - sumBoldDeposit - sumYieldGain - yieldGainsPending,
+                evroToken.balanceOf(address(stabilityPool)) - sumBoldDeposit - sumYieldGain - yieldGainsPending,
                 1000,
                 "SP BOLD balance !~= claimable + pending"
             );

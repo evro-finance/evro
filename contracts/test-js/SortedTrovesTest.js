@@ -70,7 +70,7 @@ contract("SortedTroves", async (accounts) => {
   let sortedTroves;
   let troveManager;
   let borrowerOperations;
-  let boldToken;
+  let evroToken;
 
   const [bountyAddress, lpRewardsAddress, multisig] = accounts.slice(997, 1000);
 
@@ -91,7 +91,7 @@ contract("SortedTroves", async (accounts) => {
       sortedTroves = contracts.sortedTroves;
       troveManager = contracts.troveManager;
       borrowerOperations = contracts.borrowerOperations;
-      boldToken = contracts.boldToken;
+      evroToken = contracts.evroToken;
     });
 
     it("contains(): returns true for addresses that have opened troves", async () => {
@@ -154,9 +154,9 @@ contract("SortedTroves", async (accounts) => {
       });
 
       // to compensate borrowing fees
-      await boldToken.transfer(alice, dec(1000, 18), { from: whale });
-      await boldToken.transfer(bob, dec(1000, 18), { from: whale });
-      await boldToken.transfer(carol, dec(1000, 18), { from: whale });
+      await evroToken.transfer(alice, dec(1000, 18), { from: whale });
+      await evroToken.transfer(bob, dec(1000, 18), { from: whale });
+      await evroToken.transfer(carol, dec(1000, 18), { from: whale });
 
       // A, B, C close troves
       await borrowerOperations.closeTrove(aliceTroveId, { from: alice });
@@ -193,9 +193,9 @@ contract("SortedTroves", async (accounts) => {
       });
 
       // to compensate borrowing fees
-      await boldToken.transfer(alice, dec(1000, 18), { from: whale });
-      await boldToken.transfer(bob, dec(1000, 18), { from: whale });
-      await boldToken.transfer(carol, dec(1000, 18), { from: whale });
+      await evroToken.transfer(alice, dec(1000, 18), { from: whale });
+      await evroToken.transfer(bob, dec(1000, 18), { from: whale });
+      await evroToken.transfer(carol, dec(1000, 18), { from: whale });
 
       // A, B, C close troves
       await borrowerOperations.closeTrove(aliceTroveId, { from: alice });

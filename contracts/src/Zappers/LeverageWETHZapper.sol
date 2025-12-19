@@ -12,7 +12,7 @@ contract LeverageWETHZapper is WETHZapper, ILeverageZapper {
     {
         // Approval of coll (WETH) to BorrowerOperations is done in parent WETHZapper
         // Approve Bold to exchange module (Coll is approved in parent WETHZapper)
-        boldToken.approve(address(_exchange), type(uint256).max);
+        evroToken.approve(address(_exchange), type(uint256).max);
     }
 
     function openLeveragedTroveWithRawETH(OpenLeveragedTroveParams memory _params) external payable {
@@ -27,7 +27,7 @@ contract LeverageWETHZapper is WETHZapper, ILeverageZapper {
 
         // Set initial balances to make sure there are not lefovers
         InitialBalances memory initialBalances;
-        _setInitialTokensAndBalances(WETH, boldToken, initialBalances);
+        _setInitialTokensAndBalances(WETH, evroToken, initialBalances);
 
         // Convert ETH to WETH
         WETH.deposit{value: msg.value}();
@@ -110,7 +110,7 @@ contract LeverageWETHZapper is WETHZapper, ILeverageZapper {
 
         // Set initial balances to make sure there are not lefovers
         InitialBalances memory initialBalances;
-        _setInitialTokensBalancesAndReceiver(WETH, boldToken, initialBalances, receiver);
+        _setInitialTokensBalancesAndReceiver(WETH, evroToken, initialBalances, receiver);
 
         // Flash loan coll
         flashLoanProvider.makeFlashLoan(
@@ -156,7 +156,7 @@ contract LeverageWETHZapper is WETHZapper, ILeverageZapper {
 
         // Set initial balances to make sure there are not lefovers
         InitialBalances memory initialBalances;
-        _setInitialTokensBalancesAndReceiver(WETH, boldToken, initialBalances, receiver);
+        _setInitialTokensBalancesAndReceiver(WETH, evroToken, initialBalances, receiver);
 
         // Flash loan coll
         flashLoanProvider.makeFlashLoan(

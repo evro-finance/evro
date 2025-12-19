@@ -3,7 +3,7 @@ pragma solidity 0.8.24;
 
 import "./Accounts.sol";
 import "src/Interfaces/IActivePool.sol";
-import "src/Interfaces/IBoldToken.sol";
+import "src/Interfaces/IEvroToken.sol";
 import "src/Interfaces/ICollSurplusPool.sol";
 import "src/Interfaces/IDefaultPool.sol";
 import "src/Interfaces/IPriceFeed.sol";
@@ -47,7 +47,7 @@ contract BaseTest is TestAccounts, Logging, TroveId {
     ITroveManagerTester troveManager;
     ITroveNFT troveNFT;
     IMetadataNFT metadataNFT;
-    IBoldToken boldToken;
+    IEvroToken evroToken;
     ICollateralRegistry collateralRegistry;
     IPriceFeedTestnet priceFeed;
     GasPool gasPool;
@@ -402,7 +402,7 @@ contract BaseTest is TestAccounts, Logging, TroveId {
 
     function transferBold(address _from, address _to, uint256 _amount) public {
         vm.startPrank(_from);
-        boldToken.transfer(_to, _amount);
+        evroToken.transfer(_to, _amount);
         vm.stopPrank();
     }
 
@@ -570,7 +570,7 @@ contract BaseTest is TestAccounts, Logging, TroveId {
         console.log("SortedTroves addr: ", address(sortedTroves));
         console.log("StabilityPool addr: ", address(stabilityPool));
         console.log("TroveManager addr: ", address(troveManager));
-        console.log("BoldToken addr: ", address(boldToken));
+        console.log("EvroToken addr: ", address(evroToken));
     }
 
     function abs(uint256 x, uint256 y) public pure returns (uint256) {

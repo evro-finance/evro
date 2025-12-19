@@ -7,7 +7,7 @@ import "openzeppelin-contracts/contracts/token/ERC20/utils/SafeERC20.sol";
 import "./Interfaces/IBorrowerOperations.sol";
 import "./Interfaces/IAddressesRegistry.sol";
 import "./Interfaces/ITroveManager.sol";
-import "./Interfaces/IBoldToken.sol";
+import "./Interfaces/IEvroToken.sol";
 import "./Interfaces/ICollSurplusPool.sol";
 import "./Interfaces/ISortedTroves.sol";
 import "./Dependencies/LiquityBase.sol";
@@ -24,7 +24,7 @@ contract BorrowerOperations is LiquityBase, AddRemoveManagers, IBorrowerOperatio
     ITroveManager internal troveManager;
     address internal gasPoolAddress;
     ICollSurplusPool internal collSurplusPool;
-    IBoldToken internal boldToken;
+    IEvroToken internal evroToken;
     // A doubly linked list of Troves, sorted by their collateral ratios
     ISortedTroves internal sortedTroves;
     // Wrapped ETH for liquidation reserve (gas compensation)
@@ -77,7 +77,7 @@ contract BorrowerOperations is LiquityBase, AddRemoveManagers, IBorrowerOperatio
     struct LocalVariables_openTrove {
         ITroveManager troveManager;
         IActivePool activePool;
-        IBoldToken boldToken;
+        IEvroToken evroToken;
         uint256 troveId;
         uint256 price;
         uint256 avgInterestRate;
@@ -89,7 +89,7 @@ contract BorrowerOperations is LiquityBase, AddRemoveManagers, IBorrowerOperatio
 
     struct LocalVariables_adjustTrove {
         IActivePool activePool;
-        IBoldToken boldToken;
+        IEvroToken evroToken;
         LatestTroveData trove;
         uint256 price;
         bool isBelowCriticalThreshold;
@@ -160,7 +160,7 @@ contract BorrowerOperations is LiquityBase, AddRemoveManagers, IBorrowerOperatio
     event GasPoolAddressChanged(address _gasPoolAddress);
     event CollSurplusPoolAddressChanged(address _collSurplusPoolAddress);
     event SortedTrovesAddressChanged(address _sortedTrovesAddress);
-    event BoldTokenAddressChanged(address _boldTokenAddress);
+    event EvroTokenAddressChanged(address _evroTokenAddress);
 
     event ShutDown(uint256 _tcr);
 
@@ -184,13 +184,13 @@ contract BorrowerOperations is LiquityBase, AddRemoveManagers, IBorrowerOperatio
         gasPoolAddress = _addressesRegistry.gasPoolAddress();
         collSurplusPool = _addressesRegistry.collSurplusPool();
         sortedTroves = _addressesRegistry.sortedTroves();
-        boldToken = _addressesRegistry.boldToken();
+        evroToken = _addressesRegistry.evroToken();
 
         emit TroveManagerAddressChanged(address(troveManager));
         emit GasPoolAddressChanged(gasPoolAddress);
         emit CollSurplusPoolAddressChanged(address(collSurplusPool));
         emit SortedTrovesAddressChanged(address(sortedTroves));
-        emit BoldTokenAddressChanged(address(boldToken));
+        emit EvroTokenAddressChanged(address(evroToken));
 
         // Allow funds movements between Liquity contracts
         collToken.approve(address(activePool), type(uint256).max);
@@ -316,7 +316,7 @@ contract BorrowerOperations is LiquityBase, AddRemoveManagers, IBorrowerOperatio
         // stack too deep not allowing to reuse troveManager from outer functions
         vars.troveManager = troveManager;
         vars.activePool = activePool;
-        vars.boldToken = boldToken;
+        vars.evroToken = evroToken;
 
         vars.price = _requireOraclesLive();
 
@@ -372,7 +372,7 @@ contract BorrowerOperations is LiquityBase, AddRemoveManagers, IBorrowerOperatio
         _pullCollAndSendToActivePool(vars.activePool, _collAmount);
 
         // Mint the requested _boldAmount to the borrower and mint the gas comp to the GasPool
-        vars.boldToken.mint(msg.sender, _boldAmount);
+        vars.evroToken.mint(msg.sender, _boldAmount);
         WETH.transferFrom(msg.sender, gasPoolAddress, ETH_GAS_COMPENSATION);
 
         return vars.troveId;
@@ -564,7 +564,7 @@ contract BorrowerOperations is LiquityBase, AddRemoveManagers, IBorrowerOperatio
 
         LocalVariables_adjustTrove memory vars;
         vars.activePool = activePool;
-        vars.boldToken = boldToken;
+        vars.evroToken = evroToken;
 
         vars.price = _requireOraclesLive();
         vars.isBelowCriticalThreshold = _checkBelowCriticalThreshold(vars.price, CCR);
@@ -595,7 +595,7 @@ contract BorrowerOperations is LiquityBase, AddRemoveManagers, IBorrowerOperatio
             if (_troveChange.debtDecrease > maxRepayment) {
                 _troveChange.debtDecrease = maxRepayment;
             }
-            _requireSufficientBoldBalance(vars.boldToken, msg.sender, _troveChange.debtDecrease);
+            _requireSufficientBoldBalance(vars.evroToken, msg.sender, _troveChange.debtDecrease);
         }
 
         _requireNonZeroAdjustment(_troveChange);
@@ -676,13 +676,13 @@ contract BorrowerOperations is LiquityBase, AddRemoveManagers, IBorrowerOperatio
         }
 
         vars.activePool.mintAggInterestAndAccountForTroveChange(_troveChange, batchManager);
-        _moveTokensFromAdjustment(receiver, _troveChange, vars.boldToken, vars.activePool);
+        _moveTokensFromAdjustment(receiver, _troveChange, vars.evroToken, vars.activePool);
     }
 
     function closeTrove(uint256 _troveId) external override {
         ITroveManager troveManagerCached = troveManager;
         IActivePool activePoolCached = activePool;
-        IBoldToken boldTokenCached = boldToken;
+        IEvroToken evroTokenCached = evroToken;
 
         // --- Checks ---
 
@@ -693,7 +693,7 @@ contract BorrowerOperations is LiquityBase, AddRemoveManagers, IBorrowerOperatio
         LatestTroveData memory trove = troveManagerCached.getLatestTroveData(_troveId);
 
         // The borrower must repay their entire debt including accrued interest, batch fee and redist. gains
-        _requireSufficientBoldBalance(boldTokenCached, msg.sender, trove.entireDebt);
+        _requireSufficientBoldBalance(evroTokenCached, msg.sender, trove.entireDebt);
 
         TroveChange memory troveChange;
         troveChange.appliedRedistBoldDebtGain = trove.redistBoldDebtGain;
@@ -740,7 +740,7 @@ contract BorrowerOperations is LiquityBase, AddRemoveManagers, IBorrowerOperatio
         // Return ETH gas compensation
         WETH.transferFrom(gasPoolAddress, receiver, ETH_GAS_COMPENSATION);
         // Burn the remainder of the Trove's entire debt from the user
-        boldTokenCached.burn(msg.sender, trove.entireDebt);
+        evroTokenCached.burn(msg.sender, trove.entireDebt);
 
         // Send the collateral back to the user
         activePoolCached.sendColl(receiver, trove.entireColl);
@@ -1276,13 +1276,13 @@ contract BorrowerOperations is LiquityBase, AddRemoveManagers, IBorrowerOperatio
     function _moveTokensFromAdjustment(
         address withdrawalReceiver,
         TroveChange memory _troveChange,
-        IBoldToken _boldToken,
+        IEvroToken _evroToken,
         IActivePool _activePool
     ) internal {
         if (_troveChange.debtIncrease > 0) {
-            _boldToken.mint(withdrawalReceiver, _troveChange.debtIncrease);
+            _evroToken.mint(withdrawalReceiver, _troveChange.debtIncrease);
         } else if (_troveChange.debtDecrease > 0) {
-            _boldToken.burn(msg.sender, _troveChange.debtDecrease);
+            _evroToken.burn(msg.sender, _troveChange.debtDecrease);
         }
 
         if (_troveChange.collIncrease > 0) {
@@ -1483,11 +1483,11 @@ contract BorrowerOperations is LiquityBase, AddRemoveManagers, IBorrowerOperatio
         }
     }
 
-    function _requireSufficientBoldBalance(IBoldToken _boldToken, address _borrower, uint256 _debtRepayment)
+    function _requireSufficientBoldBalance(IEvroToken _evroToken, address _borrower, uint256 _debtRepayment)
         internal
         view
     {
-        if (_boldToken.balanceOf(_borrower) < _debtRepayment) {
+        if (_evroToken.balanceOf(_borrower) < _debtRepayment) {
             revert NotEnoughBoldBalance();
         }
     }

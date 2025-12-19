@@ -1272,7 +1272,7 @@ contract InvariantsTestHandler is Assertions, BaseHandler, BaseMultiCollateralTe
         if (totalUnbacked > 0) amount = Math.min(amount, totalUnbacked);
 
         uint256 oldBaseRate = _getBaseRate();
-        uint256 boldSupply = boldToken.totalSupply();
+        uint256 boldSupply = evroToken.totalSupply();
         uint256 redemptionRate = _getRedemptionRate(oldBaseRate + _getBaseRateIncrease(boldSupply, amount));
 
         uint256[] memory pendingInterest = new uint256[](branches.length);
@@ -1389,7 +1389,7 @@ contract InvariantsTestHandler is Assertions, BaseHandler, BaseMultiCollateralTe
             }
 
             // There can be a slight discrepancy when hitting batched Troves
-            uint256 remainingAmount = boldToken.balanceOf(msg.sender);
+            uint256 remainingAmount = evroToken.balanceOf(msg.sender);
             assertApproxEqAbsDecimal(remainingAmount, amount - totalDebtRedeemed, 1e5, 18, "Wrong remaining BOLD");
             _sweepBold(msg.sender, remainingAmount);
         }
@@ -1544,7 +1544,7 @@ contract InvariantsTestHandler is Assertions, BaseHandler, BaseMultiCollateralTe
             }
 
             // There can be a slight discrepancy when hitting batched Troves
-            uint256 remainingAmount = boldToken.balanceOf(msg.sender);
+            uint256 remainingAmount = evroToken.balanceOf(msg.sender);
             assertApproxEqAbsDecimal(remainingAmount, amount - r.totalDebtRedeemed, 1e5, 18, "Wrong remaining BOLD");
             _sweepBold(msg.sender, remainingAmount);
         }
@@ -2644,13 +2644,13 @@ contract InvariantsTestHandler is Assertions, BaseHandler, BaseMultiCollateralTe
     }
 
     function _dealBold(address to, uint256 amount) internal {
-        boldToken.transfer(to, amount);
+        evroToken.transfer(to, amount);
         _handlerBold -= amount;
     }
 
     function _sweepBold(address from, uint256 amount) internal {
         vm.prank(from);
-        boldToken.transfer(address(this), amount);
+        evroToken.transfer(address(this), amount);
         _handlerBold += amount;
     }
 

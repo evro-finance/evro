@@ -82,7 +82,7 @@ contract InterestBatchManagementTest is DevTestSetup {
         openTroveNoHints100pct(B, 100e18, 5000e18, 5e16);
 
         // Close trove
-        deal(address(boldToken), A, 6000e18); // Needs more Bold for interest and upfront fee
+        deal(address(evroToken), A, 6000e18); // Needs more Bold for interest and upfront fee
         closeTrove(A, troveId);
 
         // Try to set interest batch manager

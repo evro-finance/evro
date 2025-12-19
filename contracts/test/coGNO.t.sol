@@ -65,7 +65,7 @@ contract CoGNOTest is DevTestSetup {
 
         TestDeployer deployer = new TestDeployer();
         TestDeployer.LiquityContractsDev[] memory _contractsArray;
-        (_contractsArray, collateralRegistry, boldToken,,, WETH,) =
+        (_contractsArray, collateralRegistry, evroToken,,, WETH,) =
             deployer.deployAndConnectContractsMultiColl(troveManagerParamsArray);
         
         for (uint256 c = 0; c < NUM_COLLATERALS; c++) {
@@ -185,7 +185,7 @@ contract CoGNOTest is DevTestSetup {
 
         // Get debt to repay
         uint256 debtToRepay = contractsArray[0].troveManager.getTroveEntireDebt(troveId1);
-        deal(address(boldToken), A, debtToRepay);
+        deal(address(evroToken), A, debtToRepay);
 
         vm.startPrank(A);
         contractsArray[0].borrowerOperations.closeTrove(troveId1);
@@ -336,7 +336,7 @@ contract CoGNOTest is DevTestSetup {
         _assertBalanceInvariant(B);
 
         uint256 debtToRepay = contractsArray[0].troveManager.getTroveEntireDebt(troveIdA);
-        deal(address(boldToken), A, debtToRepay);
+        deal(address(evroToken), A, debtToRepay);
 
         vm.prank(A);
         contractsArray[0].borrowerOperations.closeTrove(troveIdA);
@@ -400,7 +400,7 @@ contract CoGNOTest is DevTestSetup {
 
         // Close A's first trove
         uint256 debtToRepay = contractsArray[0].troveManager.getTroveEntireDebt(troveA1);
-        deal(address(boldToken), A, debtToRepay);
+        deal(address(evroToken), A, debtToRepay);
         vm.prank(A);
         contractsArray[0].borrowerOperations.closeTrove(troveA1);
 

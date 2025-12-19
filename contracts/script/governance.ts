@@ -5,7 +5,7 @@ import { fs } from "zx";
 import { createTestClient, getContract, maxUint256, publicActions, walletActions, webSocket, zeroAddress } from "viem";
 
 import {
-  abiBoldToken,
+  abiEvroToken,
   abiBorrowerOperations,
   abiBribeInitiative,
   abiERC20Faucet,
@@ -23,7 +23,7 @@ const startsWith = <T extends string>(prefix: T) => (x: string): x is `${T}${str
 const Address = z.string().refine(startsWith("0x"));
 
 const DeploymentManifest = z.object({
-  boldToken: Address,
+  evroToken: Address,
 
   constants: z.object({
     ETH_GAS_COMPENSATION: z.string(),
@@ -64,9 +64,9 @@ const lqtyToken = getContract({
   client,
 });
 
-const boldToken = getContract({
-  address: deploymentManifest.boldToken,
-  abi: abiBoldToken,
+const evroToken = getContract({
+  address: deploymentManifest.evroToken,
+  abi: abiEvroToken,
   client,
 });
 
@@ -135,7 +135,7 @@ const mintBold = async (to: `0x${string}`, amount: bigint) => {
     zeroAddress, // _receiver
   ]).then(waitForSuccess);
 
-  await boldToken.write.transfer([to, amount]).then(waitForSuccess);
+  await evroToken.write.transfer([to, amount]).then(waitForSuccess);
 };
 
 const main = async () => {
@@ -170,7 +170,7 @@ const main = async () => {
     address: await client.deployContract({
       abi: abiBribeInitiative,
       bytecode: bytecodeBribeInitiative,
-      args: [deploymentManifest.governance.governance, boldToken.address, lqtyToken.address],
+      args: [deploymentManifest.governance.governance, evroToken.address, lqtyToken.address],
     }).then(waitForContractAddress),
   });
 

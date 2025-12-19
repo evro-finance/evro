@@ -132,7 +132,7 @@ contract E2ETest is E2EHelpers {
     }
 
     function test_OwnershipRenounced() external {
-        ownables.push(address(boldToken));
+        ownables.push(address(evroToken));
 
         for (uint256 i = 0; i < branches.length; ++i) {
             ownables.push(address(branches[i].addressesRegistry));
@@ -172,7 +172,7 @@ contract E2ETest is E2EHelpers {
 
         vm.startPrank(registrant);
         {
-            boldToken.approve(address(governance), REGISTRATION_FEE);
+            evroToken.approve(address(governance), REGISTRATION_FEE);
             vm.expectRevert("Governance: registration-not-yet-enabled");
             governance.registerInitiative(newInitiative);
         }
@@ -192,7 +192,7 @@ contract E2ETest is E2EHelpers {
 
         vm.startPrank(registrant);
         {
-            boldToken.approve(address(governance), REGISTRATION_FEE);
+            evroToken.approve(address(governance), REGISTRATION_FEE);
             governance.registerInitiative(newInitiative);
         }
         vm.stopPrank();
@@ -205,10 +205,10 @@ contract E2ETest is E2EHelpers {
         }
 
         uint256 repaid;
-        uint256 borrowed = boldToken.totalSupply() - boldToken.balanceOf(address(governance));
+        uint256 borrowed = evroToken.totalSupply() - evroToken.balanceOf(address(governance));
 
         for (uint256 i = 0; i < branches.length; ++i) {
-            borrowed -= boldToken.balanceOf(address(branches[i].stabilityPool));
+            borrowed -= evroToken.balanceOf(address(branches[i].stabilityPool));
         }
 
         if (block.chainid == 1) {
@@ -234,8 +234,8 @@ contract E2ETest is E2EHelpers {
         {
             skip(5 minutes);
 
-            uint256 boldAmount = boldToken.balanceOf(borrower) * 2 / 5;
-            uint256 usdcAmount = boldAmount * 10 ** usdc.decimals() / 10 ** boldToken.decimals();
+            uint256 boldAmount = evroToken.balanceOf(borrower) * 2 / 5;
+            uint256 usdcAmount = boldAmount * 10 ** usdc.decimals() / 10 ** evroToken.decimals();
             uint256 lusdAmount = boldAmount;
 
             _addCurveLiquidity(liquidityProvider, curveUsdcBold, boldAmount, BOLD, usdcAmount, USDC);
@@ -261,7 +261,7 @@ contract E2ETest is E2EHelpers {
 
         for (uint256 i = 0; i < branches.length; ++i) {
             skip(5 minutes);
-            _provideToSP(i, stabilityDepositor, boldToken.balanceOf(borrower) / (branches.length - i));
+            _provideToSP(i, stabilityDepositor, evroToken.balanceOf(borrower) / (branches.length - i));
         }
 
         address leverageSeeker = makeAddr("leverageSeeker");
@@ -344,9 +344,9 @@ contract E2ETest is E2EHelpers {
             _claimFromSP(i, stabilityDepositor);
         }
 
-        uint256 interest = boldToken.totalSupply() + repaid - borrowed;
-        uint256 spShareOfInterest = boldToken.balanceOf(stabilityDepositor);
-        uint256 governanceShareOfInterest = boldToken.balanceOf(address(governance));
+        uint256 interest = evroToken.totalSupply() + repaid - borrowed;
+        uint256 spShareOfInterest = evroToken.balanceOf(stabilityDepositor);
+        uint256 governanceShareOfInterest = evroToken.balanceOf(address(governance));
 
         assertApproxEqRelDecimal(
             interest,
@@ -362,7 +362,7 @@ contract E2ETest is E2EHelpers {
             for (uint256 i = 0; i < initiatives.length; ++i) {
                 governance.claimForInitiative(initiatives[i].addr);
                 initiativeShareOfInterest +=
-                    boldToken.balanceOf(coalesce(address(initiatives[i].gauge), initiatives[i].addr));
+                    evroToken.balanceOf(coalesce(address(initiatives[i].gauge), initiatives[i].addr));
             }
 
             assertApproxEqRelDecimal(
@@ -390,13 +390,13 @@ contract E2ETest is E2EHelpers {
 
                 for (uint256 i = 0; i < initiatives.length; ++i) {
                     if (address(initiatives[i].gauge) != address(0)) {
-                        gaugeShareOfInterest += boldToken.balanceOf(address(initiatives[i].gauge));
+                        gaugeShareOfInterest += evroToken.balanceOf(address(initiatives[i].gauge));
                         _claimRewardsFromCurveGauge(liquidityProvider, initiatives[i].gauge);
                     }
                 }
 
                 assertApproxEqRelDecimal(
-                    boldToken.balanceOf(liquidityProvider),
+                    evroToken.balanceOf(liquidityProvider),
                     gaugeShareOfInterest,
                     1e-13 ether,
                     18,
@@ -453,7 +453,7 @@ contract E2ETest is E2EHelpers {
         _openTrove(0, newRewardDistributor, 0, rewardAmount);
 
         vm.startPrank(newRewardDistributor);
-        boldToken.approve(address(curveUsdcBoldGauge), rewardAmount);
+        evroToken.approve(address(curveUsdcBoldGauge), rewardAmount);
         vm.expectRevert();
         curveUsdcBoldGauge.deposit_reward_token(BOLD, rewardAmount, 7 days);
         vm.stopPrank();

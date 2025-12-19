@@ -190,7 +190,7 @@ export const WBTCZapper = [
   },
   {
       "type":"function",
-      "name":"boldToken",
+      "name":"evroToken",
       "inputs":[
         
       ],
@@ -198,7 +198,7 @@ export const WBTCZapper = [
         {
             "name":"",
             "type":"address",
-            "internalType":"contract IBoldToken"
+            "internalType":"contract IEvroToken"
         }
       ],
       "stateMutability":"view"

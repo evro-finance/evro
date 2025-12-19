@@ -5,7 +5,7 @@ pragma solidity 0.8.24;
 contract LQTYStakingMock {
     function setAddresses(
         address _lqtyTokenAddress,
-        address _boldTokenAddress,
+        address _evroTokenAddress,
         address _troveManagerAddress,
         address _borrowerOperationsAddress,
         address _activePoolAddress

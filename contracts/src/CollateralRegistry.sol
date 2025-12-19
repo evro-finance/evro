@@ -5,7 +5,7 @@ pragma solidity 0.8.24;
 import "openzeppelin-contracts/contracts/token/ERC20/extensions/IERC20Metadata.sol";
 
 import "./Interfaces/ITroveManager.sol";
-import "./Interfaces/IBoldToken.sol";
+import "./Interfaces/IEvroToken.sol";
 import "./Dependencies/Constants.sol";
 import "./Dependencies/LiquityMath.sol";
 
@@ -37,7 +37,7 @@ contract CollateralRegistry is ICollateralRegistry {
     ITroveManager internal immutable troveManager8;
     ITroveManager internal immutable troveManager9;
 
-    IBoldToken public immutable boldToken;
+    IEvroToken public immutable evroToken;
 
     uint256 public baseRate;
 
@@ -47,13 +47,13 @@ contract CollateralRegistry is ICollateralRegistry {
     event BaseRateUpdated(uint256 _baseRate);
     event LastFeeOpTimeUpdated(uint256 _lastFeeOpTime);
 
-    constructor(IBoldToken _boldToken, IERC20Metadata[] memory _tokens, ITroveManager[] memory _troveManagers) {
+    constructor(IEvroToken _evroToken, IERC20Metadata[] memory _tokens, ITroveManager[] memory _troveManagers) {
         uint256 numTokens = _tokens.length;
         require(numTokens > 0, "Collateral list cannot be empty");
         require(numTokens <= 10, "Collateral list too long");
         totalCollaterals = numTokens;
 
-        boldToken = _boldToken;
+        evroToken = _evroToken;
 
         token0 = _tokens[0];
         token1 = numTokens > 1 ? _tokens[1] : IERC20Metadata(address(0));
@@ -135,7 +135,7 @@ contract CollateralRegistry is ICollateralRegistry {
             }
         }
 
-        totals.boldSupplyAtStart = boldToken.totalSupply();
+        totals.boldSupplyAtStart = evroToken.totalSupply();
         // Decay the baseRate due to time passed, and then increase it according to the size of this redemption.
         // Use the saved total Bold supply value, from before it was reduced by the redemption.
         // We only compute it here, and update it at the end,
@@ -170,7 +170,7 @@ contract CollateralRegistry is ICollateralRegistry {
 
         // Burn the total Bold that is cancelled with debt
         if (totals.redeemedAmount > 0) {
-            boldToken.burn(msg.sender, totals.redeemedAmount);
+            evroToken.burn(msg.sender, totals.redeemedAmount);
         }
     }
 
@@ -256,7 +256,7 @@ contract CollateralRegistry is ICollateralRegistry {
     }
 
     function getRedemptionRateForRedeemedAmount(uint256 _redeemAmount) external view returns (uint256) {
-        uint256 totalBoldSupply = boldToken.totalSupply();
+        uint256 totalBoldSupply = evroToken.totalSupply();
         uint256 newBaseRate = _getUpdatedBaseRateFromRedemption(_redeemAmount, totalBoldSupply);
         return _calcRedemptionRate(newBaseRate);
     }
@@ -266,7 +266,7 @@ contract CollateralRegistry is ICollateralRegistry {
     }
 
     function getEffectiveRedemptionFeeInBold(uint256 _redeemAmount) external view override returns (uint256) {
-        uint256 totalBoldSupply = boldToken.totalSupply();
+        uint256 totalBoldSupply = evroToken.totalSupply();
         uint256 newBaseRate = _getUpdatedBaseRateFromRedemption(_redeemAmount, totalBoldSupply);
         return _calcRedemptionFee(_calcRedemptionRate(newBaseRate), _redeemAmount);
     }

@@ -15,7 +15,7 @@ contract RebasingBatchShares is DevTestSetup {
         // Extra Debt (irrelevant / Used to not use deal)
         openTroveNoHints100pct(C, 100 ether, 100e21, MAX_ANNUAL_INTEREST_RATE);
         vm.startPrank(C);
-        boldToken.transfer(A, boldToken.balanceOf(C));
+        evroToken.transfer(A, evroToken.balanceOf(C));
         vm.stopPrank();
 
         // === 1: Setup Batch Rebase === ///
@@ -117,9 +117,9 @@ contract RebasingBatchShares is DevTestSetup {
         // It will pay zero debt
         assertEq(aDebt, 0, "Forgiven");
 
-        uint256 balB4 = boldToken.balanceOf(A);
+        uint256 balB4 = evroToken.balanceOf(A);
         closeTrove(A, anotherATroveId);
-        uint256 balAfter = boldToken.balanceOf(A);
+        uint256 balAfter = evroToken.balanceOf(A);
 
         // And we can repeat this to get free debt
         uint256 debtAfter = borrowerOperations.getEntireBranchDebt();
@@ -264,7 +264,7 @@ contract RebasingBatchShares is DevTestSetup {
         priceFeed.setPrice(2000e18);
         openTroveNoHints100pct(C, 100 ether, 100e21, MAX_ANNUAL_INTEREST_RATE);
         vm.startPrank(C);
-        boldToken.transfer(A, boldToken.balanceOf(C));
+        evroToken.transfer(A, evroToken.balanceOf(C));
         vm.stopPrank();
 
         // B opens trove

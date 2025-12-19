@@ -39,7 +39,7 @@ contract("Gas compensation tests", async (accounts) => {
   let contracts;
 
   let priceFeed;
-  let boldToken;
+  let evroToken;
   let troveManager;
   let stabilityPool;
   let borrowerOperations;
@@ -62,7 +62,7 @@ contract("Gas compensation tests", async (accounts) => {
     const result = await deployFixture();
     contracts = result.contracts;
     priceFeed = contracts.priceFeedTestnet;
-    boldToken = contracts.boldToken;
+    evroToken = contracts.evroToken;
     troveManager = contracts.troveManager;
     stabilityPool = contracts.stabilityPool;
     borrowerOperations = contracts.borrowerOperations;

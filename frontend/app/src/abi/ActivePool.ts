@@ -50,9 +50,9 @@ export const ActivePool = [
   },
   {
     "type": "function",
-    "name": "boldToken",
+    "name": "evroToken",
     "inputs": [],
-    "outputs": [{ "name": "", "type": "address", "internalType": "contract IBoldToken" }],
+    "outputs": [{ "name": "", "type": "address", "internalType": "contract IEvroToken" }],
     "stateMutability": "view",
   },
   {

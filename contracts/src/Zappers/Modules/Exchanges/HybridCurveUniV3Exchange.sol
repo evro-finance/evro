@@ -20,7 +20,7 @@ contract HybridCurveUniV3Exchange is LeftoversSweep, IExchange {
     using SafeERC20 for IERC20;
 
     IERC20 public immutable collToken;
-    IBoldToken public immutable boldToken;
+    IEvroToken public immutable evroToken;
     IERC20 public immutable USDC;
     IWETH public immutable WETH;
 
@@ -36,7 +36,7 @@ contract HybridCurveUniV3Exchange is LeftoversSweep, IExchange {
 
     constructor(
         IERC20 _collToken,
-        IBoldToken _boldToken,
+        IEvroToken _evroToken,
         IERC20 _usdc,
         IWETH _weth,
         // Curve
@@ -49,7 +49,7 @@ contract HybridCurveUniV3Exchange is LeftoversSweep, IExchange {
         ISwapRouter _uniV3Router
     ) {
         collToken = _collToken;
-        boldToken = _boldToken;
+        evroToken = _evroToken;
         USDC = _usdc;
         WETH = _weth;
 
@@ -70,8 +70,8 @@ contract HybridCurveUniV3Exchange is LeftoversSweep, IExchange {
         _setHybridExchangeInitialBalances(initialBalances);
 
         // Curve
-        boldToken.transferFrom(msg.sender, address(this), _boldAmount);
-        boldToken.approve(address(curvePool), _boldAmount);
+        evroToken.transferFrom(msg.sender, address(this), _boldAmount);
+        evroToken.approve(address(curvePool), _boldAmount);
 
         uint256 curveUsdcAmount = curvePool.exchange(int128(BOLD_TOKEN_INDEX), int128(USDC_INDEX), _boldAmount, 0);
 
@@ -134,7 +134,7 @@ contract HybridCurveUniV3Exchange is LeftoversSweep, IExchange {
 
         uint256 boldAmount =
             curvePool.exchange(int128(USDC_INDEX), int128(BOLD_TOKEN_INDEX), uniV3UsdcAmount, _minBoldAmount);
-        boldToken.transfer(msg.sender, boldAmount);
+        evroToken.transfer(msg.sender, boldAmount);
 
         // return leftovers to user
         _returnLeftovers(initialBalances);
@@ -143,7 +143,7 @@ contract HybridCurveUniV3Exchange is LeftoversSweep, IExchange {
     }
 
     function _setHybridExchangeInitialBalances(InitialBalances memory initialBalances) internal view {
-        initialBalances.tokens[0] = boldToken;
+        initialBalances.tokens[0] = evroToken;
         initialBalances.tokens[1] = USDC;
         initialBalances.tokens[2] = WETH;
         if (address(WETH) != address(collToken)) {

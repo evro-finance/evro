@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: MIT
 pragma solidity 0.8.24;
 
-import {IBoldToken} from "src/Interfaces/IBoldToken.sol";
+import {IEvroToken} from "src/Interfaces/IEvroToken.sol";
 import {IStabilityPool} from "src/Interfaces/IStabilityPool.sol";
 import {HintHelpers} from "src/HintHelpers.sol";
 import {Assertions} from "./TestContracts/Assertions.sol";
@@ -17,13 +17,13 @@ abstract contract SPInvariantsBase is Assertions, BaseInvariantTest {
         super.setUp();
 
         TestDeployer deployer = new TestDeployer();
-        (TestDeployer.LiquityContractsDev memory contracts,, IBoldToken boldToken, HintHelpers hintHelpers,,,) =
+        (TestDeployer.LiquityContractsDev memory contracts,, IEvroToken evroToken, HintHelpers hintHelpers,,,) =
             deployer.deployAndConnectContracts();
         stabilityPool = contracts.stabilityPool;
 
         handler = new SPInvariantsTestHandler(
             SPInvariantsTestHandler.Contracts({
-                boldToken: boldToken,
+                evroToken: evroToken,
                 borrowerOperations: contracts.borrowerOperations,
                 collateralToken: contracts.collToken,
                 priceFeed: contracts.priceFeed,

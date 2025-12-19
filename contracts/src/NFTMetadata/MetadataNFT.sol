@@ -16,7 +16,7 @@ interface IMetadataNFT {
         uint256 _tokenId;
         address _owner;
         address _collToken;
-        address _boldToken;
+        address _evroToken;
         uint256 _collAmount;
         uint256 _debtAmount;
         uint256 _interestRate;
@@ -66,7 +66,7 @@ contract MetadataNFT is IMetadataNFT {
             '"}, {"trait_type": "Collateral Amount", "value": "',
             LibString.toString(_troveData._collAmount),
             '"}, {"trait_type": "Debt Token", "value": "',
-            LibString.toHexString(_troveData._boldToken),
+            LibString.toHexString(_troveData._evroToken),
             '"}, {"trait_type": "Debt Amount", "value": "',
             LibString.toString(_troveData._debtAmount),
             '"}, {"trait_type": "Interest Rate", "value": "',

@@ -124,7 +124,7 @@ export const closeLoanPosition: FlowDeclaration<CloseLoanPositionRequest> = {
           : branch.contracts.LeverageLSTZapper;
 
         return ctx.writeContract({
-          ...ctx.contracts.BoldToken,
+          ...ctx.contracts.EvroToken,
           functionName: "approve",
           args: [
             Zapper.address,
@@ -227,7 +227,7 @@ export const closeLoanPosition: FlowDeclaration<CloseLoanPositionRequest> = {
         functionName: "getLatestTroveData",
         args: [BigInt(loan.troveId)],
       }, {
-        ...ctx.contracts.BoldToken,
+        ...ctx.contracts.EvroToken,
         functionName: "allowance",
         args: [ctx.account, Zapper.address],
       }],
