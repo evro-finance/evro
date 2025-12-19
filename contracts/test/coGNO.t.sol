@@ -263,5 +263,182 @@ contract CoGNOTest is DevTestSetup {
         // Since approve reverts, allowance should always be 0
         assertEq(coGNO.allowance(A, B), 0);
     }
+
+    // ============ Invariant Tests ============
+
+    /// @dev Calculate expected balance by summing collateral from all user troves
+    function _calculateExpectedBalance(address user) internal view returns (uint256 expected) {
+        ITroveNFT troveNFT = contractsArray[0].troveManager.troveNFT();
+        uint256[] memory userTroveIds = troveNFT.ownerToTroveIds(user);
+        
+        for (uint256 i = 0; i < userTroveIds.length; i++) {
+            LatestTroveData memory troveData = contractsArray[0].troveManager.getLatestTroveData(userTroveIds[i]);
+            expected += troveData.entireColl;
+        }
+    }
+
+    /// @dev Check invariant: coGNO.balanceOf(user) == sum of user's trove collaterals
+    function _assertBalanceInvariant(address user) internal {
+        uint256 coGNOBalance = coGNO.balanceOf(user);
+        uint256 expectedBalance = _calculateExpectedBalance(user);
+        assertEq(coGNOBalance, expectedBalance, "Invariant violated: coGNO balance != trove collateral sum");
+    }
+
+    /// @dev Check invariant: coGNO.totalSupply() == branch total collateral
+    function _assertTotalSupplyInvariant() internal {
+        uint256 coGNOSupply = coGNO.totalSupply();
+        uint256 branchColl = contractsArray[0].troveManager.getEntireBranchColl();
+        assertEq(coGNOSupply, branchColl, "Invariant violated: coGNO totalSupply != branch collateral");
+    }
+
+    function testInvariant_BalanceMatchesTroveCollateral() public {
+        // Open multiple troves for multiple users
+        _openTrove(A, 0, 100e18, 2000e18, 5e16);
+        _openTrove(A, 1, 150e18, 2000e18, 6e16);
+        _openTrove(B, 0, 200e18, 2000e18, 5e16);
+        _openTrove(C, 0, 300e18, 2000e18, 7e16);
+
+        // Check invariants for all users
+        _assertBalanceInvariant(A);
+        _assertBalanceInvariant(B);
+        _assertBalanceInvariant(C);
+        _assertTotalSupplyInvariant();
+    }
+
+    function testInvariant_AfterAddCollateral() public {
+        uint256 troveId = _openTrove(A, 0, 100e18, 2000e18, 5e16);
+        _assertBalanceInvariant(A);
+
+        vm.prank(A);
+        contractsArray[0].borrowerOperations.addColl(troveId, 50e18);
+
+        _assertBalanceInvariant(A);
+        _assertTotalSupplyInvariant();
+    }
+
+    function testInvariant_AfterWithdrawCollateral() public {
+        uint256 troveId = _openTrove(A, 0, 200e18, 2000e18, 5e16);
+        _assertBalanceInvariant(A);
+
+        vm.prank(A);
+        contractsArray[0].borrowerOperations.withdrawColl(troveId, 50e18);
+
+        _assertBalanceInvariant(A);
+        _assertTotalSupplyInvariant();
+    }
+
+    function testInvariant_AfterCloseTrove() public {
+        // Need another trove to keep system alive
+        _openTrove(B, 0, 200e18, 2000e18, 5e16);
+        
+        uint256 troveIdA = _openTrove(A, 0, 100e18, 2000e18, 5e16);
+        _assertBalanceInvariant(A);
+        _assertBalanceInvariant(B);
+
+        uint256 debtToRepay = contractsArray[0].troveManager.getTroveEntireDebt(troveIdA);
+        deal(address(boldToken), A, debtToRepay);
+
+        vm.prank(A);
+        contractsArray[0].borrowerOperations.closeTrove(troveIdA);
+
+        _assertBalanceInvariant(A);
+        _assertBalanceInvariant(B);
+        _assertTotalSupplyInvariant();
+    }
+
+    function testInvariant_AfterTroveTransfer() public {
+        uint256 troveId = _openTrove(A, 0, 100e18, 2000e18, 5e16);
+        
+        _assertBalanceInvariant(A);
+        _assertBalanceInvariant(B);
+
+        // Transfer trove NFT from A to B
+        ITroveNFT troveNFT = contractsArray[0].troveManager.troveNFT();
+        vm.prank(A);
+        troveNFT.transferFrom(A, B, troveId);
+
+        // After transfer, A's balance should be 0, B's should have the collateral
+        _assertBalanceInvariant(A);
+        _assertBalanceInvariant(B);
+        _assertTotalSupplyInvariant();
+    }
+
+    function testInvariant_ComplexScenario() public {
+        // Open troves for multiple users
+        uint256 troveA1 = _openTrove(A, 0, 100e18, 2000e18, 5e16);
+        uint256 troveA2 = _openTrove(A, 1, 150e18, 2000e18, 6e16);
+        uint256 troveB1 = _openTrove(B, 0, 200e18, 2000e18, 5e16);
+        _openTrove(C, 0, 300e18, 2000e18, 7e16);
+
+        _assertBalanceInvariant(A);
+        _assertBalanceInvariant(B);
+        _assertBalanceInvariant(C);
+        _assertTotalSupplyInvariant();
+
+        // Add collateral to A's first trove
+        vm.prank(A);
+        contractsArray[0].borrowerOperations.addColl(troveA1, 25e18);
+
+        _assertBalanceInvariant(A);
+        _assertTotalSupplyInvariant();
+
+        // Withdraw from A's second trove
+        vm.prank(A);
+        contractsArray[0].borrowerOperations.withdrawColl(troveA2, 30e18);
+
+        _assertBalanceInvariant(A);
+        _assertTotalSupplyInvariant();
+
+        // Transfer B's trove to D
+        ITroveNFT troveNFT = contractsArray[0].troveManager.troveNFT();
+        vm.prank(B);
+        troveNFT.transferFrom(B, D, troveB1);
+
+        _assertBalanceInvariant(B);
+        _assertBalanceInvariant(D);
+        _assertTotalSupplyInvariant();
+
+        // Close A's first trove
+        uint256 debtToRepay = contractsArray[0].troveManager.getTroveEntireDebt(troveA1);
+        deal(address(boldToken), A, debtToRepay);
+        vm.prank(A);
+        contractsArray[0].borrowerOperations.closeTrove(troveA1);
+
+        _assertBalanceInvariant(A);
+        _assertTotalSupplyInvariant();
+
+        // Final check all users
+        _assertBalanceInvariant(A);
+        _assertBalanceInvariant(B);
+        _assertBalanceInvariant(C);
+        _assertBalanceInvariant(D);
+    }
+
+    /// @dev Fuzz test: random collateral amounts, verify invariant holds
+    function testFuzz_InvariantHoldsForRandomAmounts(
+        uint256 collA,
+        uint256 collB,
+        uint256 addAmount
+    ) public {
+        // Bound inputs to reasonable ranges
+        collA = bound(collA, 50e18, 1000e18);
+        collB = bound(collB, 50e18, 1000e18);
+        addAmount = bound(addAmount, 1e18, 100e18);
+
+        uint256 troveIdA = _openTrove(A, 0, collA, 2000e18, 5e16);
+        _openTrove(B, 0, collB, 2000e18, 5e16);
+
+        _assertBalanceInvariant(A);
+        _assertBalanceInvariant(B);
+        _assertTotalSupplyInvariant();
+
+        // Add collateral
+        vm.prank(A);
+        contractsArray[0].borrowerOperations.addColl(troveIdA, addAmount);
+
+        _assertBalanceInvariant(A);
+        _assertBalanceInvariant(B);
+        _assertTotalSupplyInvariant();
+    }
 }
 
