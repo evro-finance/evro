@@ -37,7 +37,7 @@ import {
 import { erc20Abi, zeroAddress } from "viem";
 
 const protocolAbis = {
-  BoldToken: erc20Abi,
+  EvroToken: erc20Abi,
   CollateralRegistry,
   DebtInFrontHelper,
   ExchangeHelpers,
@@ -115,7 +115,7 @@ export type Contracts = ProtocolContractMap & {
 };
 
 export const CONTRACTS: Contracts = {
-  BoldToken: { abi: abis.BoldToken, address: CONTRACT_MAIN_TOKEN },
+  EvroToken: { abi: abis.EvroToken, address: CONTRACT_MAIN_TOKEN },
   CollateralRegistry: {
     abi: abis.CollateralRegistry,
     address: CONTRACT_COLLATERAL_REGISTRY,

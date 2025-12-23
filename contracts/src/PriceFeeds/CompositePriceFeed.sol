@@ -5,8 +5,6 @@ pragma solidity 0.8.24;
 import "../Dependencies/LiquityMath.sol";
 import "./MainnetPriceFeedBase.sol";
 
-// import "forge-std/console2.sol";
-
 // The CompositePriceFeed is used for feeds that incorporate both a market price oracle (e.g. STETH-USD, or RETH-ETH)
 // and an LST canonical rate (e.g. WSTETH:STETH, or RETH:ETH).
 abstract contract CompositePriceFeed is MainnetPriceFeedBase {

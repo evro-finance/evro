@@ -86,7 +86,7 @@ contract InvariantsTest is Assertions, Logging, BaseInvariantTest, BaseMultiColl
 
         TestDeployer deployer = new TestDeployer();
         Contracts memory contracts;
-        (contracts.branches, contracts.collateralRegistry, contracts.boldToken, contracts.hintHelpers,, contracts.weth,)
+        (contracts.branches, contracts.collateralRegistry, contracts.evroToken, contracts.hintHelpers,, contracts.weth,)
         = deployer.deployAndConnectContractsMultiColl(p);
         setupContracts(contracts);
 
@@ -100,7 +100,7 @@ contract InvariantsTest is Assertions, Logging, BaseInvariantTest, BaseMultiColl
         for (uint256 i = 0; i < actors.length; ++i) {
             address actor = actors[i].account;
 
-            assertEqDecimal(boldToken.balanceOf(actor), 0, 18, "Incomplete BOLD sweep");
+            assertEqDecimal(evroToken.balanceOf(actor), 0, 18, "Incomplete BOLD sweep");
             assertEqDecimal(weth.balanceOf(actor), 0, 18, "Incomplete WETH sweep");
 
             for (uint256 j = 0; j < branches.length; ++j) {
@@ -147,15 +147,15 @@ contract InvariantsTest is Assertions, Logging, BaseInvariantTest, BaseMultiColl
                 c.pools.collSurplusPool.getCollBalance(), handler.collSurplus(i), 10, 18, "Wrong CollSurplusPool"
             );
             assertApproxEqAbsDecimal(
-                c.stabilityPool.getTotalBoldDeposits(),
-                handler.spBoldDeposits(i),
+                c.stabilityPool.getTotalEvroDeposits(),
+                handler.spEvroDeposits(i),
                 100,
                 18,
                 "Wrong StabilityPool deposits"
             );
             assertEqDecimal(
                 c.stabilityPool.getYieldGainsOwed() + c.stabilityPool.getYieldGainsPending(),
-                handler.spBoldYield(i),
+                handler.spEvroYield(i),
                 18,
                 "Wrong StabilityPool yield"
             );
@@ -231,8 +231,8 @@ contract InvariantsTest is Assertions, Logging, BaseInvariantTest, BaseMultiColl
         }
     }
 
-    function invariant_AllBoldBackedByTroveDebt() external view {
-        uint256 totalBold = boldToken.totalSupply();
+    function invariant_AllEvroBackedByTroveDebt() external view {
+        uint256 totalEvro = evroToken.totalSupply();
         uint256 totalPendingInterest = 0;
         uint256 totalPendingBatchManagementFees = 0;
         uint256 totalDebt = 0;
@@ -261,11 +261,11 @@ contract InvariantsTest is Assertions, Logging, BaseInvariantTest, BaseMultiColl
         // TODO: precisely track upper bound of error by counting int divisions in interest accrual.
         // (Redistributions have a feedback loop that prevents errors from accumulating there).
         assertApproxEqAbsDecimal(
-            totalBold + totalPendingInterest + totalPendingBatchManagementFees,
+            totalEvro + totalPendingInterest + totalPendingBatchManagementFees,
             totalDebt,
             1e-10 ether,
             18,
-            "Total Bold !~= total debt"
+            "Total Evro !~= total debt"
         );
     }
 
@@ -284,28 +284,28 @@ contract InvariantsTest is Assertions, Logging, BaseInvariantTest, BaseMultiColl
         }
     }
 
-    function invariant_StabilityPool_AllBoldClaimable_ExceptYieldReceivedWhileEmpty() external view {
+    function invariant_StabilityPool_AllEvroClaimable_ExceptYieldReceivedWhileEmpty() external view {
         for (uint256 j = 0; j < branches.length; ++j) {
             IStabilityPool stabilityPool = branches[j].stabilityPool;
 
-            uint256 sumBoldDeposit = 0;
+            uint256 sumEvroDeposit = 0;
             uint256 sumYieldGain = 0;
             uint256 yieldGainsPending = stabilityPool.getYieldGainsPending();
 
             for (uint256 i = 0; i < actors.length; ++i) {
-                sumBoldDeposit += stabilityPool.getCompoundedBoldDeposit(actors[i].account);
+                sumEvroDeposit += stabilityPool.getCompoundedEvroDeposit(actors[i].account);
                 sumYieldGain += stabilityPool.getDepositorYieldGain(actors[i].account);
             }
 
             assertLt(
-                stabilityPool.getTotalBoldDeposits() - sumBoldDeposit, 1000, "totalBoldDeposits !~= sum(boldDeposit)"
+                stabilityPool.getTotalEvroDeposits() - sumEvroDeposit, 1000, "totalEvroDeposits !~= sum(evroDeposit)"
             );
 
             assertLt(stabilityPool.getYieldGainsOwed() - sumYieldGain, 1000, "yieldGainsOwed !~= sum(yieldGain)");
 
             // This only holds as long as no one sends BOLD directly to the SP's address other than ActivePool
             assertLt(
-                boldToken.balanceOf(address(stabilityPool)) - sumBoldDeposit - sumYieldGain - yieldGainsPending,
+                evroToken.balanceOf(address(stabilityPool)) - sumEvroDeposit - sumYieldGain - yieldGainsPending,
                 1000,
                 "SP BOLD balance !~= claimable + pending"
             );

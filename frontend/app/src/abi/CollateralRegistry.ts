@@ -2,7 +2,7 @@
 // please do not edit it manually
 export const CollateralRegistry = [{
   "type": "constructor",
-  "inputs": [{ "name": "_boldToken", "type": "address", "internalType": "contract IBoldToken" }, {
+  "inputs": [{ "name": "_evroToken", "type": "address", "internalType": "contract IEvroToken" }, {
     "name": "_tokens",
     "type": "address[]",
     "internalType": "contract IERC20Metadata[]",
@@ -16,9 +16,9 @@ export const CollateralRegistry = [{
   "stateMutability": "view",
 }, {
   "type": "function",
-  "name": "boldToken",
+  "name": "evroToken",
   "inputs": [],
-  "outputs": [{ "name": "", "type": "address", "internalType": "contract IBoldToken" }],
+  "outputs": [{ "name": "", "type": "address", "internalType": "contract IEvroToken" }],
   "stateMutability": "view",
 }, {
   "type": "function",

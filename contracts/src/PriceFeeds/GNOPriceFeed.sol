@@ -5,8 +5,6 @@ pragma solidity 0.8.24;
 import "./MainnetPriceFeedBase.sol";
 import {FixedPointMathLib} from "solady/utils/FixedPointMathLib.sol";
 
-// import "forge-std/console2.sol";
-
 contract GNOPriceFeed is MainnetPriceFeedBase {
     Oracle public eurUsdOracle;
     constructor(address _gnoUsdOracleAddress, address _eurUsdOracleAddress, uint256 _gnoUsdStalenessThreshold, uint256 _usdEurStalenessThreshold, address _borrowerOperationsAddress)

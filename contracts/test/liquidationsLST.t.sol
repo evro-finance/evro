@@ -24,7 +24,7 @@ contract LiquidationsLSTTest is DevTestSetup {
 
         TestDeployer deployer = new TestDeployer();
         TestDeployer.LiquityContractsDev memory contracts;
-        (contracts, collateralRegistry, boldToken,,,,) = deployer.deployAndConnectContracts(
+        (contracts, collateralRegistry, evroToken,,,,) = deployer.deployAndConnectContracts(
             TestDeployer.TroveManagerParams(160e16, 120e16, 10e16, 120e16, 5e16, 10e16)
         );
         collToken = contracts.collToken;
@@ -50,7 +50,7 @@ contract LiquidationsLSTTest is DevTestSetup {
     }
 
     struct InitialValues {
-        uint256 spBoldBalance;
+        uint256 spEvroBalance;
         uint256 spCollBalance;
         uint256 ACollBalance;
         uint256 AInterest;
@@ -119,7 +119,7 @@ contract LiquidationsLSTTest is DevTestSetup {
         assertEq(troveManager.getTroveIdsCount(), 1);
 
         // Check SP stays the same
-        assertEq(stabilityPool.getTotalBoldDeposits(), 0, "SP should be empty");
+        assertEq(stabilityPool.getTotalEvroDeposits(), 0, "SP should be empty");
         assertEq(stabilityPool.getCollBalance(), 0, "SP should not have Coll rewards");
 
         // Check B has received debt
@@ -164,7 +164,7 @@ contract LiquidationsLSTTest is DevTestSetup {
     }
 
     struct FinalValues {
-        uint256 spBoldBalance;
+        uint256 spEvroBalance;
         uint256 spCollBalance;
         uint256 collToLiquidate;
         uint256 collSPPortion;
@@ -227,7 +227,7 @@ contract LiquidationsLSTTest is DevTestSetup {
         //console2.log(_finalPrice, "_finalPrice");
 
         InitialValues memory initialValues;
-        initialValues.spBoldBalance = stabilityPool.getTotalBoldDeposits();
+        initialValues.spEvroBalance = stabilityPool.getTotalEvroDeposits();
         initialValues.spCollBalance = stabilityPool.getCollBalance();
         initialValues.ACollBalance = collToken.balanceOf(A);
         initialValues.BDebt = troveManager.getTroveEntireDebt(BTroveId);
@@ -258,9 +258,9 @@ contract LiquidationsLSTTest is DevTestSetup {
         finalValues.collPenaltySP = _spAmount * DECIMAL_PRECISION / _finalPrice * 105 / 100;
         finalValues.collToSendToSP = LiquityMath._min(finalValues.collPenaltySP, finalValues.collSPPortion);
 
-        // Check SP Bold has decreased
-        finalValues.spBoldBalance = stabilityPool.getTotalBoldDeposits();
-        assertEq(initialValues.spBoldBalance - finalValues.spBoldBalance, _spAmount, "SP Bold balance mismatch");
+        // Check SP Evro has decreased
+        finalValues.spEvroBalance = stabilityPool.getTotalEvroDeposits();
+        assertEq(initialValues.spEvroBalance - finalValues.spEvroBalance, _spAmount, "SP Evro balance mismatch");
         // Check SP Coll has  increased
         finalValues.spCollBalance = stabilityPool.getCollBalance();
         // liquidationAmount to Coll + 5%

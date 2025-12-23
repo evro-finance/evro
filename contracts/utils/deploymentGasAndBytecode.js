@@ -2,7 +2,7 @@
 const SortedTroves = artifacts.require("./SortedTroves.sol");
 const TroveManager = artifacts.require("./TroveManager.sol");
 const PriceFeed = artifacts.require("./PriceFeed.sol");
-const BoldToken = artifacts.require("./BoldToken.sol");
+const EvroToken = artifacts.require("./EvroToken.sol");
 const ActivePool = artifacts.require("./ActivePool.sol");
 const DefaultPool = artifacts.require("./DefaultPool.sol");
 const StabilityPool = artifacts.require("./StabilityPool.sol");
@@ -23,7 +23,7 @@ const BorrowerOperationsTester = artifacts.require(
   "./BorrowerOperationsTester.sol",
 );
 const TroveManagerTester = artifacts.require("./TroveManagerTester.sol");
-// const BoldTokenTester = artifacts.require("./BoldTokenTester.sol");
+// const EvroTokenTester = artifacts.require("./EvroTokenTester.sol");
 
 const { TestHelper: th } = require("../utils/testHelpers.js");
 
@@ -33,7 +33,7 @@ const ARBITRARY_ADDRESS = "0x5f4eC3Df9cbd43714FE2740f5E3616155c5b8419"; // place
 const coreContractABIs = [
   BorrowerOperations,
   PriceFeed,
-  BoldToken,
+  EvroToken,
   SortedTroves,
   TroveManager,
   ActivePool,
@@ -51,7 +51,7 @@ const LQTYContractABIs = [LQTYStaking, LQTYToken, CommunityIssuance];
 //   LiquityMathTester,
 //   BorrowerOperationsTester,
 //   TroveManagerTester,
-//   // BoldTokenTester,
+//   // EvroTokenTester,
 // ];
 
 const getGasFromContractDeployment = async (contractObject, name) => {

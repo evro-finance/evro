@@ -4,7 +4,7 @@ const { createDeployAndFundFixture } = require("../utils/testFixtures.js");
 const { dec } = th;
 
 const TroveManagerTester = artifacts.require("TroveManagerTester");
-const BoldToken = artifacts.require("BoldToken");
+const EvroToken = artifacts.require("EvroToken");
 
 const GAS_PRICE = 10000000;
 
@@ -18,7 +18,7 @@ contract("StabilityPool Scale Factor issue tests", async (accounts) => {
   let contracts;
 
   let priceFeed;
-  let boldToken;
+  let evroToken;
   let stabilityPool;
   let sortedTroves;
   let troveManager;
@@ -44,7 +44,7 @@ contract("StabilityPool Scale Factor issue tests", async (accounts) => {
     const result = await deployFixture();
     contracts = result.contracts;
     priceFeed = contracts.priceFeed;
-    boldToken = contracts.boldToken;
+    evroToken = contracts.evroToken;
     stabilityPool = contracts.stabilityPool;
     sortedTroves = contracts.sortedTroves;
     troveManager = contracts.troveManager;
@@ -58,7 +58,7 @@ contract("StabilityPool Scale Factor issue tests", async (accounts) => {
         from: whale,
         value: dec(100000, "ether"),
       });
-      await boldToken.transfer(A, dec(50000, 18), { from: whale });
+      await evroToken.transfer(A, dec(50000, 18), { from: whale });
 
       // Open 3 Troves with 2000 Bold debt
       for (const account of [A, B, C]) {
@@ -139,7 +139,7 @@ contract("StabilityPool Scale Factor issue tests", async (accounts) => {
         from: whale,
         value: dec(100000, "ether"),
       });
-      await boldToken.transfer(A, dec(50000, 18), { from: whale });
+      await evroToken.transfer(A, dec(50000, 18), { from: whale });
 
       // Open 3 Troves with 2000 Bold debt
       for (const account of [A, B, C]) {
@@ -208,7 +208,7 @@ contract("StabilityPool Scale Factor issue tests", async (accounts) => {
       const newDepositors = [D, E, F];
 
       for (let i = 0; i < 3; i++) {
-        await boldToken.transfer(newDepositors[i], newDeposits[i], {
+        await evroToken.transfer(newDepositors[i], newDeposits[i], {
           from: whale,
         });
         await th.provideToSPAndClaim(contracts, newDeposits[i], {
@@ -228,7 +228,7 @@ contract("StabilityPool Scale Factor issue tests", async (accounts) => {
         from: whale,
         value: dec(100000, "ether"),
       });
-      await boldToken.transfer(A, dec(50000, 18), { from: whale });
+      await evroToken.transfer(A, dec(50000, 18), { from: whale });
 
       // Open 3 Troves with 2000 Bold debt
       for (const account of [A, B, C]) {
@@ -331,7 +331,7 @@ contract("StabilityPool Scale Factor issue tests", async (accounts) => {
         from: whale,
         value: dec(100000, "ether"),
       });
-      await boldToken.transfer(A, dec(50000, 18), { from: whale });
+      await evroToken.transfer(A, dec(50000, 18), { from: whale });
 
       // Open 3 Troves with 2000 Bold debt
       for (const account of [A, B, C]) {
@@ -436,7 +436,7 @@ contract("StabilityPool Scale Factor issue tests", async (accounts) => {
         from: whale,
         value: dec(100000, "ether"),
       });
-      await boldToken.transfer(A, dec(50000, 18), { from: whale });
+      await evroToken.transfer(A, dec(50000, 18), { from: whale });
 
       // Open 3 Troves with 2000 Bold debt
       for (const account of [A, B, C]) {
@@ -507,7 +507,7 @@ contract("StabilityPool Scale Factor issue tests", async (accounts) => {
 
       // D makes deposit of 1000 Bold
       const D_deposit = dec(1, 21);
-      await boldToken.transfer(D, dec(1, 21), { from: whale });
+      await evroToken.transfer(D, dec(1, 21), { from: whale });
       await th.provideToSPAndClaim(contracts, D_deposit, { from: D });
 
       // A re-fills SP to ~1.000000001x pre-liq level, i.e. to trigger a newProductFactor == 1e9,
@@ -548,7 +548,7 @@ contract("StabilityPool Scale Factor issue tests", async (accounts) => {
         from: whale,
         value: dec(100000, "ether"),
       });
-      await boldToken.transfer(A, dec(50000, 18), { from: whale });
+      await evroToken.transfer(A, dec(50000, 18), { from: whale });
 
       // Open 3 Troves with 2000 Bold debt
       for (const account of [A, B, C]) {
@@ -618,7 +618,7 @@ contract("StabilityPool Scale Factor issue tests", async (accounts) => {
 
       // D makes deposit of 1000 Bold
       const D_deposit = dec(1, 21);
-      await boldToken.transfer(D, dec(1, 21), { from: whale });
+      await evroToken.transfer(D, dec(1, 21), { from: whale });
       await th.provideToSPAndClaim(contracts, D_deposit, { from: D });
 
       // A re-fills SP to ~2x pre-liq level, i.e. to trigger a newProductFactor > 1e9,
@@ -665,7 +665,7 @@ contract("StabilityPool Scale Factor issue tests", async (accounts) => {
       );
       assert.isTrue((await th.getTroveEntireDebtByAddress(contracts, whale)).eq(th.toBN(dec(100000, 18))));
 
-      await boldToken.transfer(A, dec(50000, 18), { from: whale });
+      await evroToken.transfer(A, dec(50000, 18), { from: whale });
       // Open 4 Troves with 2000 BOLD debt
       for (account of [A, B, C, D]) {
         await th.openTroveWrapper(

@@ -57,7 +57,7 @@ contract("TroveManager", async (accounts) => {
   let contracts;
 
   let priceFeed;
-  let boldToken;
+  let evroToken;
   let sortedTroves;
   let troveManager;
   let activePool;
@@ -155,7 +155,7 @@ contract("TroveManager", async (accounts) => {
       const result = await deployFixture();
       contracts = result.contracts;
       priceFeed = contracts.priceFeedTestnet;
-      boldToken = contracts.boldToken;
+      evroToken = contracts.evroToken;
       sortedTroves = contracts.sortedTroves;
       troveManager = contracts.troveManager;
       activePool = contracts.activePool;
@@ -982,7 +982,7 @@ contract("TroveManager", async (accounts) => {
         });
 
         // Bob sends tokens to Dennis, who has no trove
-        await boldToken.transfer(dennis, spDeposit, { from: bob });
+        await evroToken.transfer(dennis, spDeposit, { from: bob });
 
         // Dennis provides Bold to SP
         await th.provideToSPAndClaim(contracts, spDeposit, { from: dennis });
@@ -1264,9 +1264,9 @@ contract("TroveManager", async (accounts) => {
         assert.equal((await sortedTroves.getSize()).toString(), "1");
 
         // Confirm token balances have not changed
-        assert.equal((await boldToken.balanceOf(alice)).toString(), A_boldAmount);
-        assert.equal((await boldToken.balanceOf(bob)).toString(), B_boldAmount);
-        assert.equal((await boldToken.balanceOf(carol)).toString(), C_boldAmount);
+        assert.equal((await evroToken.balanceOf(alice)).toString(), A_boldAmount);
+        assert.equal((await evroToken.balanceOf(bob)).toString(), B_boldAmount);
+        assert.equal((await evroToken.balanceOf(carol)).toString(), C_boldAmount);
       });
 
       it("liquidate(): liquidates based on entire/collateral debt (including pending rewards), not raw collateral/debt", async () => {
@@ -1519,9 +1519,9 @@ contract("TroveManager", async (accounts) => {
         const { troveId: erinTroveId } = await openTrove({ ICR: toBN(dec(216, 16)), extraParams: { from: erin, batchManager: getBatchManager(withBatchDelegation, dennis) } });
         const { troveId: flynTroveId } = await openTrove({ ICR: toBN(dec(210, 16)), extraParams: { from: flyn, batchManager: getBatchManager(withBatchDelegation, dennis) } });
 
-        const D_balanceBefore = await boldToken.balanceOf(dennis);
-        const E_balanceBefore = await boldToken.balanceOf(erin);
-        const F_balanceBefore = await boldToken.balanceOf(flyn);
+        const D_balanceBefore = await evroToken.balanceOf(dennis);
+        const E_balanceBefore = await evroToken.balanceOf(erin);
+        const F_balanceBefore = await evroToken.balanceOf(flyn);
 
         // Check list size is 4
         assert.equal((await sortedTroves.getSize()).toString(), "4");
@@ -1549,11 +1549,11 @@ contract("TroveManager", async (accounts) => {
 
         // Check token balances of users whose troves were liquidated, have not changed
         assert.equal(
-          (await boldToken.balanceOf(dennis)).toString(),
+          (await evroToken.balanceOf(dennis)).toString(),
           D_balanceBefore,
         );
-        assert.equal((await boldToken.balanceOf(erin)).toString(), E_balanceBefore);
-        assert.equal((await boldToken.balanceOf(flyn)).toString(), F_balanceBefore);
+        assert.equal((await evroToken.balanceOf(erin)).toString(), E_balanceBefore);
+        assert.equal((await evroToken.balanceOf(flyn)).toString(), F_balanceBefore);
       });
 
       it("batchLiquidateTroves(): A liquidation sequence containing Pool offsets increases the TCR", async () => {
@@ -2390,7 +2390,7 @@ contract("TroveManager", async (accounts) => {
         await th.provideToSPAndClaim(contracts, spDeposit, { from: whale });
 
         // Whale transfers to Carol so she can close her trove
-        await boldToken.transfer(carol, dec(100, 18), { from: whale });
+        await evroToken.transfer(carol, dec(100, 18), { from: whale });
 
         // --- TEST ---
 
@@ -2485,7 +2485,7 @@ contract("TroveManager", async (accounts) => {
 
         const dennis_ETHBalance_Before = toBN(await contracts.WETH.balanceOf(dennis));
 
-        const dennis_BoldBalance_Before = await boldToken.balanceOf(dennis);
+        const dennis_BoldBalance_Before = await evroToken.balanceOf(dennis);
 
         const price = await priceFeed.getPrice();
         assert.equal(price, dec(200, 18));
@@ -2540,7 +2540,7 @@ contract("TroveManager", async (accounts) => {
         th.assertIsApproximatelyEqual(expectedReceivedETH, receivedETH);
 
         const dennis_BoldBalance_After = (
-          await boldToken.balanceOf(dennis)
+          await evroToken.balanceOf(dennis)
         ).toString();
         assert.equal(
           dennis_BoldBalance_After,
@@ -2607,7 +2607,7 @@ contract("TroveManager", async (accounts) => {
         );
 
         // Check Flyn's redemption has reduced his balance from 100 to (100-60) = 40 Bold
-        const flynBalance = await boldToken.balanceOf(flyn);
+        const flynBalance = await evroToken.balanceOf(flyn);
         th.assertIsApproximatelyEqual(
           flynBalance,
           F_boldAmount.sub(redemptionAmount),
@@ -2705,7 +2705,7 @@ contract("TroveManager", async (accounts) => {
         );
 
         // Check Flyn's redemption has reduced his balance from 100 to (100-60) = 40 Bold
-        const flynBalance = await boldToken.balanceOf(flyn);
+        const flynBalance = await evroToken.balanceOf(flyn);
         th.assertIsApproximatelyEqual(
           flynBalance,
           F_boldAmount.sub(redemptionAmount),
@@ -2800,7 +2800,7 @@ contract("TroveManager", async (accounts) => {
         );
 
         // Check Flyn's redemption has reduced his balance
-        const flynBalance = await boldToken.balanceOf(flyn);
+        const flynBalance = await evroToken.balanceOf(flyn);
 
         th.assertIsApproximatelyEqual(
           flynBalance,
@@ -2857,8 +2857,8 @@ contract("TroveManager", async (accounts) => {
         const CInitialDebt = await troveManager.getTroveEntireDebt(CTroveId);
 
         // A and C send all their tokens to B
-        await boldToken.transfer(B, await boldToken.balanceOf(A), { from: A });
-        await boldToken.transfer(B, await boldToken.balanceOf(C), { from: C });
+        await evroToken.transfer(B, await evroToken.balanceOf(A), { from: A });
+        await evroToken.transfer(B, await evroToken.balanceOf(C), { from: C });
 
         await contracts.collateralRegistry.setBaseRate(0);
 
@@ -2919,8 +2919,8 @@ contract("TroveManager", async (accounts) => {
         const CInitialDebt = await troveManager.getTroveEntireDebt(CTroveId);
 
         // A and C send all their tokens to B
-        await boldToken.transfer(B, await boldToken.balanceOf(A), { from: A });
-        await boldToken.transfer(B, await boldToken.balanceOf(C), { from: C });
+        await evroToken.transfer(B, await evroToken.balanceOf(A), { from: A });
+        await evroToken.transfer(B, await evroToken.balanceOf(C), { from: C });
 
         await contracts.collateralRegistry.setBaseRate(0);
 
@@ -2964,7 +2964,7 @@ contract("TroveManager", async (accounts) => {
           extraParams: { from: bob, batchManager: getBatchManager(withBatchDelegation, dennis) },
         });
 
-        await boldToken.transfer(carol, amount, { from: bob });
+        await evroToken.transfer(carol, amount, { from: bob });
 
         const price = dec(100, 18);
         await priceFeed.setPrice(price);
@@ -2999,7 +2999,7 @@ contract("TroveManager", async (accounts) => {
         assert.isTrue(expectedReceivedETH.eq(receivedETH));
 
         const carol_BoldBalance_After = (
-          await boldToken.balanceOf(carol)
+          await evroToken.balanceOf(carol)
         ).toString();
         assert.equal(carol_BoldBalance_After, "0");
       });
@@ -3017,7 +3017,7 @@ contract("TroveManager", async (accounts) => {
           extraParams: { from: bob, annualInterestRate: dec(4, 16), batchManager: getBatchManager(withBatchDelegation, carol) },
         });
 
-        await boldToken.transfer(carol, B_boldAmount, { from: bob });
+        await evroToken.transfer(carol, B_boldAmount, { from: bob });
 
         // Put Bob's Trove below 100% ICR
         const price = dec(100, 18);
@@ -3056,7 +3056,7 @@ contract("TroveManager", async (accounts) => {
           extraBoldAmount: dec(500, 18),
           extraParams: { from: alice, batchManager: getBatchManager(withBatchDelegation, dennis) },
         });
-        await boldToken.transfer(erin, dec(500, 18), { from: alice });
+        await evroToken.transfer(erin, dec(500, 18), { from: alice });
 
         // B, C and D open troves
         await openTrove({ ICR: toBN(dec(200, 16)), extraParams: { from: bob, batchManager: getBatchManager(withBatchDelegation, dennis) } });
@@ -3213,7 +3213,7 @@ contract("TroveManager", async (accounts) => {
         const expectedTotalSupply = A_totalDebt.add(B_totalDebt).add(C_totalDebt);
 
         // Check total Bold supply
-        const totalSupply = await boldToken.totalSupply();
+        const totalSupply = await evroToken.totalSupply();
         th.assertIsApproximatelyEqual(totalSupply, expectedTotalSupply, 1e5);
 
         await contracts.collateralRegistry.setBaseRate(0);
@@ -3314,7 +3314,7 @@ contract("TroveManager", async (accounts) => {
           extraBoldAmount: redemptionAmount,
           extraParams: { from: alice, annualInterestRate: dec(10, 16), batchManager: getBatchManager(withBatchDelegation, flyn) },
         });
-        await boldToken.transfer(erin, redemptionAmount, { from: alice });
+        await evroToken.transfer(erin, redemptionAmount, { from: alice });
 
         // B, C, D deposit some of their tokens to the Stability Pool
         await th.provideToSPAndClaim(contracts, dec(50, 18), { from: bob });
@@ -3414,7 +3414,7 @@ contract("TroveManager", async (accounts) => {
         assert.equal(dennis_ETHGain_before, dennis_ETHGain_after);
       });
 
-      it("redeemCollateral(): caller can redeem their entire BoldToken balance", async () => {
+      it("redeemCollateral(): caller can redeem their entire EvroToken balance", async () => {
         const { troveId: whaleTroveId } = await openTrove({
           ICR: toBN(dec(20, 18)),
           extraParams: { from: whale, batchManager: getBatchManager(withBatchDelegation, dennis) },
@@ -3426,10 +3426,10 @@ contract("TroveManager", async (accounts) => {
           extraBoldAmount: dec(400, 18),
           extraParams: { from: alice, batchManager: getBatchManager(withBatchDelegation, dennis) },
         });
-        await boldToken.transfer(erin, dec(400, 18), { from: alice });
+        await evroToken.transfer(erin, dec(400, 18), { from: alice });
 
         // Check Erin's balance before
-        const erin_balance_before = await boldToken.balanceOf(erin);
+        const erin_balance_before = await evroToken.balanceOf(erin);
         assert.equal(erin_balance_before, dec(400, 18));
 
         // B, C, D open trove
@@ -3509,7 +3509,7 @@ contract("TroveManager", async (accounts) => {
         );
 
         // Check Erin's balance after
-        const erin_balance_after = (await boldToken.balanceOf(erin)).toString();
+        const erin_balance_after = (await evroToken.balanceOf(erin)).toString();
         assert.equal(erin_balance_after, "0");
       });
 
@@ -3525,10 +3525,10 @@ contract("TroveManager", async (accounts) => {
           extraBoldAmount: dec(400, 18),
           extraParams: { from: alice, batchManager: getBatchManager(withBatchDelegation, dennis) },
         });
-        await boldToken.transfer(erin, dec(400, 18), { from: alice });
+        await evroToken.transfer(erin, dec(400, 18), { from: alice });
 
         // Check Erin's balance before
-        const erin_balance_before = await boldToken.balanceOf(erin);
+        const erin_balance_before = await evroToken.balanceOf(erin);
         assert.equal(erin_balance_before, dec(400, 18));
 
         // B, C, D open trove
@@ -3662,9 +3662,9 @@ contract("TroveManager", async (accounts) => {
           extraBoldAmount: dec(4990, 18),
           extraParams: { from: alice, batchManager: getBatchManager(withBatchDelegation, dennis) },
         });
-        await boldToken.transfer(erin, dec(1000, 18), { from: alice });
-        await boldToken.transfer(flyn, dec(1000, 18), { from: alice });
-        await boldToken.transfer(graham, dec(1000, 18), { from: alice });
+        await evroToken.transfer(erin, dec(1000, 18), { from: alice });
+        await evroToken.transfer(flyn, dec(1000, 18), { from: alice });
+        await evroToken.transfer(graham, dec(1000, 18), { from: alice });
 
         // B, C, D open trove
         const { troveId: bobTroveId, collateral: B_coll } = await openTrove({
@@ -3767,9 +3767,9 @@ contract("TroveManager", async (accounts) => {
       // the only way to test it is before any trove is opened
       it("redeemCollateral(): reverts if there is zero outstanding system debt", async () => {
         // --- SETUP --- illegally mint Bold to Bob
-        await boldToken.unprotectedMint(bob, dec(100, 18));
+        await evroToken.unprotectedMint(bob, dec(100, 18));
 
-        assert.equal(await boldToken.balanceOf(bob), dec(100, 18));
+        assert.equal(await evroToken.balanceOf(bob), dec(100, 18));
 
         const price = await priceFeed.getPrice();
 
@@ -3794,9 +3794,9 @@ contract("TroveManager", async (accounts) => {
 
       it("redeemCollateral(): reverts if caller's tries to redeem more than the outstanding system debt", async () => {
         // --- SETUP --- illegally mint Bold to Bob
-        await boldToken.unprotectedMint(bob, "101000000000000000000");
+        await evroToken.unprotectedMint(bob, "101000000000000000000");
 
-        assert.equal(await boldToken.balanceOf(bob), "101000000000000000000");
+        assert.equal(await evroToken.balanceOf(bob), "101000000000000000000");
 
         const { troveId: carolTroveId, collateral: C_coll } = await openTrove({
           ICR: toBN(dec(1000, 16)),
@@ -4457,7 +4457,7 @@ contract("TroveManager", async (accounts) => {
         });
 
         // to be able to repay:
-        await boldToken.transfer(B, B_totalDebt, { from: A });
+        await evroToken.transfer(B, B_totalDebt, { from: A });
         await borrowerOperations.closeTrove(BTroveId, { from: B });
 
         const A_Status = await troveManager.getTroveStatus(ATroveId);

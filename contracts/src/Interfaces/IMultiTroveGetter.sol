@@ -7,7 +7,7 @@ interface IMultiTroveGetter {
         uint256 id;
         uint256 entireDebt;
         uint256 entireColl;
-        uint256 redistBoldDebtGain;
+        uint256 redistEvroDebtGain;
         uint256 redistCollGain;
         uint256 accruedInterest;
         uint256 recordedDebt;
@@ -19,7 +19,7 @@ interface IMultiTroveGetter {
         address interestBatchManager;
         uint256 batchDebtShares;
         uint256 snapshotETH;
-        uint256 snapshotBoldDebt;
+        uint256 snapshotEvroDebt;
     }
 
     struct DebtPerInterestRate {

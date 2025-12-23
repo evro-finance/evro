@@ -57,9 +57,9 @@ export const StabilityPool = [
   },
   {
     "type": "function",
-    "name": "boldToken",
+    "name": "evroToken",
     "inputs": [],
-    "outputs": [{ "name": "", "type": "address", "internalType": "contract IBoldToken" }],
+    "outputs": [{ "name": "", "type": "address", "internalType": "contract IEvroToken" }],
     "stateMutability": "view",
   },
   { "type": "function", "name": "claimAllCollGains", "inputs": [], "outputs": [], "stateMutability": "nonpayable" },
@@ -253,8 +253,8 @@ export const StabilityPool = [
   },
   {
     "type": "event",
-    "name": "BoldTokenAddressChanged",
-    "inputs": [{ "name": "_newBoldTokenAddress", "type": "address", "indexed": false, "internalType": "address" }],
+    "name": "EvroTokenAddressChanged",
+    "inputs": [{ "name": "_newEvroTokenAddress", "type": "address", "indexed": false, "internalType": "address" }],
     "anonymous": false,
   },
   {

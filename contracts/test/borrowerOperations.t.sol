@@ -11,7 +11,7 @@ contract BorrowerOperationsTest is DevTestSetup {
 
         // Artificially mint to Alice so she has enough to close her trove
         uint256 aliceDebt = troveManager.getTroveEntireDebt(ATroveId);
-        deal(address(boldToken), A, aliceDebt);
+        deal(address(evroToken), A, aliceDebt);
 
         // check is not below CT
         checkBelowCriticalThreshold(false);
@@ -25,9 +25,9 @@ contract BorrowerOperationsTest is DevTestSetup {
 
     function testRepayingTooMuchDebtCapsAtMinDebt() public {
         uint256 troveId = openTroveNoHints100pct(A, 100 ether, 2_000 ether, 0.01 ether);
-        deal(address(boldToken), A, 3_000 ether);
+        deal(address(evroToken), A, 3_000 ether);
         vm.prank(A);
-        borrowerOperations.repayBold(troveId, 3_000 ether);
+        borrowerOperations.repayEvro(troveId, 3_000 ether);
 
         assertEq(troveManager.getTroveEntireDebt(troveId), MIN_DEBT, "Trove debt should be MIN_DEBT");
     }
@@ -53,7 +53,7 @@ contract BorrowerOperationsTest is DevTestSetup {
         uint256 upfrontFee = predictOpenTroveUpfrontFee(borrow, interestRate);
         assertGt(upfrontFee, 0);
 
-        uint256 activePoolDebtBefore = activePool.getBoldDebt();
+        uint256 activePoolDebtBefore = activePool.getEvroDebt();
 
         vm.prank(A);
         uint256 troveId = borrowerOperations.openTrove(
@@ -61,7 +61,7 @@ contract BorrowerOperationsTest is DevTestSetup {
         );
 
         uint256 troveDebt = troveManager.getTroveEntireDebt(troveId);
-        uint256 activePoolDebtAfter = activePool.getBoldDebt();
+        uint256 activePoolDebtAfter = activePool.getEvroDebt();
 
         uint256 expectedDebt = borrow + upfrontFee;
         assertEqDecimal(troveDebt, expectedDebt, 18, "Wrong Trove debt");
@@ -82,7 +82,7 @@ contract BorrowerOperationsTest is DevTestSetup {
         );
     }
 
-    function testWithdrawBoldChargesUpfrontFee() public {
+    function testWithdrawEvroChargesUpfrontFee() public {
         uint256 troveId = openTroveNoHints100pct(A, 100 ether, 10_000 ether, 0.05 ether);
 
         uint256 withdrawal = 1_000 ether;
@@ -91,20 +91,20 @@ contract BorrowerOperationsTest is DevTestSetup {
         assertGt(upfrontFee, 0);
 
         uint256 troveDebtBefore = troveManager.getTroveEntireDebt(troveId);
-        uint256 activePoolDebtBefore = activePool.getBoldDebt();
+        uint256 activePoolDebtBefore = activePool.getEvroDebt();
 
         vm.prank(A);
-        borrowerOperations.withdrawBold(troveId, withdrawal, upfrontFee);
+        borrowerOperations.withdrawEvro(troveId, withdrawal, upfrontFee);
 
         uint256 troveDebtAfter = troveManager.getTroveEntireDebt(troveId);
-        uint256 activePoolDebtAfter = activePool.getBoldDebt();
+        uint256 activePoolDebtAfter = activePool.getEvroDebt();
 
         uint256 expectedDebtIncrease = withdrawal + upfrontFee;
         assertEqDecimal(troveDebtAfter - troveDebtBefore, expectedDebtIncrease, 18, "Wrong Trove debt increase");
         assertEqDecimal(activePoolDebtAfter - activePoolDebtBefore, expectedDebtIncrease, 18, "Wrong AP debt increase");
     }
 
-    function testWithdrawBoldRevertsIfUpfrontFeeExceedsUserProvidedLimit() public {
+    function testWithdrawEvroRevertsIfUpfrontFeeExceedsUserProvidedLimit() public {
         uint256 troveId = openTroveNoHints100pct(A, 100 ether, 10_000 ether, 0.05 ether);
 
         uint256 withdrawal = 1_000 ether;
@@ -114,7 +114,7 @@ contract BorrowerOperationsTest is DevTestSetup {
 
         vm.prank(A);
         vm.expectRevert(BorrowerOperations.UpfrontFeeTooHigh.selector);
-        borrowerOperations.withdrawBold(troveId, withdrawal, upfrontFee - 1);
+        borrowerOperations.withdrawEvro(troveId, withdrawal, upfrontFee - 1);
     }
 
     function testAdjustInterestRateFailsIfNotNew() public {
@@ -136,13 +136,13 @@ contract BorrowerOperationsTest is DevTestSetup {
         assertGt(upfrontFee, 0);
 
         uint256 troveDebtBefore = troveManager.getTroveEntireDebt(troveId);
-        uint256 activePoolDebtBefore = activePool.getBoldDebt();
+        uint256 activePoolDebtBefore = activePool.getEvroDebt();
 
         vm.prank(A);
         borrowerOperations.adjustTroveInterestRate(troveId, interestRate[1], 0, 0, upfrontFee);
 
         uint256 troveDebtAfter = troveManager.getTroveEntireDebt(troveId);
-        uint256 activePoolDebtAfter = activePool.getBoldDebt();
+        uint256 activePoolDebtAfter = activePool.getEvroDebt();
 
         assertEqDecimal(troveDebtAfter - troveDebtBefore, upfrontFee, 18, "Wrong Trove debt increase 1");
         assertEqDecimal(activePoolDebtAfter - activePoolDebtBefore, upfrontFee, 18, "Wrong AP debt increase 1");
@@ -154,13 +154,13 @@ contract BorrowerOperationsTest is DevTestSetup {
         assertGt(upfrontFee, 0);
 
         troveDebtBefore = troveManager.getTroveEntireDebt(troveId);
-        activePoolDebtBefore = activePool.getBoldDebt();
+        activePoolDebtBefore = activePool.getEvroDebt();
 
         vm.prank(A);
         borrowerOperations.adjustTroveInterestRate(troveId, interestRate[2], 0, 0, upfrontFee);
 
         troveDebtAfter = troveManager.getTroveEntireDebt(troveId);
-        activePoolDebtAfter = activePool.getBoldDebt();
+        activePoolDebtAfter = activePool.getEvroDebt();
 
         assertEqDecimal(troveDebtAfter - troveDebtBefore, upfrontFee, 18, "Wrong Trove debt increase 2");
         assertEqDecimal(activePoolDebtAfter - activePoolDebtBefore, upfrontFee, 18, "Wrong AP debt increase 2");
@@ -169,13 +169,13 @@ contract BorrowerOperationsTest is DevTestSetup {
         vm.warp(block.timestamp + INTEREST_RATE_ADJ_COOLDOWN);
 
         troveDebtBefore = troveManager.getTroveEntireDebt(troveId);
-        activePoolDebtBefore = activePool.getBoldDebt();
+        activePoolDebtBefore = activePool.getEvroDebt();
 
         vm.prank(A);
         borrowerOperations.adjustTroveInterestRate(troveId, interestRate[3], 0, 0, 0);
 
         troveDebtAfter = troveManager.getTroveEntireDebt(troveId);
-        activePoolDebtAfter = activePool.getBoldDebt();
+        activePoolDebtAfter = activePool.getEvroDebt();
 
         assertEqDecimal(troveDebtAfter - troveDebtBefore, 0, 18, "Wrong Trove debt increase 3");
         assertEqDecimal(activePoolDebtAfter - activePoolDebtBefore, 0, 18, "Wrong AP debt increase 3");

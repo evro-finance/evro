@@ -23,11 +23,11 @@ contract troveNFTTest is DevTestSetup {
         address _account,
         uint256 _index,
         uint256 _coll,
-        uint256 _boldAmount,
+        uint256 _evroAmount,
         uint256 _annualInterestRate
     ) public returns (uint256 troveId) {
         TroveChange memory troveChange;
-        troveChange.debtIncrease = _boldAmount;
+        troveChange.debtIncrease = _evroAmount;
         troveChange.newWeightedRecordedDebt = troveChange.debtIncrease * _annualInterestRate;
         uint256 avgInterestRate =
             contractsArray[_collIndex].activePool.getNewApproxAvgInterestRateFromTroveChange(troveChange);
@@ -39,7 +39,7 @@ contract troveNFTTest is DevTestSetup {
             _account,
             _index,
             _coll,
-            _boldAmount,
+            _evroAmount,
             0, // _upperHint
             0, // _lowerHint
             _annualInterestRate,
@@ -77,7 +77,7 @@ contract troveNFTTest is DevTestSetup {
 
         TestDeployer deployer = new TestDeployer();
         TestDeployer.LiquityContractsDev[] memory _contractsArray;
-        (_contractsArray, collateralRegistry, boldToken,,, WETH,) =
+        (_contractsArray, collateralRegistry, evroToken,,, WETH,) =
             deployer.deployAndConnectContractsMultiColl(troveManagerParamsArray);
         // Unimplemented feature (...):Copying of type struct LiquityContracts memory[] memory to storage not yet supported.
         for (uint256 c = 0; c < NUM_COLLATERALS; c++) {
@@ -181,7 +181,7 @@ contract troveNFTTest is DevTestSetup {
         string[] memory uris = new string[](NUM_VARIANTS * NUM_COLLATERALS);
 
         // Let’s redeem so we have some zombies in the result
-        deal(address(boldToken), A, 30000e18);
+        deal(address(evroToken), A, 30000e18);
         redeem(A, 30000e18);
 
         for (uint256 i = 0; i < NUM_VARIANTS; i++) {
@@ -285,7 +285,7 @@ contract troveNFTTest is DevTestSetup {
             LibString.contains(decodedUri, '"value": "10000000000000000000"'), "Incorrect Collateral Amount value"
         );
         assertTrue(
-            LibString.contains(decodedUri, string.concat('"value": "', Strings.toHexString(address(boldToken)))),
+            LibString.contains(decodedUri, string.concat('"value": "', Strings.toHexString(address(evroToken)))),
             "Incorrect Debt Token value"
         );
         assertTrue(LibString.contains(decodedUri, '"value": "10009589041095890410958"'), "Incorrect Debt Amount value");

@@ -7,7 +7,7 @@ import "src/Interfaces/IBorrowerOperations.sol";
 interface IBorrowerOperationsTester is IBorrowerOperations {
     function getCollToken() external view returns (IERC20);
     function getSortedTroves() external view returns (ISortedTroves);
-    function getBoldToken() external view returns (IBoldToken);
+    function getEvroToken() external view returns (IEvroToken);
 
     function applyPendingDebt(uint256 _troveId) external;
     function getNewTCRFromTroveChange(

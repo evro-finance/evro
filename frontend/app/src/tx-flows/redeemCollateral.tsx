@@ -93,10 +93,10 @@ export const redeemCollateral: FlowDeclaration<RedeemCollateralRequest> = {
       Status: TransactionStatus,
       async commit({ request, writeContract }) {
         const CollateralRegistry = getProtocolContract("CollateralRegistry");
-        const BoldToken = getProtocolContract("BoldToken");
+        const EvroToken = getProtocolContract("EvroToken");
 
         return writeContract({
-          ...BoldToken,
+          ...EvroToken,
           functionName: "approve",
           args: [CollateralRegistry.address, request.amount[0]],
         });
@@ -131,7 +131,7 @@ export const redeemCollateral: FlowDeclaration<RedeemCollateralRequest> = {
 
     // check for allowance
     const boldAllowance = await ctx.readContract({
-      ...getProtocolContract("BoldToken"),
+      ...getProtocolContract("EvroToken"),
       functionName: "allowance",
       args: [
         ctx.account,
@@ -172,7 +172,7 @@ export function useSimulatedBalancesChange({
     queryKey: ["simulatedBalancesChange", account, jsonStringifyWithDnum(request)],
     queryFn: async () => {
       const CollateralRegistry = getProtocolContract("CollateralRegistry");
-      const BoldToken = getProtocolContract("BoldToken");
+      const EvroToken = getProtocolContract("EvroToken");
 
       let stored: v.InferOutput<typeof StoredBalancesChangeSchema> | null = null;
       try {
@@ -205,8 +205,8 @@ export function useSimulatedBalancesChange({
       } as const));
 
       const boldBalanceCall = {
-        to: BoldToken.address,
-        abi: BoldToken.abi,
+        to: EvroToken.address,
+        abi: EvroToken.abi,
         functionName: "balanceOf" as const,
         args: [account],
       } as const;

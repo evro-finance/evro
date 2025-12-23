@@ -34,7 +34,7 @@ contract("TroveManager - Redistribution reward calculations", async (accounts) =
   let contracts;
 
   let priceFeed;
-  let boldToken;
+  let evroToken;
   let sortedTroves;
   let troveManager;
   let activePool;
@@ -58,7 +58,7 @@ contract("TroveManager - Redistribution reward calculations", async (accounts) =
 
     contracts = result.contracts;
     priceFeed = contracts.priceFeed;
-    boldToken = contracts.boldToken;
+    evroToken = contracts.evroToken;
     sortedTroves = contracts.sortedTroves;
     troveManager = contracts.troveManager;
     activePool = contracts.activePool;
@@ -162,7 +162,7 @@ contract("TroveManager - Redistribution reward calculations", async (accounts) =
       A_coll.add(C_coll).add(th.applyLiquidationFee(B_coll.add(D_coll))),
     );
 
-    assert.equal((await boldToken.balanceOf(owner)).toString(), "0");
+    assert.equal((await evroToken.balanceOf(owner)).toString(), "0");
   });
 
   it("redistribution: A, B, C Open. C Liquidated. D, E, F Open. F Liquidated. Distributes correct rewards", async () => {
@@ -283,7 +283,7 @@ contract("TroveManager - Redistribution reward calculations", async (accounts) =
         .add(th.applyLiquidationFee(C_coll.add(F_coll))),
     );
 
-    assert.equal((await boldToken.balanceOf(owner)).toString(), "0");
+    assert.equal((await evroToken.balanceOf(owner)).toString(), "0");
   });
   ////
 
@@ -429,7 +429,7 @@ contract("TroveManager - Redistribution reward calculations", async (accounts) =
     );
 
     assert.equal(
-      (await boldToken.balanceOf(owner)).toString(),
+      (await evroToken.balanceOf(owner)).toString(),
       "0",
     );
   });
@@ -934,7 +934,7 @@ contract("TroveManager - Redistribution reward calculations", async (accounts) =
     assert.isAtMost(th.getDifference(alice_Coll, expected_A_coll), 1000);
     assert.isAtMost(th.getDifference(alice_BoldDebt, expected_A_debt), 10000);
 
-    assert.equal((await boldToken.balanceOf(owner)).toString(), "0");
+    assert.equal((await evroToken.balanceOf(owner)).toString(), "0");
   });
 
   it("redistribution: Trove with the majority stake tops up. A,B,C, D open. Liq(D). C tops up. E Enters, Liq(E). Distributes correct rewards", async () => {
@@ -1097,7 +1097,7 @@ contract("TroveManager - Redistribution reward calculations", async (accounts) =
     );
 
     th.assertIsApproximatelyEqual(
-      (await boldToken.balanceOf(owner)).toString(),
+      (await evroToken.balanceOf(owner)).toString(),
       "0",
     );
   });
@@ -1274,7 +1274,7 @@ contract("TroveManager - Redistribution reward calculations", async (accounts) =
     );
 
     th.assertIsApproximatelyEqual(
-      (await boldToken.balanceOf(owner)).toString(),
+      (await evroToken.balanceOf(owner)).toString(),
       "0",
     );
   });
@@ -1358,7 +1358,7 @@ contract("TroveManager - Redistribution reward calculations", async (accounts) =
       1000,
     );
 
-    assert.equal((await boldToken.balanceOf(owner)).toString(), "0");
+    assert.equal((await evroToken.balanceOf(owner)).toString(), "0");
   });
 
   it("redistribution: A,B,C Open. Liq(C). B withdraws coll. D Opens. Liq(D). Distributes correct rewards.", async () => {
@@ -1476,7 +1476,7 @@ contract("TroveManager - Redistribution reward calculations", async (accounts) =
     );
 
     th.assertIsApproximatelyEqual(
-      (await boldToken.balanceOf(owner)).toString(),
+      (await evroToken.balanceOf(owner)).toString(),
       "0",
     );
   });
@@ -1639,7 +1639,7 @@ contract("TroveManager - Redistribution reward calculations", async (accounts) =
       totalCollAfterL1.add(th.applyLiquidationFee(E_coll)),
     );
 
-    assert.equal((await boldToken.balanceOf(owner)).toString(), "0");
+    assert.equal((await evroToken.balanceOf(owner)).toString(), "0");
   });
 
   it("redistribution: Trove with the majority stake withdraws. A,B,C,D open. Liq(D). A, B, C withdraw. E Enters, Liq(E). Distributes correct rewards", async () => {
@@ -1850,7 +1850,7 @@ contract("TroveManager - Redistribution reward calculations", async (accounts) =
       totalCollAfterL1.add(th.applyLiquidationFee(E_coll)),
     );
 
-    assert.equal((await boldToken.balanceOf(owner)).toString(), "0");
+    assert.equal((await evroToken.balanceOf(owner)).toString(), "0");
   });
 
   // For calculations of correct values used in test, see scenario 1:
@@ -2140,7 +2140,7 @@ contract("TroveManager - Redistribution reward calculations", async (accounts) =
       totalCollateralSnapshotAfterL3,
     );
 
-    assert.equal((await boldToken.balanceOf(owner)).toString(), "0");
+    assert.equal((await evroToken.balanceOf(owner)).toString(), "0");
   });
 
   // For calculations of correct values used in test, see scenario 2:
@@ -2435,6 +2435,6 @@ contract("TroveManager - Redistribution reward calculations", async (accounts) =
       totalCollateralSnapshotAfterL3,
     );
 
-    assert.equal((await boldToken.balanceOf(owner)).toString(), "0");
+    assert.equal((await evroToken.balanceOf(owner)).toString(), "0");
   });
 });

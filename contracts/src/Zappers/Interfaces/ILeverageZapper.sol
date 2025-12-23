@@ -10,7 +10,7 @@ interface ILeverageZapper is IZapper {
         uint256 ownerIndex;
         uint256 collAmount;
         uint256 flashLoanAmount;
-        uint256 boldAmount;
+        uint256 evroAmount;
         uint256 upperHint;
         uint256 lowerHint;
         uint256 annualInterestRate;
@@ -24,14 +24,14 @@ interface ILeverageZapper is IZapper {
     struct LeverUpTroveParams {
         uint256 troveId;
         uint256 flashLoanAmount;
-        uint256 boldAmount;
+        uint256 evroAmount;
         uint256 maxUpfrontFee;
     }
 
     struct LeverDownTroveParams {
         uint256 troveId;
         uint256 flashLoanAmount;
-        uint256 minBoldAmount;
+        uint256 minEvroAmount;
     }
 
     function openLeveragedTroveWithRawETH(OpenLeveragedTroveParams calldata _params) external payable;

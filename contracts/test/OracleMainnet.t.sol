@@ -46,7 +46,7 @@ contract OraclesMainnet is TestAccounts {
 
     TestDeployer.LiquityContracts[] contractsArray;
     CollateralRegistryTester collateralRegistry;
-    IBoldToken boldToken;
+    IEvroToken evroToken;
 
     struct StoredOracle {
         AggregatorV3Interface aggregator;
@@ -120,7 +120,7 @@ contract OraclesMainnet is TestAccounts {
         TestDeployer.DeploymentResultMainnet memory result =
             deployer.deployAndConnectContractsMainnet(troveManagerParamsArray);
         collateralRegistry = result.collateralRegistry;
-        boldToken = result.boldToken;
+        evroToken = result.evroToken;
 
         ethOracle = AggregatorV3Interface(result.externalAddresses.ETHOracle);
         rethOracle = AggregatorV3Interface(result.externalAddresses.RETHOracle);
@@ -184,9 +184,9 @@ contract OraclesMainnet is TestAccounts {
         return uint256(answer) * 10 ** (18 - decimals);
     }
 
-    function redeem(address _from, uint256 _boldAmount) public {
+    function redeem(address _from, uint256 _evroAmount) public {
         vm.startPrank(_from);
-        collateralRegistry.redeemCollateral(_boldAmount, MAX_UINT256, 1e18);
+        collateralRegistry.redeemCollateral(_evroAmount, MAX_UINT256, 1e18);
         vm.stopPrank();
     }
 
@@ -1704,20 +1704,20 @@ contract OraclesMainnet is TestAccounts {
         // Confirm branch shutdown
         assertEq(contractsArray[0].troveManager.shutdownTime(), block.timestamp);
 
-        uint256 totalBoldRedeemAmount = 100e18;
-        uint256 branch0DebtBefore = contractsArray[0].activePool.getBoldDebt();
+        uint256 totalEvroRedeemAmount = 100e18;
+        uint256 branch0DebtBefore = contractsArray[0].activePool.getEvroDebt();
         assertGt(branch0DebtBefore, 0);
 
-        uint256 boldBalBefore_A = boldToken.balanceOf(A);
+        uint256 evroBalBefore_A = evroToken.balanceOf(A);
 
         // Redeem
-        redeem(A, totalBoldRedeemAmount);
+        redeem(A, totalEvroRedeemAmount);
 
         // Confirm A lost no BOLD
-        assertEq(boldToken.balanceOf(A), boldBalBefore_A);
+        assertEq(evroToken.balanceOf(A), evroBalBefore_A);
 
         // Confirm WETH branch did not get redeemed from
-        assertEq(contractsArray[0].activePool.getBoldDebt(), branch0DebtBefore);
+        assertEq(contractsArray[0].activePool.getEvroDebt(), branch0DebtBefore);
     }
 
     function testNormalRETHRedemptionDoesNotHitShutdownBranch() public {
@@ -1748,20 +1748,20 @@ contract OraclesMainnet is TestAccounts {
         // Confirm RETH branch shutdown
         assertEq(contractsArray[1].troveManager.shutdownTime(), block.timestamp);
 
-        uint256 totalBoldRedeemAmount = 100e18;
-        uint256 branch1DebtBefore = contractsArray[1].activePool.getBoldDebt();
+        uint256 totalEvroRedeemAmount = 100e18;
+        uint256 branch1DebtBefore = contractsArray[1].activePool.getEvroDebt();
         assertGt(branch1DebtBefore, 0);
 
-        uint256 boldBalBefore_A = boldToken.balanceOf(A);
+        uint256 evroBalBefore_A = evroToken.balanceOf(A);
 
         // Redeem
-        redeem(A, totalBoldRedeemAmount);
+        redeem(A, totalEvroRedeemAmount);
 
         // Confirm A lost no BOLD
-        assertEq(boldToken.balanceOf(A), boldBalBefore_A);
+        assertEq(evroToken.balanceOf(A), evroBalBefore_A);
 
         // Confirm RETH branch did not get redeemed from
-        assertEq(contractsArray[1].activePool.getBoldDebt(), branch1DebtBefore);
+        assertEq(contractsArray[1].activePool.getEvroDebt(), branch1DebtBefore);
     }
 
     function testNormalWSTETHRedemptionDoesNotHitShutdownBranch() public {
@@ -1792,20 +1792,20 @@ contract OraclesMainnet is TestAccounts {
         // Confirm RETH branch shutdown
         assertEq(contractsArray[2].troveManager.shutdownTime(), block.timestamp);
 
-        uint256 totalBoldRedeemAmount = 100e18;
-        uint256 branch2DebtBefore = contractsArray[2].activePool.getBoldDebt();
+        uint256 totalEvroRedeemAmount = 100e18;
+        uint256 branch2DebtBefore = contractsArray[2].activePool.getEvroDebt();
         assertGt(branch2DebtBefore, 0);
 
-        uint256 boldBalBefore_A = boldToken.balanceOf(A);
+        uint256 evroBalBefore_A = evroToken.balanceOf(A);
 
         // Redeem
-        redeem(A, totalBoldRedeemAmount);
+        redeem(A, totalEvroRedeemAmount);
 
         // Confirm A lost no BOLD
-        assertEq(boldToken.balanceOf(A), boldBalBefore_A);
+        assertEq(evroToken.balanceOf(A), evroBalBefore_A);
 
         // Confirm RETH branch did not get redeemed from
-        assertEq(contractsArray[2].activePool.getBoldDebt(), branch2DebtBefore);
+        assertEq(contractsArray[2].activePool.getEvroDebt(), branch2DebtBefore);
     }
 
     function testRedemptionOfWETHUsesETHUSDMarketforPrimaryPrice() public {
@@ -1830,12 +1830,12 @@ contract OraclesMainnet is TestAccounts {
         assertGt(expectedPrice, 0);
 
         // Calc expected fee based on price
-        uint256 totalBoldRedeemAmount = 100e18;
-        uint256 totalCorrespondingColl = totalBoldRedeemAmount * DECIMAL_PRECISION / expectedPrice;
+        uint256 totalEvroRedeemAmount = 100e18;
+        uint256 totalCorrespondingColl = totalEvroRedeemAmount * DECIMAL_PRECISION / expectedPrice;
         assertGt(totalCorrespondingColl, 0);
 
-        uint256 redemptionFeePct = collateralRegistry.getEffectiveRedemptionFeeInBold(totalBoldRedeemAmount)
-            * DECIMAL_PRECISION / totalBoldRedeemAmount;
+        uint256 redemptionFeePct = collateralRegistry.getEffectiveRedemptionFeeInEvro(totalEvroRedeemAmount)
+            * DECIMAL_PRECISION / totalEvroRedeemAmount;
         assertGt(redemptionFeePct, 0);
 
         uint256 totalCollFee = totalCorrespondingColl * redemptionFeePct / DECIMAL_PRECISION;
@@ -1843,15 +1843,15 @@ contract OraclesMainnet is TestAccounts {
         uint256 expectedCollDelta = totalCorrespondingColl - totalCollFee;
         assertGt(expectedCollDelta, 0);
 
-        uint256 branch0DebtBefore = contractsArray[0].activePool.getBoldDebt();
+        uint256 branch0DebtBefore = contractsArray[0].activePool.getEvroDebt();
         assertGt(branch0DebtBefore, 0);
         uint256 A_collBefore = contractsArray[0].collToken.balanceOf(A);
         assertGt(A_collBefore, 0);
         // Redeem
-        redeem(A, totalBoldRedeemAmount);
+        redeem(A, totalEvroRedeemAmount);
 
         // Confirm WETH branch got redeemed from
-        assertEq(contractsArray[0].activePool.getBoldDebt(), branch0DebtBefore - totalBoldRedeemAmount);
+        assertEq(contractsArray[0].activePool.getEvroDebt(), branch0DebtBefore - totalEvroRedeemAmount);
 
         // Confirm the received amount coll is the expected amount (i.e. used the expected price)
         assertEq(contractsArray[0].collToken.balanceOf(A), A_collBefore + expectedCollDelta);
@@ -1889,12 +1889,12 @@ contract OraclesMainnet is TestAccounts {
         assertGt(expectedPrice, 0, "expected price not 0");
 
         // Calc expected fee based on price
-        uint256 totalBoldRedeemAmount = 100e18;
-        uint256 totalCorrespondingColl = totalBoldRedeemAmount * DECIMAL_PRECISION / expectedPrice;
+        uint256 totalEvroRedeemAmount = 100e18;
+        uint256 totalCorrespondingColl = totalEvroRedeemAmount * DECIMAL_PRECISION / expectedPrice;
         assertGt(totalCorrespondingColl, 0, "coll not 0");
 
-        uint256 redemptionFeePct = collateralRegistry.getEffectiveRedemptionFeeInBold(totalBoldRedeemAmount)
-            * DECIMAL_PRECISION / totalBoldRedeemAmount;
+        uint256 redemptionFeePct = collateralRegistry.getEffectiveRedemptionFeeInEvro(totalEvroRedeemAmount)
+            * DECIMAL_PRECISION / totalEvroRedeemAmount;
         assertGt(redemptionFeePct, 0, "fee not 0");
 
         uint256 totalCollFee = totalCorrespondingColl * redemptionFeePct / DECIMAL_PRECISION;
@@ -1902,16 +1902,16 @@ contract OraclesMainnet is TestAccounts {
         uint256 expectedCollDelta = totalCorrespondingColl - totalCollFee;
         assertGt(expectedCollDelta, 0, "delta not 0");
 
-        uint256 branch2DebtBefore = contractsArray[2].activePool.getBoldDebt();
+        uint256 branch2DebtBefore = contractsArray[2].activePool.getEvroDebt();
         assertGt(branch2DebtBefore, 0);
         uint256 A_collBefore = contractsArray[2].collToken.balanceOf(A);
         assertGt(A_collBefore, 0);
 
         // Redeem
-        redeem(A, totalBoldRedeemAmount);
+        redeem(A, totalEvroRedeemAmount);
 
         // Confirm WSTETH branch got redeemed from
-        assertEq(contractsArray[2].activePool.getBoldDebt(), branch2DebtBefore - totalBoldRedeemAmount);
+        assertEq(contractsArray[2].activePool.getEvroDebt(), branch2DebtBefore - totalEvroRedeemAmount);
 
         // Confirm the received amount coll is the expected amount (i.e. used the expected price)
         assertEq(contractsArray[2].collToken.balanceOf(A), A_collBefore + expectedCollDelta);
@@ -1966,12 +1966,12 @@ contract OraclesMainnet is TestAccounts {
         assertGt(expectedPrice, 0, "expected price not 0");
 
         // Calc expected fee based on price
-        uint256 totalBoldRedeemAmount = 100e18;
-        uint256 totalCorrespondingColl = totalBoldRedeemAmount * DECIMAL_PRECISION / expectedPrice;
+        uint256 totalEvroRedeemAmount = 100e18;
+        uint256 totalCorrespondingColl = totalEvroRedeemAmount * DECIMAL_PRECISION / expectedPrice;
         assertGt(totalCorrespondingColl, 0, "coll not 0");
 
-        uint256 redemptionFeePct = collateralRegistry.getEffectiveRedemptionFeeInBold(totalBoldRedeemAmount)
-            * DECIMAL_PRECISION / totalBoldRedeemAmount;
+        uint256 redemptionFeePct = collateralRegistry.getEffectiveRedemptionFeeInEvro(totalEvroRedeemAmount)
+            * DECIMAL_PRECISION / totalEvroRedeemAmount;
         assertGt(redemptionFeePct, 0, "fee not 0");
 
         uint256 totalCollFee = totalCorrespondingColl * redemptionFeePct / DECIMAL_PRECISION;
@@ -1979,20 +1979,20 @@ contract OraclesMainnet is TestAccounts {
         uint256 expectedCollDelta = totalCorrespondingColl - totalCollFee;
         assertGt(expectedCollDelta, 0, "delta not 0");
 
-        uint256 branch2DebtBefore = contractsArray[2].activePool.getBoldDebt();
+        uint256 branch2DebtBefore = contractsArray[2].activePool.getEvroDebt();
         assertGt(branch2DebtBefore, 0);
         uint256 A_collBefore = contractsArray[2].collToken.balanceOf(A);
         assertGt(A_collBefore, 0);
 
         // Redeem
-        redeem(A, totalBoldRedeemAmount);
+        redeem(A, totalEvroRedeemAmount);
 
         assertEq(contractsArray[2].troveManager.shutdownTime(), 0, "is shutdown");
 
         // Confirm WSTETH branch got redeemed from
         assertEq(
-            contractsArray[2].activePool.getBoldDebt(),
-            branch2DebtBefore - totalBoldRedeemAmount,
+            contractsArray[2].activePool.getEvroDebt(),
+            branch2DebtBefore - totalEvroRedeemAmount,
             "remaining branch debt wrong"
         );
 
@@ -2036,12 +2036,12 @@ contract OraclesMainnet is TestAccounts {
         assertGt(expectedPrice, 0, "expected price not 0");
 
         // Calc expected fee based on price
-        uint256 totalBoldRedeemAmount = 100e18;
-        uint256 totalCorrespondingColl = totalBoldRedeemAmount * DECIMAL_PRECISION / expectedPrice;
+        uint256 totalEvroRedeemAmount = 100e18;
+        uint256 totalCorrespondingColl = totalEvroRedeemAmount * DECIMAL_PRECISION / expectedPrice;
         assertGt(totalCorrespondingColl, 0, "coll not 0");
 
-        uint256 redemptionFeePct = collateralRegistry.getEffectiveRedemptionFeeInBold(totalBoldRedeemAmount)
-            * DECIMAL_PRECISION / totalBoldRedeemAmount;
+        uint256 redemptionFeePct = collateralRegistry.getEffectiveRedemptionFeeInEvro(totalEvroRedeemAmount)
+            * DECIMAL_PRECISION / totalEvroRedeemAmount;
         assertGt(redemptionFeePct, 0, "fee not 0");
 
         uint256 totalCollFee = totalCorrespondingColl * redemptionFeePct / DECIMAL_PRECISION;
@@ -2049,16 +2049,16 @@ contract OraclesMainnet is TestAccounts {
         uint256 expectedCollDelta = totalCorrespondingColl - totalCollFee;
         assertGt(expectedCollDelta, 0, "delta not 0");
 
-        uint256 branch1DebtBefore = contractsArray[1].activePool.getBoldDebt();
+        uint256 branch1DebtBefore = contractsArray[1].activePool.getEvroDebt();
         assertGt(branch1DebtBefore, 0);
         uint256 A_collBefore = contractsArray[1].collToken.balanceOf(A);
         assertGt(A_collBefore, 0);
 
         // Redeem
-        redeem(A, totalBoldRedeemAmount);
+        redeem(A, totalEvroRedeemAmount);
 
         // Confirm RETH branch got redeemed from
-        assertEq(contractsArray[1].activePool.getBoldDebt(), branch1DebtBefore - totalBoldRedeemAmount);
+        assertEq(contractsArray[1].activePool.getEvroDebt(), branch1DebtBefore - totalEvroRedeemAmount);
 
         // Confirm the received amount coll is the expected amount (i.e. used the expected price)
         assertEq(contractsArray[1].collToken.balanceOf(A), A_collBefore + expectedCollDelta);
@@ -2111,12 +2111,12 @@ contract OraclesMainnet is TestAccounts {
         assertGt(expectedPrice, 0, "expected price not 0");
 
         // Calc expected fee based on price, i.e. the minimum
-        uint256 totalBoldRedeemAmount = 100e18;
-        uint256 totalCorrespondingColl = totalBoldRedeemAmount * DECIMAL_PRECISION / expectedPrice;
+        uint256 totalEvroRedeemAmount = 100e18;
+        uint256 totalCorrespondingColl = totalEvroRedeemAmount * DECIMAL_PRECISION / expectedPrice;
         assertGt(totalCorrespondingColl, 0, "coll not 0");
 
-        uint256 redemptionFeePct = collateralRegistry.getEffectiveRedemptionFeeInBold(totalBoldRedeemAmount)
-            * DECIMAL_PRECISION / totalBoldRedeemAmount;
+        uint256 redemptionFeePct = collateralRegistry.getEffectiveRedemptionFeeInEvro(totalEvroRedeemAmount)
+            * DECIMAL_PRECISION / totalEvroRedeemAmount;
         assertGt(redemptionFeePct, 0, "fee not 0");
 
         uint256 totalCollFee = totalCorrespondingColl * redemptionFeePct / DECIMAL_PRECISION;
@@ -2124,18 +2124,18 @@ contract OraclesMainnet is TestAccounts {
         uint256 expectedCollDelta = totalCorrespondingColl - totalCollFee;
         assertGt(expectedCollDelta, 0, "delta not 0");
 
-        uint256 branch1DebtBefore = contractsArray[1].activePool.getBoldDebt();
+        uint256 branch1DebtBefore = contractsArray[1].activePool.getEvroDebt();
         assertGt(branch1DebtBefore, 0);
         uint256 A_collBefore = contractsArray[1].collToken.balanceOf(A);
         assertGt(A_collBefore, 0);
 
         // Redeem
-        redeem(A, totalBoldRedeemAmount);
+        redeem(A, totalEvroRedeemAmount);
 
         // Confirm RETH branch got redeemed from
         assertEq(
-            contractsArray[1].activePool.getBoldDebt(),
-            branch1DebtBefore - totalBoldRedeemAmount,
+            contractsArray[1].activePool.getEvroDebt(),
+            branch1DebtBefore - totalEvroRedeemAmount,
             "active debt != branch - redeemed"
         );
 

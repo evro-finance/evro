@@ -8,7 +8,7 @@ import "src/Interfaces/IAddressesRegistry.sol";
 import "src/Interfaces/IBorrowerOperations.sol";
 import "src/Interfaces/ITroveManager.sol";
 import "src/Interfaces/ITroveNFT.sol";
-import "src/Interfaces/IBoldToken.sol";
+// Use IERC20 for evroToken since deployed contract uses old interface
 import "src/Interfaces/IWBTCWrapper.sol";
 import {IERC20} from "openzeppelin-contracts/contracts/token/ERC20/IERC20.sol";
 
@@ -25,7 +25,7 @@ contract ZapperWBTCGnosisTest is Test {
     IBorrowerOperations borrowerOperations;
     ITroveManager troveManager;
     ITroveNFT troveNFT;
-    IBoldToken boldToken;
+    IERC20 evroToken;
     IWBTCWrapper wbtcWrapper;
     IERC20 wbtc; // Underlying WBTC (8 decimals)
 
@@ -57,7 +57,10 @@ contract ZapperWBTCGnosisTest is Test {
         borrowerOperations = wbtcZapper.borrowerOperations();
         troveManager = wbtcZapper.troveManager();
         troveNFT = troveManager.troveNFT();
-        boldToken = wbtcZapper.boldToken();
+        // Deployed contract has boldToken(), local code has evroToken() - use low-level call
+        (bool success, bytes memory data) = WBTC_ZAPPER.staticcall(abi.encodeWithSignature("boldToken()"));
+        require(success, "Failed to get boldToken");
+        evroToken = IERC20(abi.decode(data, (address)));
         wbtcWrapper = wbtcZapper.wBTCWrapper();
         wbtc = wbtcZapper.wBTC();
 
@@ -82,7 +85,7 @@ contract ZapperWBTCGnosisTest is Test {
         // WBTC uses 8 decimals, but collAmount is in 18 decimals (wrapped)
         uint256 collAmount = 1e18; // 1 wWBTC (18 decimals) = 0.00000001 WBTC (8 decimals)
         // Actually: 1e18 wrapped / 1e10 = 1e8 WBTC = 1 WBTC
-        uint256 boldAmount = 2000e18;
+        uint256 evroAmount = 2000e18;
 
         uint256 wbtcBalanceBefore = wbtc.balanceOf(A);
 
@@ -90,7 +93,7 @@ contract ZapperWBTCGnosisTest is Test {
             owner: A,
             ownerIndex: 0,
             collAmount: collAmount, // 18 decimals (wrapped)
-            boldAmount: boldAmount,
+            evroAmount: evroAmount,
             upperHint: 0,
             lowerHint: 0,
             annualInterestRate: 5e16, // 5%
@@ -113,7 +116,7 @@ contract ZapperWBTCGnosisTest is Test {
         assertEq(troveNFT.ownerOf(troveId), A, "A should own the trove");
         
         // Verify BOLD was received
-        assertEq(boldToken.balanceOf(A), boldAmount, "A should have received BOLD");
+        assertEq(evroToken.balanceOf(A), evroAmount, "A should have received BOLD");
         
         // Verify WBTC was spent (8 decimals)
         uint256 wbtcSpent = collAmount / 1e10; // Convert 18 decimals to 8 decimals
@@ -123,13 +126,13 @@ contract ZapperWBTCGnosisTest is Test {
     function testCanAddCollateral() external {
         // First open a trove
         uint256 initialColl = 1e18; // 1 wWBTC
-        uint256 boldAmount = 2000e18;
+        uint256 evroAmount = 2000e18;
 
         IZapper.OpenTroveParams memory params = IZapper.OpenTroveParams({
             owner: A,
             ownerIndex: 0,
             collAmount: initialColl,
-            boldAmount: boldAmount,
+            evroAmount: evroAmount,
             upperHint: 0,
             lowerHint: 0,
             annualInterestRate: 5e16,
@@ -158,13 +161,13 @@ contract ZapperWBTCGnosisTest is Test {
     function testCanWithdrawCollateral() external {
         // First open a trove with extra collateral
         uint256 initialColl = 2e18; // 2 wWBTC
-        uint256 boldAmount = 2000e18;
+        uint256 evroAmount = 2000e18;
 
         IZapper.OpenTroveParams memory params = IZapper.OpenTroveParams({
             owner: A,
             ownerIndex: 0,
             collAmount: initialColl,
-            boldAmount: boldAmount,
+            evroAmount: evroAmount,
             upperHint: 0,
             lowerHint: 0,
             annualInterestRate: 5e16,
@@ -197,13 +200,13 @@ contract ZapperWBTCGnosisTest is Test {
     function testCanCloseTrove() external {
         // First open a trove with B so A isn't the only trove
         uint256 initialColl = 1e18;
-        uint256 boldAmount = 2000e18;
+        uint256 evroAmount = 2000e18;
 
         IZapper.OpenTroveParams memory paramsB = IZapper.OpenTroveParams({
             owner: B,
             ownerIndex: 0,
             collAmount: initialColl,
-            boldAmount: boldAmount,
+            evroAmount: evroAmount,
             upperHint: 0,
             lowerHint: 0,
             annualInterestRate: 5e16,
@@ -224,7 +227,7 @@ contract ZapperWBTCGnosisTest is Test {
             owner: A,
             ownerIndex: 0,
             collAmount: initialColl,
-            boldAmount: boldAmount,
+            evroAmount: evroAmount,
             upperHint: 0,
             lowerHint: 0,
             annualInterestRate: 5e16,
@@ -246,13 +249,13 @@ contract ZapperWBTCGnosisTest is Test {
         uint256 debtToRepay = _getTroveDebt(troveId);
         
         // Deal extra BOLD to cover the upfront fee
-        uint256 boldBalance = boldToken.balanceOf(A);
-        if (debtToRepay > boldBalance) {
-            deal(address(boldToken), A, debtToRepay);
+        uint256 evroBalance = evroToken.balanceOf(A);
+        if (debtToRepay > evroBalance) {
+            deal(address(evroToken), A, debtToRepay);
         }
         
         // Approve BOLD for repayment
-        boldToken.approve(address(wbtcZapper), debtToRepay);
+        evroToken.approve(address(wbtcZapper), debtToRepay);
 
         uint256 wbtcBalanceBefore = wbtc.balanceOf(A);
         
@@ -272,7 +275,7 @@ contract ZapperWBTCGnosisTest is Test {
         assertTrue(address(borrowerOperations) != address(0), "BorrowerOps should be set");
         assertTrue(address(troveManager) != address(0), "TroveManager should be set");
         assertTrue(address(troveNFT) != address(0), "TroveNFT should be set");
-        assertTrue(address(boldToken) != address(0), "BoldToken should be set");
+        assertTrue(address(evroToken) != address(0), "EvroToken should be set");
         assertTrue(address(wbtcWrapper) != address(0), "WBTCWrapper should be set");
         assertTrue(address(wbtc) != address(0), "WBTC should be set");
         
@@ -281,7 +284,7 @@ contract ZapperWBTCGnosisTest is Test {
         console.log("BorrowerOperations:", address(borrowerOperations));
         console.log("TroveManager:", address(troveManager));
         console.log("TroveNFT:", address(troveNFT));
-        console.log("BoldToken:", address(boldToken));
+        console.log("EvroToken:", address(evroToken));
         console.log("WBTCWrapper:", address(wbtcWrapper));
         console.log("WBTC:", address(wbtc));
         console.log("WBTCZapper:", address(wbtcZapper));

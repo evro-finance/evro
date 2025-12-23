@@ -10,7 +10,7 @@ uint256 constant _100pct = DECIMAL_PRECISION;
 uint256 constant _1pct = DECIMAL_PRECISION / 100;
 
 // Amount of xDAI to be locked in gas pool on opening troves
-uint256 constant ETH_GAS_COMPENSATION = 0.00375 ether;
+uint256 constant ETH_GAS_COMPENSATION = 0.0375 ether;
 
 // Liquidation
 uint256 constant MIN_LIQUIDATION_PENALTY_SP = 5e16; // 5%
@@ -67,7 +67,7 @@ uint256 constant LIQUIDATION_PENALTY_REDISTRIBUTION_OSGNO = 10 * _1pct;
 uint256 constant COLL_GAS_COMPENSATION_DIVISOR = 200; // dividing by 200 yields 0.5%
 uint256 constant COLL_GAS_COMPENSATION_CAP = 10 ether; // Max coll gas compensation capped at 10 xDAI
 
-// Minimum amount of net Bold debt a trove must have
+// Minimum amount of net Evro debt a trove must have
 uint256 constant MIN_DEBT = 2000e18;
 
 uint256 constant MIN_ANNUAL_INTEREST_RATE = _1pct / 2; // 0.5%
@@ -94,7 +94,7 @@ uint256 constant REDEMPTION_MINUTE_DECAY_FACTOR = 998076443575628800;
 // Corresponds to (1 / ALPHA) in the white paper.
 uint256 constant REDEMPTION_BETA = 1;
 
-// To prevent redemptions unless Bold depegs below 0.95 and allow the system to take off
+// To prevent redemptions unless Evro depegs below 0.95 and allow the system to take off
 uint256 constant INITIAL_BASE_RATE = _100pct; // 100% initial redemption rate
 
 // Discount to be used once the shutdown thas been triggered

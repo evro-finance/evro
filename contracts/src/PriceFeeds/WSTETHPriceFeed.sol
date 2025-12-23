@@ -7,7 +7,6 @@ import "../Interfaces/IWSTETH.sol";
 import "../Interfaces/IWSTETHPriceFeed.sol";
 import {FixedPointMathLib} from "solady/utils/FixedPointMathLib.sol";
 
-// import "forge-std/console2.sol";
 
 contract WSTETHPriceFeed is CompositePriceFeed, IWSTETHPriceFeed {
     Oracle public stEthUsdOracle;

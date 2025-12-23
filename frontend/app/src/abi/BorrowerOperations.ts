@@ -451,8 +451,8 @@ export const BorrowerOperations = [
   },
   {
     "type": "event",
-    "name": "BoldTokenAddressChanged",
-    "inputs": [{ "name": "_boldTokenAddress", "type": "address", "indexed": false, "internalType": "address" }],
+    "name": "EvroTokenAddressChanged",
+    "inputs": [{ "name": "_evroTokenAddress", "type": "address", "indexed": false, "internalType": "address" }],
     "anonymous": false,
   },
   {

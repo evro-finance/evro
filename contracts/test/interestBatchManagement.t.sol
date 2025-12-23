@@ -82,7 +82,7 @@ contract InterestBatchManagementTest is DevTestSetup {
         openTroveNoHints100pct(B, 100e18, 5000e18, 5e16);
 
         // Close trove
-        deal(address(boldToken), A, 6000e18); // Needs more Bold for interest and upfront fee
+        deal(address(evroToken), A, 6000e18); // Needs more Evro for interest and upfront fee
         closeTrove(A, troveId);
 
         // Try to set interest batch manager
@@ -335,7 +335,7 @@ contract InterestBatchManagementTest is DevTestSetup {
 
         // Check A has redistribution gains
         LatestTroveData memory troveData = troveManager.getLatestTroveData(ATroveId);
-        assertGt(troveData.redistBoldDebtGain, 0, "A should have redist gains");
+        assertGt(troveData.redistEvroDebtGain, 0, "A should have redist gains");
 
         uint256 troveRecordedDebtBefore = troveData.recordedDebt;
 
@@ -344,7 +344,7 @@ contract InterestBatchManagementTest is DevTestSetup {
         vm.stopPrank();
 
         troveData = troveManager.getLatestTroveData(ATroveId);
-        assertGt(troveData.redistBoldDebtGain, 0, "A should have redist gains");
+        assertGt(troveData.redistEvroDebtGain, 0, "A should have redist gains");
         assertEq(troveData.recordedDebt, troveRecordedDebtBefore, "Recorded debt should stay the same");
     }
 
@@ -428,7 +428,7 @@ contract InterestBatchManagementTest is DevTestSetup {
 
         // Check A has redistribution gains
         LatestTroveData memory troveData = troveManager.getLatestTroveData(ATroveId);
-        assertGt(troveData.redistBoldDebtGain, 0, "A should have redist gains");
+        assertGt(troveData.redistEvroDebtGain, 0, "A should have redist gains");
 
         troveData = troveManager.getLatestTroveData(ATroveId);
 
@@ -445,7 +445,7 @@ contract InterestBatchManagementTest is DevTestSetup {
         troveData = troveManager.getLatestTroveData(ATroveId);
 
         troveData = troveManager.getLatestTroveData(ATroveId);
-        assertGt(troveData.redistBoldDebtGain, 0, "A should have redist gains");
+        assertGt(troveData.redistEvroDebtGain, 0, "A should have redist gains");
         assertEq(
             troveData.recordedDebt,
             troveRecordedDebtBefore + troveAccruedInterest + batchAccruedManagementFee,
@@ -469,7 +469,7 @@ contract InterestBatchManagementTest is DevTestSetup {
             owner: D,
             ownerIndex: 0,
             collAmount: 100e18,
-            boldAmount: 5000e18,
+            evroAmount: 5000e18,
             upperHint: 0,
             lowerHint: 0,
             interestBatchManager: C,
@@ -488,7 +488,7 @@ contract InterestBatchManagementTest is DevTestSetup {
             owner: E,
             ownerIndex: 0,
             collAmount: 100e18,
-            boldAmount: 5000e18,
+            evroAmount: 5000e18,
             upperHint: 0,
             lowerHint: 0,
             interestBatchManager: B,
@@ -627,7 +627,7 @@ contract InterestBatchManagementTest is DevTestSetup {
 
         // Check A has redistribution gains
         troveData = troveManager.getLatestTroveData(ATroveId);
-        assertGt(troveData.redistBoldDebtGain, 0, "A should have redist gains");
+        assertGt(troveData.redistEvroDebtGain, 0, "A should have redist gains");
 
         // Fast-forward time
         vm.warp(block.timestamp + 91 days);
@@ -1357,15 +1357,15 @@ contract InterestBatchManagementTest is DevTestSetup {
         uint256 price = 2000e18;
         priceFeed.setPrice(price);
 
-        uint256 boldAmount = 10000e18;
-        uint256 collAmount = boldAmount * (MCR + BCR) / price; // upfront fee will put it slightly below
+        uint256 evroAmount = 10000e18;
+        uint256 collAmount = evroAmount * (MCR + BCR) / price; // upfront fee will put it slightly below
 
         IBorrowerOperations.OpenTroveAndJoinInterestBatchManagerParams memory params = IBorrowerOperations
             .OpenTroveAndJoinInterestBatchManagerParams({
             owner: A,
             ownerIndex: 0,
             collAmount: collAmount,
-            boldAmount: boldAmount,
+            evroAmount: evroAmount,
             upperHint: 0,
             lowerHint: 0,
             interestBatchManager: B,
@@ -1390,10 +1390,10 @@ contract InterestBatchManagementTest is DevTestSetup {
         uint256 price = 2000e18;
         priceFeed.setPrice(price);
 
-        uint256 boldAmount = 10000e18;
-        uint256 collAmount = boldAmount * (MCR + BCR) / price; // upfront fee will put it slightly below
+        uint256 evroAmount = 10000e18;
+        uint256 collAmount = evroAmount * (MCR + BCR) / price; // upfront fee will put it slightly below
 
-        uint256 troveId = openTroveNoHints100pct(A, collAmount, boldAmount, MIN_ANNUAL_INTEREST_RATE);
+        uint256 troveId = openTroveNoHints100pct(A, collAmount, evroAmount, MIN_ANNUAL_INTEREST_RATE);
 
         uint256 ICR = troveManager.getCurrentICR(troveId, price);
         assertLt(ICR, MCR + BCR, "ICR too high");
@@ -1416,11 +1416,11 @@ contract InterestBatchManagementTest is DevTestSetup {
         uint256 debt = troveManager.getTroveEntireDebt(troveId);
         uint256 coll = troveManager.getTroveEntireColl(troveId);
 
-        uint256 boldAmount = coll * price / (MCR + BCR) - debt;
+        uint256 evroAmount = coll * price / (MCR + BCR) - debt;
 
         vm.startPrank(A);
         vm.expectRevert(BorrowerOperations.ICRBelowMCRPlusBCR.selector);
-        borrowerOperations.withdrawBold(troveId, boldAmount, boldAmount);
+        borrowerOperations.withdrawEvro(troveId, evroAmount, evroAmount);
         vm.stopPrank();
     }
 
@@ -1455,13 +1455,13 @@ contract InterestBatchManagementTest is DevTestSetup {
         uint256 coll = troveManager.getTroveEntireColl(troveId);
 
         uint256 withdrawColl = 97.5 ether;
-        uint256 repayBold = debt - (coll - withdrawColl) * price / (MCR + BCR) - 1;
+        uint256 repayEvro = debt - (coll - withdrawColl) * price / (MCR + BCR) - 1;
         //console2.log(coll - withdrawColl, "coll - withdrawColl");
-        //console2.log(debt - repayBold, "debt - repayBold");
+        //console2.log(debt - repayEvro, "debt - repayEvro");
 
         vm.startPrank(A);
         vm.expectRevert(BorrowerOperations.ICRBelowMCRPlusBCR.selector);
-        borrowerOperations.adjustTrove(troveId, withdrawColl, false, repayBold, false, 10000e18);
+        borrowerOperations.adjustTrove(troveId, withdrawColl, false, repayEvro, false, 10000e18);
         vm.stopPrank();
     }
 
@@ -1476,14 +1476,14 @@ contract InterestBatchManagementTest is DevTestSetup {
         uint256 debt = troveManager.getTroveEntireDebt(troveId);
         uint256 coll = troveManager.getTroveEntireColl(troveId);
 
-        uint256 borrowBold = 195000e18;
-        uint256 addColl = (debt + borrowBold) * (MCR + BCR) / price - coll;
-        //console2.log(debt+borrowBold, "debt+borrowBold");
+        uint256 borrowEvro = 195000e18;
+        uint256 addColl = (debt + borrowEvro) * (MCR + BCR) / price - coll;
+        //console2.log(debt+borrowEvro, "debt+borrowEvro");
         //console2.log(coll+addColl, "coll+addColl");
 
         vm.startPrank(A);
         vm.expectRevert(BorrowerOperations.ICRBelowMCRPlusBCR.selector);
-        borrowerOperations.adjustTrove(troveId, addColl, true, borrowBold, true, 10000e18);
+        borrowerOperations.adjustTrove(troveId, addColl, true, borrowEvro, true, 10000e18);
         vm.stopPrank();
     }
 

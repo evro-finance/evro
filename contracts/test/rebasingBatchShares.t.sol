@@ -6,7 +6,7 @@ import "./TestContracts/DevTestSetup.sol";
 contract RebasingBatchShares is DevTestSetup {
     bool WITH_INTEREST = true; // Do we need to tick some interest to cause a rounding error?
 
-    // See: https://github.com/GalloDaSballo/bold-review/issues/42
+    // See: https://github.com/GalloDaSballo/evro-review/issues/42
     // This test is kept for historical purposes, doesn’t make much sense now in the current state
     function testBatchRebaseToSystemInsolvency() public {
         // === EXTRA SETUP === //
@@ -15,7 +15,7 @@ contract RebasingBatchShares is DevTestSetup {
         // Extra Debt (irrelevant / Used to not use deal)
         openTroveNoHints100pct(C, 100 ether, 100e21, MAX_ANNUAL_INTEREST_RATE);
         vm.startPrank(C);
-        boldToken.transfer(A, boldToken.balanceOf(C));
+        evroToken.transfer(A, evroToken.balanceOf(C));
         vm.stopPrank();
 
         // === 1: Setup Batch Rebase === ///
@@ -117,9 +117,9 @@ contract RebasingBatchShares is DevTestSetup {
         // It will pay zero debt
         assertEq(aDebt, 0, "Forgiven");
 
-        uint256 balB4 = boldToken.balanceOf(A);
+        uint256 balB4 = evroToken.balanceOf(A);
         closeTrove(A, anotherATroveId);
-        uint256 balAfter = boldToken.balanceOf(A);
+        uint256 balAfter = evroToken.balanceOf(A);
 
         // And we can repeat this to get free debt
         uint256 debtAfter = borrowerOperations.getEntireBranchDebt();
@@ -186,7 +186,7 @@ contract RebasingBatchShares is DevTestSetup {
     function _addDebtAndEnsureItMintsShares(uint256 troveId, address caller, uint256 amt) internal {
         (,,,,,,,,, uint256 b4BatchDebtShares) = troveManager.Troves(troveId);
 
-        withdrawBold100pct(caller, troveId, amt);
+        withdrawEvro100pct(caller, troveId, amt);
 
         (,,,,,,,,, uint256 afterBatchDebtShares) = troveManager.Troves(troveId);
 
@@ -196,7 +196,7 @@ contract RebasingBatchShares is DevTestSetup {
     function _addDebtAndEnsureItDoesntMintShares(uint256 troveId, address caller, uint256 amt) internal {
         (,,,,,,,,, uint256 b4BatchDebtShares) = troveManager.Troves(troveId);
 
-        withdrawBold100pct(caller, troveId, amt);
+        withdrawEvro100pct(caller, troveId, amt);
 
         (,,,,,,,,, uint256 afterBatchDebtShares) = troveManager.Troves(troveId);
 
@@ -237,7 +237,7 @@ contract RebasingBatchShares is DevTestSetup {
             owner: _troveOwner,
             ownerIndex: _troveIndex,
             collAmount: _coll,
-            boldAmount: _debt,
+            evroAmount: _debt,
             upperHint: 0,
             lowerHint: 0,
             interestBatchManager: _batchAddress,
@@ -260,11 +260,11 @@ contract RebasingBatchShares is DevTestSetup {
     function testDeflateDebtLeavingSharesConstant() public {
         uint256 ITERATIONS = 200;
 
-        // === Generate Bold Balance on A === //
+        // === Generate Evro Balance on A === //
         priceFeed.setPrice(2000e18);
         openTroveNoHints100pct(C, 100 ether, 100e21, MAX_ANNUAL_INTEREST_RATE);
         vm.startPrank(C);
-        boldToken.transfer(A, boldToken.balanceOf(C));
+        evroToken.transfer(A, evroToken.balanceOf(C));
         vm.stopPrank();
 
         // B opens trove
@@ -291,7 +291,7 @@ contract RebasingBatchShares is DevTestSetup {
         uint256 x;
         vm.startPrank(B);
         while (x++ < ITERATIONS) {
-            borrowerOperations.repayBold(BTroveId, 1);
+            borrowerOperations.repayEvro(BTroveId, 1);
         }
         vm.stopPrank();
 
@@ -345,7 +345,7 @@ contract RebasingBatchShares is DevTestSetup {
             _account: A,
             _index: 1,
             _coll: 1_000_000 ether,
-            _boldAmount: 10_000_000 ether,
+            _evroAmount: 10_000_000 ether,
             _annualInterestRate: MAX_ANNUAL_INTEREST_RATE
         });
 
@@ -362,8 +362,8 @@ contract RebasingBatchShares is DevTestSetup {
             borrowerOperations.kickFromBatch(targetTrove, 0, 0);
 
             // Keep debt low to minimize interest and maintain healthy TCR
-            repayBold(A, targetTrove, troveManager.getTroveEntireDebt(targetTrove) - MIN_DEBT);
-            repayBold(A, placeholderTrove, troveManager.getTroveEntireDebt(placeholderTrove) - MIN_DEBT);
+            repayEvro(A, targetTrove, troveManager.getTroveEntireDebt(targetTrove) - MIN_DEBT);
+            repayEvro(A, placeholderTrove, troveManager.getTroveEntireDebt(placeholderTrove) - MIN_DEBT);
         }
 
         // Make a zombie out of the target Trove

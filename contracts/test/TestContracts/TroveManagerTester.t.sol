@@ -51,8 +51,8 @@ contract TroveManagerTester is ITroveManagerTester, TroveManager {
         return LIQUIDATION_PENALTY_REDISTRIBUTION;
     }
 
-    function getBoldToken() external view returns (IBoldToken) {
-        return boldToken;
+    function getEvroToken() external view returns (IEvroToken) {
+        return evroToken;
     }
 
     function getBorrowerOperations() external view returns (IBorrowerOperations) {
@@ -63,8 +63,8 @@ contract TroveManagerTester is ITroveManagerTester, TroveManager {
         return L_coll;
     }
 
-    function get_L_boldDebt() external view returns (uint256) {
-        return L_boldDebt;
+    function get_L_evroDebt() external view returns (uint256) {
+        return L_evroDebt;
     }
 
     function getTotalStakes() external view returns (uint256) {
@@ -83,8 +83,8 @@ contract TroveManagerTester is ITroveManagerTester, TroveManager {
         return lastCollError_Redistribution;
     }
 
-    function get_lastBoldDebtError_Redistribution() external view returns (uint256) {
-        return lastBoldDebtError_Redistribution;
+    function get_lastEvroDebtError_Redistribution() external view returns (uint256) {
+        return lastEvroDebtError_Redistribution;
     }
 
     function getTroveId(uint256 _index) external view returns (uint256) {
@@ -103,14 +103,14 @@ contract TroveManagerTester is ITroveManagerTester, TroveManager {
         return LiquityMath._computeCR(_coll, _debt, _price);
     }
 
-    function getCollGasCompensation(uint256 _entireColl, uint256 _entireDebt, uint256 _boldInSPForOffsets)
+    function getCollGasCompensation(uint256 _entireColl, uint256 _entireDebt, uint256 _evroInSPForOffsets)
         external
         pure
         returns (uint256)
     {
         uint256 collSubjectToGasCompensation = _entireColl;
-        if (_boldInSPForOffsets < _entireDebt) {
-            collSubjectToGasCompensation = _entireColl * _boldInSPForOffsets / _entireDebt;
+        if (_evroInSPForOffsets < _entireDebt) {
+            collSubjectToGasCompensation = _entireColl * _evroInSPForOffsets / _entireDebt;
         }
         return _getCollGasCompensation(collSubjectToGasCompensation);
     }
@@ -163,7 +163,7 @@ contract TroveManagerTester is ITroveManagerTester, TroveManager {
     }
 
     function getEffectiveRedemptionFeeInColl(uint256 _redeemAmount, uint256 _price) external view returns (uint256) {
-        return collateralRegistry.getEffectiveRedemptionFeeInBold(_redeemAmount) * DECIMAL_PRECISION / _price;
+        return collateralRegistry.getEffectiveRedemptionFeeInEvro(_redeemAmount) * DECIMAL_PRECISION / _price;
     }
 
     function callInternalRemoveTroveId(uint256 _troveId) external {
@@ -214,11 +214,11 @@ contract TroveManagerTester is ITroveManagerTester, TroveManager {
         return trove.redistCollGain;
     }
 
-    // Get the borrower's pending accumulated Bold reward, earned by their stake
-    function getPendingBoldDebtReward(uint256 _troveId) external view override returns (uint256 redistBoldDebtGain) {
+    // Get the borrower's pending accumulated Evro reward, earned by their stake
+    function getPendingEvroDebtReward(uint256 _troveId) external view override returns (uint256 redistEvroDebtGain) {
         LatestTroveData memory trove;
         _getLatestTroveData(_troveId, trove);
-        return trove.redistBoldDebtGain;
+        return trove.redistEvroDebtGain;
     }
 
     function getEntireDebtAndColl(uint256 _troveId)
@@ -227,7 +227,7 @@ contract TroveManagerTester is ITroveManagerTester, TroveManager {
         returns (
             uint256 entireDebt,
             uint256 entireColl,
-            uint256 pendingBoldDebtReward,
+            uint256 pendingEvroDebtReward,
             uint256 pendingCollReward,
             uint256 accruedTroveInterest
         )
@@ -236,7 +236,7 @@ contract TroveManagerTester is ITroveManagerTester, TroveManager {
         _getLatestTroveData(_troveId, trove);
 
         return
-            (trove.entireDebt, trove.entireColl, trove.redistBoldDebtGain, trove.redistCollGain, trove.accruedInterest);
+            (trove.entireDebt, trove.entireColl, trove.redistEvroDebtGain, trove.redistCollGain, trove.accruedInterest);
     }
 
     function getTroveEntireDebt(uint256 _troveId) external view returns (uint256) {

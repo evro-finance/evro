@@ -1,10 +1,10 @@
 import { Address, BigInt, DataSourceContext } from "@graphprotocol/graph-ts";
 import {
   CollateralRegistryAddressChanged as CollateralRegistryAddressChangedEvent,
-} from "../generated/BoldToken/BoldToken";
-import { BorrowerOperations as BorrowerOperationsContract } from "../generated/BoldToken/BorrowerOperations";
-import { CollateralRegistry as CollateralRegistryContract } from "../generated/BoldToken/CollateralRegistry";
-import { TroveManager as TroveManagerContract } from "../generated/BoldToken/TroveManager";
+} from "../generated/EvroToken/EvroToken";
+import { BorrowerOperations as BorrowerOperationsContract } from "../generated/EvroToken/BorrowerOperations";
+import { CollateralRegistry as CollateralRegistryContract } from "../generated/EvroToken/CollateralRegistry";
+import { TroveManager as TroveManagerContract } from "../generated/EvroToken/TroveManager";
 import { Collateral, CollateralAddresses } from "../generated/schema";
 import { TroveManager as TroveManagerTemplate, TroveNFT as TroveNFTTemplate } from "../generated/templates";
 

@@ -15,7 +15,7 @@ import {ETH_GAS_COMPENSATION} from "src/Dependencies/Constants.sol";
 import {IBorrowerOperations} from "src/Interfaces/IBorrowerOperations.sol";
 import "src/AddressesRegistry.sol";
 import "src/ActivePool.sol";
-import "src/BoldToken.sol";
+import "src/EvroToken.sol";
 import "src/BorrowerOperations.sol";
 import "src/TroveManager.sol";
 import "src/TroveNFT.sol";
@@ -86,8 +86,8 @@ contract DeployLiquity2Script is DeployGovernance, UniPriceConverter, StdCheats,
     using StringEquality for string;
 
     string constant DEPLOYMENT_MODE_COMPLETE = "complete";
-    string constant DEPLOYMENT_MODE_BOLD_ONLY = "bold-only";
-    string constant DEPLOYMENT_MODE_USE_EXISTING_BOLD = "use-existing-bold";
+    string constant DEPLOYMENT_MODE_BOLD_ONLY = "evro-only";
+    string constant DEPLOYMENT_MODE_USE_EXISTING_BOLD = "use-existing-evro";
 
     uint256 constant NUM_BRANCHES = 6;
 
@@ -259,7 +259,7 @@ contract DeployLiquity2Script is DeployGovernance, UniPriceConverter, StdCheats,
         ITroveManager[] troveManagers;
         LiquityContracts contracts;
         bytes bytecode;
-        address boldTokenAddress;
+        address evroTokenAddress;
         uint256 i;
     }
 
@@ -275,7 +275,7 @@ contract DeployLiquity2Script is DeployGovernance, UniPriceConverter, StdCheats,
     struct DeploymentResult {
         LiquityContracts[] contractsArray;
         ICollateralRegistry collateralRegistry;
-        IBoldToken boldToken;
+        IEvroToken evroToken;
         ICurveStableswapNGPool usdcCurvePool;
         HintHelpers hintHelpers;
         MultiTroveGetter multiTroveGetter;
@@ -333,26 +333,26 @@ contract DeployLiquity2Script is DeployGovernance, UniPriceConverter, StdCheats,
         _log("Governance epoch start: ", epochStart.toString());
         _log("Use testnet PriceFeeds: ", useTestnetPriceFeeds ? "yes" : "no");
 
-        // Deploy Bold or pick up existing deployment
-        bytes memory boldBytecode = bytes.concat(type(BoldToken).creationCode, abi.encode(deployer));
-        address boldAddress = vm.computeCreate2Address(SALT, keccak256(boldBytecode));
-        BoldToken boldToken;
+        // Deploy Evro or pick up existing deployment
+        bytes memory evroBytecode = bytes.concat(type(EvroToken).creationCode, abi.encode(deployer));
+        address evroAddress = vm.computeCreate2Address(SALT, keccak256(evroBytecode));
+        EvroToken evroToken;
 
         if (deploymentMode.eq(DEPLOYMENT_MODE_USE_EXISTING_BOLD)) {
-            require(boldAddress.code.length > 0, string.concat("BOLD not found at ", boldAddress.toHexString()));
-            boldToken = BoldToken(boldAddress);
+            require(evroAddress.code.length > 0, string.concat("BOLD not found at ", evroAddress.toHexString()));
+            evroToken = EvroToken(evroAddress);
 
             // Check BOLD is untouched
-            require(boldToken.totalSupply() == 0, "Some BOLD has been minted!");
-            require(boldToken.collateralRegistryAddress() == address(0), "Collateral registry already set");
-            require(boldToken.owner() == deployer, "Not BOLD owner");
+            require(evroToken.totalSupply() == 0, "Some BOLD has been minted!");
+            require(evroToken.collateralRegistryAddress() == address(0), "Collateral registry already set");
+            require(evroToken.owner() == deployer, "Not BOLD owner");
         } else {
-            boldToken = new BoldToken{salt: SALT}(deployer);
-            assert(address(boldToken) == boldAddress);
+            evroToken = new EvroToken{salt: SALT}(deployer);
+            assert(address(evroToken) == evroAddress);
         }
 
         if (deploymentMode.eq(DEPLOYMENT_MODE_BOLD_ONLY)) {
-            vm.writeFile("deployment-manifest.json", string.concat('{"boldToken":"', boldAddress.toHexString(), '"}'));
+            vm.writeFile("deployment-manifest.json", string.concat('{"evroToken":"', evroAddress.toHexString(), '"}'));
             return;
         }
 
@@ -424,7 +424,7 @@ contract DeployLiquity2Script is DeployGovernance, UniPriceConverter, StdCheats,
             // stakingV1: stakingV1,
             // lqty: lqty,
             // lusd: lusd,
-            bold: boldAddress
+            evro: evroAddress
         });
 
         // WETH / WXDAI
@@ -534,7 +534,7 @@ contract DeployLiquity2Script is DeployGovernance, UniPriceConverter, StdCheats,
                 }
             }
 
-            _provideCurveLiquidity(deployed.boldToken, deployed.contractsArray[0]);
+            _provideCurveLiquidity(deployed.evroToken, deployed.contractsArray[0]);
 
             // deployed.contractsArray[1].collToken.mint(deployer, 1 ether);
             // deployed.contractsArray[1].collToken.approve(address(deployed.contractsArray[1].leverageZapper), 1 ether);
@@ -553,7 +553,7 @@ contract DeployLiquity2Script is DeployGovernance, UniPriceConverter, StdCheats,
 
         // ICurveStableswapNGPool lusdCurvePool;
         // if (block.chainid == 100) {
-        //     lusdCurvePool = _deployCurvePool(deployed.boldToken, IERC20Metadata(LUSD_ADDRESS));
+        //     lusdCurvePool = _deployCurvePool(deployed.evroToken, IERC20Metadata(LUSD_ADDRESS));
         // }
 
         // // Governance
@@ -681,7 +681,7 @@ contract DeployLiquity2Script is DeployGovernance, UniPriceConverter, StdCheats,
                 vm.addr(trove.owner), //     _owner
                 trove.ownerIndex, //         _ownerIndex
                 trove.coll, //               _collAmount
-                trove.debt, //               _boldAmount
+                trove.debt, //               _evroAmount
                 0, //                        _upperHint
                 0, //                        _lowerHint
                 trove.annualInterestRate, // _annualInterestRate
@@ -711,10 +711,10 @@ contract DeployLiquity2Script is DeployGovernance, UniPriceConverter, StdCheats,
 
         DeploymentVars memory vars;
         vars.numCollaterals = troveManagerParamsArray.length;
-        r.boldToken = BoldToken(_deployGovernanceParams.bold);
+        r.evroToken = EvroToken(_deployGovernanceParams.evro);
 
         // USDC and USDC-BOLD pool
-        r.usdcCurvePool = _deployCurvePool(r.boldToken, USDC);
+        r.usdcCurvePool = _deployCurvePool(r.evroToken, USDC);
 
         r.contractsArray = new LiquityContracts[](vars.numCollaterals);
         vars.collaterals = new IERC20Metadata[](vars.numCollaterals);
@@ -782,7 +782,7 @@ contract DeployLiquity2Script is DeployGovernance, UniPriceConverter, StdCheats,
             vars.troveManagers[vars.i] = ITroveManager(troveManagerAddress);
         }
 
-        r.collateralRegistry = new CollateralRegistry(r.boldToken, vars.collaterals, vars.troveManagers);
+        r.collateralRegistry = new CollateralRegistry(r.evroToken, vars.collaterals, vars.troveManagers);
         r.hintHelpers = new HintHelpers(r.collateralRegistry);
         r.multiTroveGetter = new MultiTroveGetter(r.collateralRegistry);
         r.debtInFrontHelper = new DebtInFrontHelper(r.collateralRegistry, r.hintHelpers);
@@ -791,7 +791,7 @@ contract DeployLiquity2Script is DeployGovernance, UniPriceConverter, StdCheats,
         for (vars.i = 0; vars.i < vars.numCollaterals; vars.i++) {
             vars.contracts = _deployAndConnectCollateralContracts(
                 vars.collaterals[vars.i],
-                r.boldToken,
+                r.evroToken,
                 r.collateralRegistry,
                 r.usdcCurvePool,
                 vars.addressesRegistries[vars.i],
@@ -804,7 +804,7 @@ contract DeployLiquity2Script is DeployGovernance, UniPriceConverter, StdCheats,
             r.contractsArray[vars.i] = vars.contracts;
         }
 
-        r.boldToken.setCollateralRegistry(address(r.collateralRegistry));
+        r.evroToken.setCollateralRegistry(address(r.collateralRegistry));
 
         // // exchange helpers
         // r.exchangeHelpers = new HybridCurveUniV3ExchangeHelpers(
@@ -841,7 +841,7 @@ contract DeployLiquity2Script is DeployGovernance, UniPriceConverter, StdCheats,
 
     function _deployAndConnectCollateralContracts(
         IERC20Metadata _collToken,
-        IBoldToken _boldToken,
+        IEvroToken _evroToken,
         ICollateralRegistry _collateralRegistry,
         ICurveStableswapNGPool _usdcCurvePool,
         IAddressesRegistry _addressesRegistry,
@@ -909,7 +909,7 @@ contract DeployLiquity2Script is DeployGovernance, UniPriceConverter, StdCheats,
             hintHelpers: _hintHelpers,
             multiTroveGetter: _multiTroveGetter,
             collateralRegistry: _collateralRegistry,
-            boldToken: _boldToken,
+            evroToken: _evroToken,
             WETH: WXDAI
         });
         contracts.addressesRegistry.setAddresses(addressVars);
@@ -935,14 +935,14 @@ contract DeployLiquity2Script is DeployGovernance, UniPriceConverter, StdCheats,
         assert(address(contracts.sortedTroves) == addresses.sortedTroves);
 
         // Connect contracts
-        _boldToken.setBranchAddresses(
+        _evroToken.setBranchAddresses(
             address(contracts.troveManager),
             address(contracts.stabilityPool),
             address(contracts.borrowerOperations),
             address(contracts.activePool)
         );
 
-        Zappers memory zappers = _deployZappers(contracts.addressesRegistry, contracts.collToken, _boldToken, _usdcCurvePool);
+        Zappers memory zappers = _deployZappers(contracts.addressesRegistry, contracts.collToken, _evroToken, _usdcCurvePool);
         // deploy zappers
         contracts.gasCompZapper = zappers.gasCompZapper;
         contracts.wethZapper = zappers.wethZapper;
@@ -1051,14 +1051,14 @@ contract DeployLiquity2Script is DeployGovernance, UniPriceConverter, StdCheats,
     function _deployZappers(
         IAddressesRegistry _addressesRegistry,
         IERC20 _collToken,
-        IBoldToken _boldToken,
+        IEvroToken _evroToken,
         ICurveStableswapNGPool _usdcCurvePool
     ) internal returns (Zappers memory zappers) {
         IFlashLoanProvider flashLoanProvider = new BalancerFlashLoan();
 
         IExchange hybridExchange = new CurveNGExchange(
             USDC,
-            _boldToken,
+            _evroToken,
             _usdcCurvePool,
             int128(OTHER_TOKEN_INDEX), // USDC Curve pool index
             int128(BOLD_TOKEN_INDEX) // BOLD Curve pool index
@@ -1113,7 +1113,7 @@ contract DeployLiquity2Script is DeployGovernance, UniPriceConverter, StdCheats,
         return leverageZapperHybrid;
     }
 
-    function _deployCurvePool(IBoldToken _boldToken, IERC20Metadata _otherToken)
+    function _deployCurvePool(IEvroToken _evroToken, IERC20Metadata _otherToken)
         internal
         returns (ICurveStableswapNGPool)
     {
@@ -1124,7 +1124,7 @@ contract DeployLiquity2Script is DeployGovernance, UniPriceConverter, StdCheats,
 
         // deploy Curve StableswapNG pool
         address[] memory coins = new address[](2);
-        coins[BOLD_TOKEN_INDEX] = address(_boldToken);
+        coins[BOLD_TOKEN_INDEX] = address(_evroToken);
         coins[OTHER_TOKEN_INDEX] = address(_otherToken);
         uint8[] memory assetTypes = new uint8[](2); // 0: standard
         bytes4[] memory methodIds = new bytes4[](2);
@@ -1190,8 +1190,8 @@ contract DeployLiquity2Script is DeployGovernance, UniPriceConverter, StdCheats,
         );
     }
 
-    function _mintBold(uint256 _boldAmount, uint256 _price, LiquityContracts memory _contracts) internal {
-        uint256 collAmount = _boldAmount * 2 ether / _price; // CR of ~200%
+    function _mintEvro(uint256 _evroAmount, uint256 _price, LiquityContracts memory _contracts) internal {
+        uint256 collAmount = _evroAmount * 2 ether / _price; // CR of ~200%
 
         ERC20Faucet(address(_contracts.collToken)).mint(deployer, collAmount);
         WETHTester(payable(address(WXDAI))).mint(deployer, ETH_GAS_COMPENSATION);
@@ -1207,7 +1207,7 @@ contract DeployLiquity2Script is DeployGovernance, UniPriceConverter, StdCheats,
             _owner: deployer,
             _ownerIndex: lastTroveIndex++,
             _ETHAmount: collAmount,
-            _boldAmount: _boldAmount,
+            _evroAmount: _evroAmount,
             _upperHint: 0,
             _lowerHint: 0,
             _annualInterestRate: 0.05 ether,
@@ -1308,25 +1308,25 @@ contract DeployLiquity2Script is DeployGovernance, UniPriceConverter, StdCheats,
         return uint160(Math.sqrt((_price << 192) / DECIMAL_PRECISION));
     }
 
-    function _provideCurveLiquidity(IBoldToken _boldToken, LiquityContracts memory _contracts) internal {
+    function _provideCurveLiquidity(IEvroToken _evroToken, LiquityContracts memory _contracts) internal {
         ICurveStableswapNGPool usdcCurvePool =
             HybridCurveUniV3Exchange(address(_contracts.leverageZapper.exchange())).curvePool();
         // Add liquidity to USDC-BOLD
         //uint256 usdcAmount = 1e15; // 1B with 6 decimals
-        //boldAmount = usdcAmount * 1e12; // from 6 to 18 decimals
+        //evroAmount = usdcAmount * 1e12; // from 6 to 18 decimals
         uint256 usdcAmount = 1e27;
-        uint256 boldAmount = usdcAmount;
+        uint256 evroAmount = usdcAmount;
 
         // mint
         ERC20Faucet(address(USDC)).mint(deployer, usdcAmount);
         (uint256 price,) = _contracts.priceFeed.fetchPrice();
-        _mintBold(boldAmount, price, _contracts);
+        _mintEvro(evroAmount, price, _contracts);
         // approve
         USDC.approve(address(usdcCurvePool), usdcAmount);
-        _boldToken.approve(address(usdcCurvePool), boldAmount);
+        _evroToken.approve(address(usdcCurvePool), evroAmount);
 
         uint256[] memory amountsDynamic = new uint256[](2);
-        amountsDynamic[0] = boldAmount;
+        amountsDynamic[0] = evroAmount;
         amountsDynamic[1] = usdcAmount;
         // add liquidity
         usdcCurvePool.add_liquidity(amountsDynamic, 0);
@@ -1406,7 +1406,7 @@ contract DeployLiquity2Script is DeployGovernance, UniPriceConverter, StdCheats,
     function _getCoreAddressesJson(DeploymentResult memory deployed) internal pure returns (string memory) {
         return string.concat(
             string.concat('"collateralRegistry":"', address(deployed.collateralRegistry).toHexString(), '",'),
-            string.concat('"boldToken":"', address(deployed.boldToken).toHexString(), '",'),
+            string.concat('"evroToken":"', address(deployed.evroToken).toHexString(), '",'),
             string.concat('"hintHelpers":"', address(deployed.hintHelpers).toHexString(), '",'),
             string.concat('"multiTroveGetter":"', address(deployed.multiTroveGetter).toHexString(), '",'),
             string.concat('"debtInFrontHelper":"', address(deployed.debtInFrontHelper).toHexString(), '",'),

@@ -4,7 +4,7 @@ pragma solidity ^0.8.0;
 
 import "./ILiquityBase.sol";
 import "./IAddRemoveManagers.sol";
-import "./IBoldToken.sol";
+import "./IEvroToken.sol";
 import "./IPriceFeed.sol";
 import "./ISortedTroves.sol";
 import "./ITroveManager.sol";
@@ -20,7 +20,7 @@ interface IBorrowerOperations is ILiquityBase, IAddRemoveManagers {
         address _owner,
         uint256 _ownerIndex,
         uint256 _ETHAmount,
-        uint256 _boldAmount,
+        uint256 _evroAmount,
         uint256 _upperHint,
         uint256 _lowerHint,
         uint256 _annualInterestRate,
@@ -34,7 +34,7 @@ interface IBorrowerOperations is ILiquityBase, IAddRemoveManagers {
         address owner;
         uint256 ownerIndex;
         uint256 collAmount;
-        uint256 boldAmount;
+        uint256 evroAmount;
         uint256 upperHint;
         uint256 lowerHint;
         address interestBatchManager;
@@ -52,9 +52,9 @@ interface IBorrowerOperations is ILiquityBase, IAddRemoveManagers {
 
     function withdrawColl(uint256 _troveId, uint256 _amount) external;
 
-    function withdrawBold(uint256 _troveId, uint256 _amount, uint256 _maxUpfrontFee) external;
+    function withdrawEvro(uint256 _troveId, uint256 _amount, uint256 _maxUpfrontFee) external;
 
-    function repayBold(uint256 _troveId, uint256 _amount) external;
+    function repayEvro(uint256 _troveId, uint256 _amount) external;
 
     function closeTrove(uint256 _troveId) external;
 
@@ -71,7 +71,7 @@ interface IBorrowerOperations is ILiquityBase, IAddRemoveManagers {
         uint256 _troveId,
         uint256 _collChange,
         bool _isCollIncrease,
-        uint256 _boldChange,
+        uint256 _evroChange,
         bool _isDebtIncrease,
         uint256 _upperHint,
         uint256 _lowerHint,

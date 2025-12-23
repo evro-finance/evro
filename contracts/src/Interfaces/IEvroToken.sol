@@ -6,7 +6,7 @@ import "openzeppelin-contracts/contracts/token/ERC20/extensions/IERC20Metadata.s
 import "openzeppelin-contracts/contracts/token/ERC20/extensions/IERC20Permit.sol";
 import "openzeppelin-contracts/contracts/interfaces/IERC5267.sol";
 
-interface IBoldToken is IERC20Metadata, IERC20Permit, IERC5267 {
+interface IEvroToken is IERC20Metadata, IERC20Permit, IERC5267 {
     function setBranchAddresses(
         address _troveManagerAddress,
         address _stabilityPoolAddress,

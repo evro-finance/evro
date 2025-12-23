@@ -4,10 +4,10 @@ pragma solidity 0.8.24;
 
 import "openzeppelin-contracts/contracts/token/ERC20/extensions/ERC20Permit.sol";
 import "./Dependencies/Ownable.sol";
-import "./Interfaces/IBoldToken.sol";
+import "./Interfaces/IEvroToken.sol";
 
 /*
- * --- Functionality added specific to the BoldToken ---
+ * --- Functionality added specific to the EvroToken ---
  *
  * 1) Transfer protection: blacklist of addresses that are invalid recipients (i.e. core Liquity contracts) in external
  * transfer() and transferFrom() calls. The purpose is to protect users from losing tokens by mistakenly sending BOLD directly to a Liquity
@@ -16,7 +16,7 @@ import "./Interfaces/IBoldToken.sol";
  * 2) sendToPool() and returnFromPool(): functions callable only Liquity core contracts, which move BOLD tokens between Liquity <-> user.
  */
 
-contract BoldToken is Ownable, IBoldToken, ERC20Permit {
+contract EvroToken is Ownable, IEvroToken, ERC20Permit {
     string internal constant _NAME = "EVRO Stablecoin";
     string internal constant _SYMBOL = "EVRO";
 
@@ -106,14 +106,14 @@ contract BoldToken is Ownable, IBoldToken, ERC20Permit {
     function _requireValidRecipient(address _recipient) internal view {
         require(
             _recipient != address(0) && _recipient != address(this),
-            "BoldToken: Cannot transfer tokens directly to the Bold token contract or the zero address"
+            "EvroToken: Cannot transfer tokens directly to the Evro token contract or the zero address"
         );
     }
 
     function _requireCallerIsBOorAP() internal view {
         require(
             borrowerOperationsAddresses[msg.sender] || activePoolAddresses[msg.sender],
-            "BoldToken: Caller is not BO or AP"
+            "EvroToken: Caller is not BO or AP"
         );
     }
 
@@ -121,11 +121,11 @@ contract BoldToken is Ownable, IBoldToken, ERC20Permit {
         require(
             msg.sender == collateralRegistryAddress || borrowerOperationsAddresses[msg.sender]
                 || troveManagerAddresses[msg.sender] || stabilityPoolAddresses[msg.sender],
-            "BoldToken: Caller is neither CR nor BorrowerOperations nor TroveManager nor StabilityPool"
+            "EvroToken: Caller is neither CR nor BorrowerOperations nor TroveManager nor StabilityPool"
         );
     }
 
     function _requireCallerIsStabilityPool() internal view {
-        require(stabilityPoolAddresses[msg.sender], "BoldToken: Caller is not the StabilityPool");
+        require(stabilityPoolAddresses[msg.sender], "EvroToken: Caller is not the StabilityPool");
     }
 }

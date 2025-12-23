@@ -11,7 +11,7 @@ contract LiquidationsTest is DevTestSetup {
         uint256 ATroveId;
         uint256 BTroveId;
         uint256 price;
-        uint256 spBoldBalance;
+        uint256 spEvroBalance;
         uint256 spCollBalance;
         uint256 ACollBalance;
         uint256 BDebt;
@@ -64,7 +64,7 @@ contract LiquidationsTest is DevTestSetup {
         (uint256 price,) = priceFeed.fetchPrice();
 
         LiquidationsTestVars memory initialValues;
-        initialValues.spBoldBalance = stabilityPool.getTotalBoldDeposits();
+        initialValues.spEvroBalance = stabilityPool.getTotalEvroDeposits();
         initialValues.spCollBalance = stabilityPool.getCollBalance();
         initialValues.ACollBalance = collToken.balanceOf(A);
 
@@ -85,12 +85,12 @@ contract LiquidationsTest is DevTestSetup {
         trovesCount = troveManager.getTroveIdsCount();
         assertEq(trovesCount, 1);
 
-        // Check SP Bold has decreased
-        uint256 finalSPBoldBalance = stabilityPool.getTotalBoldDeposits();
+        // Check SP Evro has decreased
+        uint256 finalSPEvroBalance = stabilityPool.getTotalEvroDeposits();
         assertEq(
-            initialValues.spBoldBalance - finalSPBoldBalance,
+            initialValues.spEvroBalance - finalSPEvroBalance,
             liquidationAmount + initialValues.AInterest,
-            "SP Bold balance mismatch"
+            "SP Evro balance mismatch"
         );
         // Check SP Coll has  increased
         uint256 finalSPCollBalance = stabilityPool.getCollBalance();
@@ -168,7 +168,7 @@ contract LiquidationsTest is DevTestSetup {
         priceFeed.setPrice(1030e18);
         (uint256 price,) = priceFeed.fetchPrice();
 
-        uint256 initialSPBoldBalance = stabilityPool.getTotalBoldDeposits();
+        uint256 initialSPEvroBalance = stabilityPool.getTotalEvroDeposits();
         uint256 initialSPCollBalance = stabilityPool.getCollBalance();
 
         // Check not RM
@@ -188,9 +188,9 @@ contract LiquidationsTest is DevTestSetup {
         trovesCount = troveManager.getTroveIdsCount();
         assertEq(trovesCount, 1);
 
-        // Check SP Bold has decreased
-        uint256 finalSPBoldBalance = stabilityPool.getTotalBoldDeposits();
-        assertEq(initialSPBoldBalance - finalSPBoldBalance, liquidationAmount + AInterest, "SP Bold balance mismatch");
+        // Check SP Evro has decreased
+        uint256 finalSPEvroBalance = stabilityPool.getTotalEvroDeposits();
+        assertEq(initialSPEvroBalance - finalSPEvroBalance, liquidationAmount + AInterest, "SP Evro balance mismatch");
         // Check SP Coll has increased by coll minus coll gas comp
         uint256 finalSPCollBalance = stabilityPool.getCollBalance();
         // liquidationAmount to Coll + 5%
@@ -263,7 +263,7 @@ contract LiquidationsTest is DevTestSetup {
         assertGt(troveManager.getTCR(price), CCR);
 
         // Check empty SP
-        assertEq(stabilityPool.getTotalBoldDeposits(), 0, "SP should be empty");
+        assertEq(stabilityPool.getTotalEvroDeposits(), 0, "SP should be empty");
 
         uint256 trovesCount = troveManager.getTroveIdsCount();
         assertEq(trovesCount, 2);
@@ -276,7 +276,7 @@ contract LiquidationsTest is DevTestSetup {
         assertEq(trovesCount, 1);
 
         // Check SP stays the same
-        assertEq(stabilityPool.getTotalBoldDeposits(), 0, "SP should be empty");
+        assertEq(stabilityPool.getTotalEvroDeposits(), 0, "SP should be empty");
         assertEq(stabilityPool.getCollBalance(), 0, "SP should not have Coll rewards");
 
         // Check B has received debt
@@ -347,7 +347,7 @@ contract LiquidationsTest is DevTestSetup {
         priceFeed.setPrice(1100e18 - 1);
         (vars.price,) = priceFeed.fetchPrice();
 
-        vars.spBoldBalance = stabilityPool.getTotalBoldDeposits();
+        vars.spEvroBalance = stabilityPool.getTotalEvroDeposits();
         vars.spCollBalance = stabilityPool.getCollBalance();
         vars.ACollBalance = collToken.balanceOf(A);
         vars.BDebt = troveManager.getTroveEntireDebt(vars.BTroveId);
@@ -370,10 +370,10 @@ contract LiquidationsTest is DevTestSetup {
         trovesCount = troveManager.getTroveIdsCount();
         assertEq(trovesCount, 1);
 
-        // Check SP Bold has decreased
-        uint256 finalSPBoldBalance = stabilityPool.getTotalBoldDeposits();
+        // Check SP Evro has decreased
+        uint256 finalSPEvroBalance = stabilityPool.getTotalEvroDeposits();
         // subtract 1e18 for the min remaining in the SP
-        assertEq(vars.spBoldBalance - finalSPBoldBalance, vars.liquidationAmount / 2 - 1e18, "SP Bold balance mismatch");
+        assertEq(vars.spEvroBalance - finalSPEvroBalance, vars.liquidationAmount / 2 - 1e18, "SP Evro balance mismatch");
         // Check SP Coll has  increased
         uint256 finalSPCollBalance = stabilityPool.getCollBalance();
         // vars.liquidationAmount to Coll + 5%

@@ -65,7 +65,7 @@ contract WBTCZapper is BaseZapper {
                 _params.owner,
                 index,
                 _params.collAmount,
-                _params.boldAmount,
+                _params.evroAmount,
                 _params.upperHint,
                 _params.lowerHint,
                 _params.annualInterestRate,
@@ -83,7 +83,7 @@ contract WBTCZapper is BaseZapper {
                     owner: _params.owner,
                     ownerIndex: index,
                     collAmount: _params.collAmount,
-                    boldAmount: _params.boldAmount,
+                    evroAmount: _params.evroAmount,
                     upperHint: _params.upperHint,
                     lowerHint: _params.lowerHint,
                     interestBatchManager: _params.batchManager,
@@ -98,7 +98,7 @@ contract WBTCZapper is BaseZapper {
                 borrowerOperations.openTroveAndJoinInterestBatchManager(openTroveAndJoinInterestBatchManagerParams);
         }
 
-        boldToken.transfer(msg.sender, _params.boldAmount);
+        evroToken.transfer(msg.sender, _params.evroAmount);
 
         // Set add/remove managers
         _setAddManager(troveId, _params.addManager);
@@ -148,29 +148,29 @@ contract WBTCZapper is BaseZapper {
         wBTCWrapper.withdrawTo(receiver, _amount);
     }
 
-    function withdrawBold(uint256 _troveId, uint256 _boldAmount, uint256 _maxUpfrontFee) external {
+    function withdrawEvro(uint256 _troveId, uint256 _evroAmount, uint256 _maxUpfrontFee) external {
         address owner = troveNFT.ownerOf(_troveId);
         address receiver = _requireSenderIsOwnerOrRemoveManagerAndGetReceiver(_troveId, owner);
         _requireZapperIsReceiver(_troveId);
 
-        borrowerOperations.withdrawBold(_troveId, _boldAmount, _maxUpfrontFee);
+        borrowerOperations.withdrawEvro(_troveId, _evroAmount, _maxUpfrontFee);
 
-        // Send Bold
-        boldToken.transfer(receiver, _boldAmount);
+        // Send Evro
+        evroToken.transfer(receiver, _evroAmount);
     }
 
-    function repayBold(uint256 _troveId, uint256 _boldAmount) external {
+    function repayEvro(uint256 _troveId, uint256 _evroAmount) external {
         address owner = troveNFT.ownerOf(_troveId);
         _requireSenderIsOwnerOrAddManager(_troveId, owner);
 
         // Set initial balances to make sure there are not lefovers
         InitialBalances memory initialBalances;
-        _setInitialTokensAndBalances(wBTCWrapper, boldToken, initialBalances);
+        _setInitialTokensAndBalances(wBTCWrapper, evroToken, initialBalances);
 
-        // Pull Bold
-        boldToken.transferFrom(msg.sender, address(this), _boldAmount);
+        // Pull Evro
+        evroToken.transferFrom(msg.sender, address(this), _evroAmount);
 
-        borrowerOperations.repayBold(_troveId, _boldAmount);
+        borrowerOperations.repayEvro(_troveId, _evroAmount);
 
         // return leftovers to user
         _returnLeftovers(initialBalances);
@@ -180,24 +180,24 @@ contract WBTCZapper is BaseZapper {
         uint256 _troveId,
         uint256 _collChange,
         bool _isCollIncrease,
-        uint256 _boldChange,
+        uint256 _evroChange,
         bool _isDebtIncrease,
         uint256 _maxUpfrontFee
     ) external payable {
         InitialBalances memory initialBalances;
         address payable receiver =
-            _adjustTrovePre(_troveId, _collChange, _isCollIncrease, _boldChange, _isDebtIncrease, initialBalances);
+            _adjustTrovePre(_troveId, _collChange, _isCollIncrease, _evroChange, _isDebtIncrease, initialBalances);
         borrowerOperations.adjustTrove(
-            _troveId, _collChange, _isCollIncrease, _boldChange, _isDebtIncrease, _maxUpfrontFee
+            _troveId, _collChange, _isCollIncrease, _evroChange, _isDebtIncrease, _maxUpfrontFee
         );
-        _adjustTrovePost(_collChange, _isCollIncrease, _boldChange, _isDebtIncrease, receiver, initialBalances);
+        _adjustTrovePost(_collChange, _isCollIncrease, _evroChange, _isDebtIncrease, receiver, initialBalances);
     }
 
     function adjustZombieTroveWithWBTC(
         uint256 _troveId,
         uint256 _collChange,
         bool _isCollIncrease,
-        uint256 _boldChange,
+        uint256 _evroChange,
         bool _isDebtIncrease,
         uint256 _upperHint,
         uint256 _lowerHint,
@@ -205,18 +205,18 @@ contract WBTCZapper is BaseZapper {
     ) external payable {
         InitialBalances memory initialBalances;
         address payable receiver =
-            _adjustTrovePre(_troveId, _collChange, _isCollIncrease, _boldChange, _isDebtIncrease, initialBalances);
+            _adjustTrovePre(_troveId, _collChange, _isCollIncrease, _evroChange, _isDebtIncrease, initialBalances);
         borrowerOperations.adjustZombieTrove(
-            _troveId, _collChange, _isCollIncrease, _boldChange, _isDebtIncrease, _upperHint, _lowerHint, _maxUpfrontFee
+            _troveId, _collChange, _isCollIncrease, _evroChange, _isDebtIncrease, _upperHint, _lowerHint, _maxUpfrontFee
         );
-        _adjustTrovePost(_collChange, _isCollIncrease, _boldChange, _isDebtIncrease, receiver, initialBalances);
+        _adjustTrovePost(_collChange, _isCollIncrease, _evroChange, _isDebtIncrease, receiver, initialBalances);
     }
 
     function _adjustTrovePre(
         uint256 _troveId,
         uint256 _collChange,
         bool _isCollIncrease,
-        uint256 _boldChange,
+        uint256 _evroChange,
         bool _isDebtIncrease,
         InitialBalances memory _initialBalances
     ) internal returns (address payable) {
@@ -231,7 +231,7 @@ contract WBTCZapper is BaseZapper {
             payable(_checkAdjustTroveManagers(_troveId, _collChange, _isCollIncrease, _isDebtIncrease));
 
         // Set initial balances to make sure there are not lefovers
-        _setInitialTokensAndBalances(wBTCWrapper, boldToken, _initialBalances);
+        _setInitialTokensAndBalances(wBTCWrapper, evroToken, _initialBalances);
 
         // WBTC -> wWBTC
         if (_isCollIncrease) {
@@ -245,9 +245,9 @@ contract WBTCZapper is BaseZapper {
             wBTCWrapper.depositFor(address(this), wbtcAmount);
         }
 
-        // Pull Bold
+        // Pull Evro
         if (!_isDebtIncrease) {
-            boldToken.transferFrom(msg.sender, address(this), _boldChange);
+            evroToken.transferFrom(msg.sender, address(this), _evroChange);
         }
 
         return receiver;
@@ -256,20 +256,20 @@ contract WBTCZapper is BaseZapper {
     function _adjustTrovePost(
         uint256 _collChange,
         bool _isCollIncrease,
-        uint256 _boldChange,
+        uint256 _evroChange,
         bool _isDebtIncrease,
         address payable _receiver,
         InitialBalances memory _initialBalances
     ) internal {
-        // Send Bold
+        // Send Evro
         if (_isDebtIncrease) {
-            boldToken.transfer(_receiver, _boldChange);
+            evroToken.transfer(_receiver, _evroChange);
         }
 
         // return BOLD leftovers to user (trying to repay more than possible)
-        uint256 currentBoldBalance = boldToken.balanceOf(address(this));
-        if (currentBoldBalance > _initialBalances.balances[1]) {
-            boldToken.transfer(_initialBalances.receiver, currentBoldBalance - _initialBalances.balances[1]);
+        uint256 currentEvroBalance = evroToken.balanceOf(address(this));
+        if (currentEvroBalance > _initialBalances.balances[1]) {
+            evroToken.transfer(_initialBalances.receiver, currentEvroBalance - _initialBalances.balances[1]);
         }
         // There shouldn’t be Collateral leftovers, everything sent should end up in the trove
         // But ETH and WETH balance can be non-zero if someone accidentally send it to this contract
@@ -285,9 +285,9 @@ contract WBTCZapper is BaseZapper {
         address payable receiver = payable(_requireSenderIsOwnerOrRemoveManagerAndGetReceiver(_troveId, owner));
         _requireZapperIsReceiver(_troveId);
 
-        // pull Bold for repayment
+        // pull Evro for repayment
         LatestTroveData memory trove = troveManager.getLatestTroveData(_troveId);
-        boldToken.transferFrom(msg.sender, address(this), trove.entireDebt);
+        evroToken.transferFrom(msg.sender, address(this), trove.entireDebt);
 
         borrowerOperations.closeTrove(_troveId);
 
@@ -318,7 +318,7 @@ contract WBTCZapper is BaseZapper {
         // Set initial balances to make sure there are not lefovers
         InitialBalances memory initialBalances;
         initialBalances.tokens[0] = wBTC;
-        initialBalances.tokens[1] = boldToken;
+        initialBalances.tokens[1] = evroToken;
         _setInitialBalancesAndReceiver(initialBalances, receiver);
 
         // Flash loan coll
@@ -340,13 +340,13 @@ contract WBTCZapper is BaseZapper {
         uint256 collLeft = trove.entireColl - _params.flashLoanAmount;
         require(collLeft >= _params.minExpectedCollateral, "WZ: Not enough collateral received");
 
-        // Swap Coll from flash loan to Bold, so we can repay and close trove
+        // Swap Coll from flash loan to Evro, so we can repay and close trove
         // We swap the flash loan minus the flash loan fee
-        exchange.swapToBold(_effectiveFlashLoanAmount, trove.entireDebt);
+        exchange.swapToEvro(_effectiveFlashLoanAmount, trove.entireDebt);
 
-        // We asked for a min of entireDebt in swapToBold call above, so we don't check again here:
-        // uint256 receivedBoldAmount = exchange.swapToBold(_effectiveFlashLoanAmount, trove.entireDebt);
-        //require(receivedBoldAmount >= trove.entireDebt, "WZ: Not enough BOLD obtained to repay");
+        // We asked for a min of entireDebt in swapToEvro call above, so we don't check again here:
+        // uint256 receivedEvroAmount = exchange.swapToEvro(_effectiveFlashLoanAmount, trove.entireDebt);
+        //require(receivedEvroAmount >= trove.entireDebt, "WZ: Not enough BOLD obtained to repay");
 
         borrowerOperations.closeTrove(_params.troveId);
 

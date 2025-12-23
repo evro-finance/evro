@@ -37,7 +37,7 @@ contract("BorrowerOperations", async (accounts) => {
   let contracts;
 
   let priceFeed;
-  let boldToken;
+  let evroToken;
   let sortedTroves;
   let troveManager;
   let activePool;
@@ -98,7 +98,7 @@ contract("BorrowerOperations", async (accounts) => {
 
       contracts = result.contracts;
       priceFeed = contracts.priceFeedTestnet;
-      boldToken = contracts.boldToken;
+      evroToken = contracts.evroToken;
       sortedTroves = contracts.sortedTroves;
       troveManager = contracts.troveManager;
       activePool = contracts.activePool;
@@ -1096,14 +1096,14 @@ contract("BorrowerOperations", async (accounts) => {
         }
       });
 
-      it("withdrawBold(): increases user BoldToken balance by correct amount", async () => {
+      it("withdrawBold(): increases user EvroToken balance by correct amount", async () => {
         const { troveId: aliceTroveId } = await openTrove({
           extraParams: { value: toBN(dec(100, "ether")), from: alice, batchManager: getBatchManager(withBatchDelegation, dennis) },
         });
 
         // check before
-        const alice_BoldTokenBalance_Before = await boldToken.balanceOf(alice);
-        assert.isTrue(alice_BoldTokenBalance_Before.gt(toBN("0")));
+        const alice_EvroTokenBalance_Before = await evroToken.balanceOf(alice);
+        assert.isTrue(alice_EvroTokenBalance_Before.gt(toBN("0")));
 
         await borrowerOperations.withdrawBold(
           aliceTroveId,
@@ -1113,10 +1113,10 @@ contract("BorrowerOperations", async (accounts) => {
         );
 
         // check after
-        const alice_BoldTokenBalance_After = await boldToken.balanceOf(alice);
+        const alice_EvroTokenBalance_After = await evroToken.balanceOf(alice);
         assert.isTrue(
-          alice_BoldTokenBalance_After.eq(
-            alice_BoldTokenBalance_Before.add(toBN(dec(10000, 18))),
+          alice_EvroTokenBalance_After.eq(
+            alice_EvroTokenBalance_Before.add(toBN(dec(10000, 18))),
           ),
         );
       });
@@ -1320,7 +1320,7 @@ contract("BorrowerOperations", async (accounts) => {
         );
       });
 
-      it("repayBold(): decreases user BoldToken balance by correct amount", async () => {
+      it("repayBold(): decreases user EvroToken balance by correct amount", async () => {
         const { troveId: aliceTroveId } = await openTrove({
           extraBoldAmount: toBN(dec(10000, 18)),
           ICR: toBN(dec(2, 18)),
@@ -1335,8 +1335,8 @@ contract("BorrowerOperations", async (accounts) => {
         assert.isTrue(aliceDebtBefore.gt(toBN("0")));
 
         // check before
-        const alice_BoldTokenBalance_Before = await boldToken.balanceOf(alice);
-        assert.isTrue(alice_BoldTokenBalance_Before.gt(toBN("0")));
+        const alice_EvroTokenBalance_Before = await evroToken.balanceOf(alice);
+        assert.isTrue(alice_EvroTokenBalance_Before.gt(toBN("0")));
 
         await borrowerOperations.repayBold(
           aliceTroveId,
@@ -1345,10 +1345,10 @@ contract("BorrowerOperations", async (accounts) => {
         ); // Repays 1/10 her debt
 
         // check after
-        const alice_BoldTokenBalance_After = await boldToken.balanceOf(alice);
+        const alice_EvroTokenBalance_After = await evroToken.balanceOf(alice);
         th.assertIsApproximatelyEqual(
-          alice_BoldTokenBalance_After,
-          alice_BoldTokenBalance_Before.sub(aliceDebtBefore.div(toBN(10))),
+          alice_EvroTokenBalance_After,
+          alice_EvroTokenBalance_Before.sub(aliceDebtBefore.div(toBN(10))),
         );
       });
 
@@ -1398,16 +1398,16 @@ contract("BorrowerOperations", async (accounts) => {
           ICR: toBN(dec(2, 18)),
           extraParams: { from: B, batchManager: getBatchManager(withBatchDelegation, dennis) },
         });
-        const bobBalBefore = await boldToken.balanceOf(B);
+        const bobBalBefore = await evroToken.balanceOf(B);
         assert.isTrue(bobBalBefore.gt(toBN("0")));
 
         // Bob transfers all but 5 of his Bold to Carol
-        await boldToken.transfer(C, bobBalBefore.sub(toBN(dec(5, 18))), {
+        await evroToken.transfer(C, bobBalBefore.sub(toBN(dec(5, 18))), {
           from: B,
         });
 
         // Confirm B's Bold balance has decreased to 5 Bold
-        const bobBalAfter = await boldToken.balanceOf(B);
+        const bobBalAfter = await evroToken.balanceOf(B);
 
         assert.isTrue(bobBalAfter.eq(toBN(dec(5, 18))));
 
@@ -1897,7 +1897,7 @@ contract("BorrowerOperations", async (accounts) => {
         assert.isTrue(bobDebt.gt(toBN("0")));
 
         // Alice transfers 1 Bold to bob
-        await boldToken.transfer(bob, th.toBN(dec(1, 18)), { from: alice });
+        await evroToken.transfer(bob, th.toBN(dec(1, 18)), { from: alice });
 
         const remainingDebt = await troveManager.getTroveDebt(bobTroveId);
 
@@ -2296,7 +2296,7 @@ contract("BorrowerOperations", async (accounts) => {
         );
       });
 
-      it("adjustTrove(): changes BoldToken balance by the requested decrease", async () => {
+      it("adjustTrove(): changes EvroToken balance by the requested decrease", async () => {
         await openTrove({
           extraBoldAmount: toBN(dec(10000, 18)),
           ICR: toBN(dec(10, 18)),
@@ -2309,8 +2309,8 @@ contract("BorrowerOperations", async (accounts) => {
           extraParams: { from: alice, batchManager: getBatchManager(withBatchDelegation, dennis) },
         });
 
-        const alice_BoldTokenBalance_Before = await boldToken.balanceOf(alice);
-        assert.isTrue(alice_BoldTokenBalance_Before.gt(toBN("0")));
+        const alice_EvroTokenBalance_Before = await evroToken.balanceOf(alice);
+        assert.isTrue(alice_EvroTokenBalance_Before.gt(toBN("0")));
 
         // Alice adjusts trove - coll decrease and debt decrease
         await borrowerOperations.adjustTrove(
@@ -2324,15 +2324,15 @@ contract("BorrowerOperations", async (accounts) => {
         );
 
         // check after
-        const alice_BoldTokenBalance_After = await boldToken.balanceOf(alice);
+        const alice_EvroTokenBalance_After = await evroToken.balanceOf(alice);
         assert.isTrue(
-          alice_BoldTokenBalance_After.eq(
-            alice_BoldTokenBalance_Before.sub(toBN(dec(10, 18))),
+          alice_EvroTokenBalance_After.eq(
+            alice_EvroTokenBalance_Before.sub(toBN(dec(10, 18))),
           ),
         );
       });
 
-      it("adjustTrove(): changes BoldToken balance by the requested increase", async () => {
+      it("adjustTrove(): changes EvroToken balance by the requested increase", async () => {
         await openTrove({
           extraBoldAmount: toBN(dec(10000, 18)),
           ICR: toBN(dec(10, 18)),
@@ -2345,8 +2345,8 @@ contract("BorrowerOperations", async (accounts) => {
           extraParams: { from: alice, batchManager: getBatchManager(withBatchDelegation, dennis) },
         });
 
-        const alice_BoldTokenBalance_Before = await boldToken.balanceOf(alice);
-        assert.isTrue(alice_BoldTokenBalance_Before.gt(toBN("0")));
+        const alice_EvroTokenBalance_Before = await evroToken.balanceOf(alice);
+        assert.isTrue(alice_EvroTokenBalance_Before.gt(toBN("0")));
 
         // Alice adjusts trove - coll increase and debt increase
         // approve ERC20 ETH
@@ -2362,10 +2362,10 @@ contract("BorrowerOperations", async (accounts) => {
         );
 
         // check after
-        const alice_BoldTokenBalance_After = await boldToken.balanceOf(alice);
+        const alice_EvroTokenBalance_After = await evroToken.balanceOf(alice);
         assert.isTrue(
-          alice_BoldTokenBalance_After.eq(
-            alice_BoldTokenBalance_Before.add(toBN(dec(100, 18))),
+          alice_EvroTokenBalance_After.eq(
+            alice_EvroTokenBalance_Before.add(toBN(dec(100, 18))),
           ),
         );
       });
@@ -2653,10 +2653,10 @@ contract("BorrowerOperations", async (accounts) => {
         const bobDebt = await getTroveEntireDebt(BTroveId);
 
         // Bob transfers some Bold to carol
-        await boldToken.transfer(C, dec(10, 18), { from: B });
+        await evroToken.transfer(C, dec(10, 18), { from: B });
 
         // Confirm B's Bold balance is less than 50 Bold
-        const B_BoldBal = await boldToken.balanceOf(B);
+        const B_BoldBal = await evroToken.balanceOf(B);
         assert.isTrue(B_BoldBal.lt(bobDebt));
 
         const repayBoldPromise_B = borrowerOperations.adjustTrove(
@@ -2689,7 +2689,7 @@ contract("BorrowerOperations", async (accounts) => {
         const price = await priceFeed.getPrice();
 
         // to compensate borrowing fees
-        await boldToken.transfer(alice, dec(300, 18), { from: bob });
+        await evroToken.transfer(alice, dec(300, 18), { from: bob });
 
         assert.isFalse(await troveManager.checkBelowCriticalThreshold(price));
 
@@ -2738,9 +2738,9 @@ contract("BorrowerOperations", async (accounts) => {
         });
 
         // Alice transfers her Bold to Bob and Carol so they can cover fees
-        const aliceBal = await boldToken.balanceOf(alice);
-        await boldToken.transfer(bob, aliceBal.div(toBN(2)), { from: alice });
-        await boldToken.transfer(carol, aliceBal.div(toBN(2)), { from: alice });
+        const aliceBal = await evroToken.balanceOf(alice);
+        await evroToken.transfer(bob, aliceBal.div(toBN(2)), { from: alice });
+        await evroToken.transfer(carol, aliceBal.div(toBN(2)), { from: alice });
 
         // check not below CT
         assert.isFalse(await th.checkBelowCriticalThreshold(contracts));
@@ -2774,12 +2774,12 @@ contract("BorrowerOperations", async (accounts) => {
         });
 
         const aliceCollBefore = await getTroveEntireColl(aliceTroveId);
-        const dennisBold = await boldToken.balanceOf(dennis);
+        const dennisBold = await evroToken.balanceOf(dennis);
         assert.isTrue(aliceCollBefore.gt(toBN("0")));
         assert.isTrue(dennisBold.gt(toBN("0")));
 
         // To compensate borrowing fees
-        await boldToken.transfer(alice, dennisBold.div(toBN(2)), {
+        await evroToken.transfer(alice, dennisBold.div(toBN(2)), {
           from: dennis,
         });
 
@@ -2804,12 +2804,12 @@ contract("BorrowerOperations", async (accounts) => {
         });
 
         const aliceDebtBefore = await getTroveEntireColl(aliceTroveId);
-        const dennisBold = await boldToken.balanceOf(dennis);
+        const dennisBold = await evroToken.balanceOf(dennis);
         assert.isTrue(aliceDebtBefore.gt(toBN("0")));
         assert.isTrue(dennisBold.gt(toBN("0")));
 
         // To compensate borrowing fees
-        await boldToken.transfer(alice, dennisBold.div(toBN(2)), {
+        await evroToken.transfer(alice, dennisBold.div(toBN(2)), {
           from: dennis,
         });
 
@@ -2836,12 +2836,12 @@ contract("BorrowerOperations", async (accounts) => {
         const aliceStakeBefore = await getTroveStake(aliceTroveId);
         assert.isTrue(aliceStakeBefore.gt(toBN("0")));
 
-        const dennisBold = await boldToken.balanceOf(dennis);
+        const dennisBold = await evroToken.balanceOf(dennis);
         assert.isTrue(aliceStakeBefore.gt(toBN("0")));
         assert.isTrue(dennisBold.gt(toBN("0")));
 
         // To compensate borrowing fees
-        await boldToken.transfer(alice, dennisBold.div(toBN(2)), {
+        await evroToken.transfer(alice, dennisBold.div(toBN(2)), {
           from: dennis,
         });
 
@@ -2916,7 +2916,7 @@ contract("BorrowerOperations", async (accounts) => {
         assert.isTrue(L_boldDebt_Snapshot_A_AfterLiquidation.gt(toBN("0")));
 
         // to compensate borrowing fees
-        await boldToken.transfer(alice, await boldToken.balanceOf(dennis), {
+        await evroToken.transfer(alice, await evroToken.balanceOf(dennis), {
           from: dennis,
         });
 
@@ -2958,7 +2958,7 @@ contract("BorrowerOperations", async (accounts) => {
         assert.isTrue(await sortedTroves.contains(aliceTroveId));
 
         // to compensate borrowing fees
-        await boldToken.transfer(alice, await boldToken.balanceOf(dennis), {
+        await evroToken.transfer(alice, await evroToken.balanceOf(dennis), {
           from: dennis,
         });
 
@@ -2999,7 +2999,7 @@ contract("BorrowerOperations", async (accounts) => {
         assert.isTrue(activePool_RawEther_before.eq(activePool_ETH_before));
 
         // to compensate borrowing fees
-        await boldToken.transfer(alice, await boldToken.balanceOf(dennis), {
+        await evroToken.transfer(alice, await evroToken.balanceOf(dennis), {
           from: dennis,
         });
 
@@ -3038,7 +3038,7 @@ contract("BorrowerOperations", async (accounts) => {
         assert.isTrue(activePool_Debt_before.gt(toBN("0")));
 
         // to compensate borrowing fees
-        await boldToken.transfer(alice, await boldToken.balanceOf(dennis), {
+        await evroToken.transfer(alice, await evroToken.balanceOf(dennis), {
           from: dennis,
         });
 
@@ -3084,7 +3084,7 @@ contract("BorrowerOperations", async (accounts) => {
         );
 
         // to compensate borrowing fees
-        await boldToken.transfer(alice, await boldToken.balanceOf(dennis), {
+        await evroToken.transfer(alice, await evroToken.balanceOf(dennis), {
           from: dennis,
         });
 
@@ -3122,7 +3122,7 @@ contract("BorrowerOperations", async (accounts) => {
         );
 
         // to compensate borrowing fees
-        await boldToken.transfer(alice, await boldToken.balanceOf(dennis), {
+        await evroToken.transfer(alice, await evroToken.balanceOf(dennis), {
           from: dennis,
         });
 
@@ -3136,7 +3136,7 @@ contract("BorrowerOperations", async (accounts) => {
         assert.isTrue(balanceDiff.eq(aliceColl.add(ETH_GAS_COMPENSATION)));
       });
 
-      it("closeTrove(): subtracts the debt of the closed Trove from the Borrower's BoldToken balance", async () => {
+      it("closeTrove(): subtracts the debt of the closed Trove from the Borrower's EvroToken balance", async () => {
         await openTrove({
           extraBoldAmount: toBN(dec(10000, 18)),
           ICR: toBN(dec(2, 18)),
@@ -3152,18 +3152,18 @@ contract("BorrowerOperations", async (accounts) => {
         assert.isTrue(aliceDebt.gt(toBN("0")));
 
         // to compensate borrowing fees
-        await boldToken.transfer(alice, await boldToken.balanceOf(dennis), {
+        await evroToken.transfer(alice, await evroToken.balanceOf(dennis), {
           from: dennis,
         });
 
-        const alice_BoldBalance_Before = await boldToken.balanceOf(alice);
+        const alice_BoldBalance_Before = await evroToken.balanceOf(alice);
         assert.isTrue(alice_BoldBalance_Before.gt(toBN("0")));
 
         // close trove
         await borrowerOperations.closeTrove(aliceTroveId, { from: alice });
 
         // check alice Bold balance after
-        const alice_BoldBalance_After = await boldToken.balanceOf(alice);
+        const alice_BoldBalance_After = await evroToken.balanceOf(alice);
         th.assertIsApproximatelyEqual(
           alice_BoldBalance_After,
           alice_BoldBalance_Before.sub(aliceDebt),
@@ -3200,8 +3200,8 @@ contract("BorrowerOperations", async (accounts) => {
         const carolColl = await getTroveEntireColl(carolTroveId);
 
         // Whale transfers to A and B to cover their fees
-        await boldToken.transfer(alice, dec(10000, 18), { from: whale });
-        await boldToken.transfer(bob, dec(10000, 18), { from: whale });
+        await evroToken.transfer(alice, dec(10000, 18), { from: whale });
+        await evroToken.transfer(bob, dec(10000, 18), { from: whale });
 
         // --- TEST ---
 
@@ -3315,10 +3315,10 @@ contract("BorrowerOperations", async (accounts) => {
         });
 
         // B sends away 1 Bold to A
-        await boldToken.transfer(A, th.toBN(dec(1, 18)), { from: B });
+        await evroToken.transfer(A, th.toBN(dec(1, 18)), { from: B });
 
         // Confirm B's Bold balance is less than his trove debt
-        const B_BoldBal = await boldToken.balanceOf(B);
+        const B_BoldBal = await evroToken.balanceOf(B);
         const B_troveDebt = await getTroveEntireDebt(BTroveId);
 
         assert.isTrue(B_BoldBal.lt(B_troveDebt));
@@ -3790,7 +3790,7 @@ contract("BorrowerOperations", async (accounts) => {
         assert.isTrue(await sortedTroves.contains(aliceTroveId));
 
         // to compensate borrowing fees
-        await boldToken.transfer(alice, dec(10000, 18), { from: whale });
+        await evroToken.transfer(alice, dec(10000, 18), { from: whale });
 
         // Repay and close Trove
         await borrowerOperations.closeTrove(aliceTroveId, { from: alice });
@@ -3852,10 +3852,10 @@ contract("BorrowerOperations", async (accounts) => {
         assert.isTrue(activePool_BoldDebt_After.eq(aliceDebt));
       });
 
-      it("openTrove(): increases user BoldToken balance by correct amount", async () => {
+      it("openTrove(): increases user EvroToken balance by correct amount", async () => {
         // check before
-        const alice_BoldTokenBalance_Before = await boldToken.balanceOf(alice);
-        assert.equal(alice_BoldTokenBalance_Before, 0);
+        const alice_EvroTokenBalance_Before = await evroToken.balanceOf(alice);
+        assert.equal(alice_EvroTokenBalance_Before, 0);
 
         await th.openTroveWrapper(contracts, dec(10000, 18), alice, alice, 0, {
           from: alice,
@@ -3863,8 +3863,8 @@ contract("BorrowerOperations", async (accounts) => {
           batchManager: getBatchManager(withBatchDelegation, dennis) });
 
         // check after
-        const alice_BoldTokenBalance_After = await boldToken.balanceOf(alice);
-        assert.equal(alice_BoldTokenBalance_After, dec(10000, 18));
+        const alice_EvroTokenBalance_After = await evroToken.balanceOf(alice);
+        assert.equal(alice_EvroTokenBalance_After, dec(10000, 18));
       });
 
       //  --- getNewTCRFromTroveChange  - (external wrapper in Tester contract calls internal function) ---

@@ -39,7 +39,7 @@ contract(
     let contracts;
 
     let priceFeed;
-    let boldToken;
+    let evroToken;
     let sortedTroves;
     let troveManager;
     let activePool;
@@ -67,7 +67,7 @@ contract(
 
       contracts = result.contracts;
       priceFeed = contracts.priceFeed;
-      boldToken = contracts.boldToken;
+      evroToken = contracts.evroToken;
       sortedTroves = contracts.sortedTroves;
       troveManager = contracts.troveManager;
       activePool = contracts.activePool;
@@ -253,11 +253,11 @@ contract(
       });
     });
 
-    describe("BoldToken", async (accounts) => {
+    describe("EvroToken", async (accounts) => {
       //    mint
       it("mint(): reverts when called by an account that is not BorrowerOperations", async () => {
         // Attempt call from alice
-        const txAlice = boldToken.mint(bob, 100, { from: alice });
+        const txAlice = evroToken.mint(bob, 100, { from: alice });
         await th.assertRevert(txAlice, "Caller is not BorrowerOperations");
       });
 
@@ -265,7 +265,7 @@ contract(
       it("burn(): reverts when called by an account that is not BO nor TroveM nor SP", async () => {
         // Attempt call from alice
         try {
-          const txAlice = await boldToken.burn(bob, 100, { from: alice });
+          const txAlice = await evroToken.burn(bob, 100, { from: alice });
         } catch (err) {
           assert.include(err.message, "revert");
           // assert.include(err.message, "Caller is neither BorrowerOperations nor TroveManager nor StabilityPool")
@@ -276,7 +276,7 @@ contract(
       it("sendToPool(): reverts when called by an account that is not StabilityPool", async () => {
         // Attempt call from alice
         try {
-          const txAlice = await boldToken.sendToPool(
+          const txAlice = await evroToken.sendToPool(
             bob,
             activePool.address,
             100,
@@ -292,7 +292,7 @@ contract(
       it("returnFromPool(): reverts when called by an account that is not TroveManager nor StabilityPool", async () => {
         // Attempt call from alice
         try {
-          const txAlice = await boldToken.returnFromPool(
+          const txAlice = await evroToken.returnFromPool(
             activePool.address,
             bob,
             100,

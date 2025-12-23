@@ -5,7 +5,6 @@ pragma solidity 0.8.24;
 import "./MainnetPriceFeedBase.sol";
 import {IERC4626} from "@openzeppelin/contracts/interfaces/IERC4626.sol";
 import {FixedPointMathLib} from "solady/utils/FixedPointMathLib.sol";
-// import "forge-std/console2.sol";
 
 contract SDAIPriceFeed is MainnetPriceFeedBase {
     IERC4626 public immutable sdai;

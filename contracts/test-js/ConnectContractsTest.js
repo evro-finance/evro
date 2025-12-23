@@ -7,7 +7,7 @@ contract("Deployment script - Sets correct contract addresses dependencies after
   const [bountyAddress, lpRewardsAddress, multisig] = accounts.slice(997, 1000);
 
   let priceFeed;
-  let boldToken;
+  let evroToken;
   let sortedTroves;
   let troveManager;
   let activePool;
@@ -21,7 +21,7 @@ contract("Deployment script - Sets correct contract addresses dependencies after
     });
 
     priceFeed = coreContracts.priceFeedTestnet;
-    boldToken = coreContracts.boldToken;
+    evroToken = coreContracts.evroToken;
     sortedTroves = coreContracts.sortedTroves;
     troveManager = coreContracts.troveManager;
     activePool = coreContracts.activePool;
@@ -41,12 +41,12 @@ contract("Deployment script - Sets correct contract addresses dependencies after
     assert.equal(priceFeedAddress, recordedPriceFeedAddress);
   });
 
-  it("Sets the correct BoldToken address in TroveManager", async () => {
-    const boldTokenAddress = boldToken.address;
+  it("Sets the correct EvroToken address in TroveManager", async () => {
+    const evroTokenAddress = evroToken.address;
 
-    const recordedClvTokenAddress = await troveManager.getBoldToken();
+    const recordedClvTokenAddress = await troveManager.getEvroToken();
 
-    assert.equal(boldTokenAddress, recordedClvTokenAddress);
+    assert.equal(evroTokenAddress, recordedClvTokenAddress);
   });
 
   it("Sets the correct SortedTroves address in TroveManager", async () => {
@@ -142,12 +142,12 @@ contract("Deployment script - Sets correct contract addresses dependencies after
     assert.equal(borrowerOperationsAddress, recordedBorrowerOperationsAddress);
   });
 
-  it("Sets the correct BoldToken address in StabilityPool", async () => {
-    const boldTokenAddress = boldToken.address;
+  it("Sets the correct EvroToken address in StabilityPool", async () => {
+    const evroTokenAddress = evroToken.address;
 
-    const recordedClvTokenAddress = await stabilityPool.boldToken();
+    const recordedClvTokenAddress = await stabilityPool.evroToken();
 
-    assert.equal(boldTokenAddress, recordedClvTokenAddress);
+    assert.equal(evroTokenAddress, recordedClvTokenAddress);
   });
 
   it("Sets the correct TroveManager address in StabilityPool", async () => {

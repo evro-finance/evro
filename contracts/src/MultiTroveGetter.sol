@@ -61,7 +61,7 @@ contract MultiTroveGetter is IMultiTroveGetter {
         LatestTroveData memory troveData = _troveManager.getLatestTroveData(_id);
         _out.entireDebt = troveData.entireDebt;
         _out.entireColl = troveData.entireColl;
-        _out.redistBoldDebtGain = troveData.redistBoldDebtGain;
+        _out.redistEvroDebtGain = troveData.redistEvroDebtGain;
         _out.redistCollGain = troveData.redistCollGain;
         _out.accruedInterest = troveData.accruedInterest;
         _out.recordedDebt = troveData.recordedDebt;
@@ -82,7 +82,7 @@ contract MultiTroveGetter is IMultiTroveGetter {
             _out.batchDebtShares
         ) = _troveManager.Troves(_id);
 
-        (_out.snapshotETH, _out.snapshotBoldDebt) = _troveManager.rewardSnapshots(_id);
+        (_out.snapshotETH, _out.snapshotEvroDebt) = _troveManager.rewardSnapshots(_id);
     }
 
     function _getMultipleSortedTrovesFromHead(

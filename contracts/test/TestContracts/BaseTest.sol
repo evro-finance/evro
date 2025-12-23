@@ -3,7 +3,7 @@ pragma solidity 0.8.24;
 
 import "./Accounts.sol";
 import "src/Interfaces/IActivePool.sol";
-import "src/Interfaces/IBoldToken.sol";
+import "src/Interfaces/IEvroToken.sol";
 import "src/Interfaces/ICollSurplusPool.sol";
 import "src/Interfaces/IDefaultPool.sol";
 import "src/Interfaces/IPriceFeed.sol";
@@ -47,7 +47,7 @@ contract BaseTest is TestAccounts, Logging, TroveId {
     ITroveManagerTester troveManager;
     ITroveNFT troveNFT;
     IMetadataNFT metadataNFT;
-    IBoldToken boldToken;
+    IEvroToken evroToken;
     ICollateralRegistry collateralRegistry;
     IPriceFeedTestnet priceFeed;
     GasPool gasPool;
@@ -188,31 +188,31 @@ contract BaseTest is TestAccounts, Logging, TroveId {
         return troveManager.getTroveEntireDebt(troveId);
     }
 
-    function openTroveNoHints100pct(address _account, uint256 _coll, uint256 _boldAmount, uint256 _annualInterestRate)
+    function openTroveNoHints100pct(address _account, uint256 _coll, uint256 _evroAmount, uint256 _annualInterestRate)
         public
         returns (uint256 troveId)
     {
-        (troveId,) = openTroveHelper(_account, 0, _coll, _boldAmount, _annualInterestRate);
+        (troveId,) = openTroveHelper(_account, 0, _coll, _evroAmount, _annualInterestRate);
     }
 
     function openTroveNoHints100pctWithIndex(
         address _account,
         uint256 _index,
         uint256 _coll,
-        uint256 _boldAmount,
+        uint256 _evroAmount,
         uint256 _annualInterestRate
     ) public returns (uint256 troveId) {
-        (troveId,) = openTroveHelper(_account, _index, _coll, _boldAmount, _annualInterestRate);
+        (troveId,) = openTroveHelper(_account, _index, _coll, _evroAmount, _annualInterestRate);
     }
 
     function openTroveHelper(
         address _account,
         uint256 _index,
         uint256 _coll,
-        uint256 _boldAmount,
+        uint256 _evroAmount,
         uint256 _annualInterestRate
     ) public returns (uint256 troveId, uint256 upfrontFee) {
-        upfrontFee = predictOpenTroveUpfrontFee(_boldAmount, _annualInterestRate);
+        upfrontFee = predictOpenTroveUpfrontFee(_evroAmount, _annualInterestRate);
 
         vm.startPrank(_account);
 
@@ -220,7 +220,7 @@ contract BaseTest is TestAccounts, Logging, TroveId {
             _account,
             _index,
             _coll,
-            _boldAmount,
+            _evroAmount,
             0, // _upperHint
             0, // _lowerHint
             _annualInterestRate,
@@ -269,7 +269,7 @@ contract BaseTest is TestAccounts, Logging, TroveId {
         address _account,
         uint256 _troveId,
         uint256 _collChange,
-        uint256 _boldChange,
+        uint256 _evroChange,
         bool _isCollIncrease,
         bool _isDebtIncrease
     ) public {
@@ -279,11 +279,11 @@ contract BaseTest is TestAccounts, Logging, TroveId {
             _troveId,
             _collChange,
             _isCollIncrease,
-            _boldChange,
+            _evroChange,
             _isDebtIncrease,
             predictAdjustTroveUpfrontFee(
                 _troveId,
-                _isDebtIncrease ? _boldChange : 0 // debtIncrease
+                _isDebtIncrease ? _evroChange : 0 // debtIncrease
             )
         );
 
@@ -295,7 +295,7 @@ contract BaseTest is TestAccounts, Logging, TroveId {
         uint256 _troveId,
         uint256 _collChange,
         bool _isCollIncrease,
-        uint256 _boldChange,
+        uint256 _evroChange,
         bool _isDebtIncrease
     ) public {
         vm.startPrank(_account);
@@ -304,13 +304,13 @@ contract BaseTest is TestAccounts, Logging, TroveId {
             _troveId,
             _collChange,
             _isCollIncrease,
-            _boldChange,
+            _evroChange,
             _isDebtIncrease,
             0, // _upperHint
             0, // _lowerHint
             predictAdjustTroveUpfrontFee(
                 _troveId,
-                _isDebtIncrease ? _boldChange : 0 // debtIncrease
+                _isDebtIncrease ? _evroChange : 0 // debtIncrease
             )
         );
 
@@ -370,15 +370,15 @@ contract BaseTest is TestAccounts, Logging, TroveId {
         vm.stopPrank();
     }
 
-    function withdrawBold100pct(address _account, uint256 _troveId, uint256 _debtIncrease) public {
+    function withdrawEvro100pct(address _account, uint256 _troveId, uint256 _debtIncrease) public {
         vm.startPrank(_account);
-        borrowerOperations.withdrawBold(_troveId, _debtIncrease, predictAdjustTroveUpfrontFee(_troveId, _debtIncrease));
+        borrowerOperations.withdrawEvro(_troveId, _debtIncrease, predictAdjustTroveUpfrontFee(_troveId, _debtIncrease));
         vm.stopPrank();
     }
 
-    function repayBold(address _account, uint256 _troveId, uint256 _debtDecrease) public {
+    function repayEvro(address _account, uint256 _troveId, uint256 _debtDecrease) public {
         vm.startPrank(_account);
-        borrowerOperations.repayBold(_troveId, _debtDecrease);
+        borrowerOperations.repayEvro(_troveId, _debtDecrease);
         vm.stopPrank();
     }
 
@@ -400,9 +400,9 @@ contract BaseTest is TestAccounts, Logging, TroveId {
         vm.stopPrank();
     }
 
-    function transferBold(address _from, address _to, uint256 _amount) public {
+    function transferEvro(address _from, address _to, uint256 _amount) public {
         vm.startPrank(_from);
-        boldToken.transfer(_to, _amount);
+        evroToken.transfer(_to, _amount);
         vm.stopPrank();
     }
 
@@ -418,14 +418,14 @@ contract BaseTest is TestAccounts, Logging, TroveId {
         vm.stopPrank();
     }
 
-    function redeem(address _from, uint256 _boldAmount) public {
+    function redeem(address _from, uint256 _evroAmount) public {
         vm.startPrank(_from);
-        collateralRegistry.redeemCollateral(_boldAmount, MAX_UINT256, 1e18);
+        collateralRegistry.redeemCollateral(_evroAmount, MAX_UINT256, 1e18);
         vm.stopPrank();
     }
 
     function getShareofSPReward(address _depositor, uint256 _reward) public view returns (uint256) {
-        return _reward * stabilityPool.getCompoundedBoldDeposit(_depositor) / stabilityPool.getTotalBoldDeposits();
+        return _reward * stabilityPool.getCompoundedEvroDeposit(_depositor) / stabilityPool.getTotalEvroDeposits();
     }
 
     function registerBatchManager(address _account) internal {
@@ -487,7 +487,7 @@ contract BaseTest is TestAccounts, Logging, TroveId {
             owner: _troveOwner,
             ownerIndex: _index,
             collAmount: _coll,
-            boldAmount: _debt,
+            evroAmount: _debt,
             upperHint: 0,
             lowerHint: 0,
             interestBatchManager: _batchAddress,
@@ -570,7 +570,7 @@ contract BaseTest is TestAccounts, Logging, TroveId {
         console.log("SortedTroves addr: ", address(sortedTroves));
         console.log("StabilityPool addr: ", address(stabilityPool));
         console.log("TroveManager addr: ", address(troveManager));
-        console.log("BoldToken addr: ", address(boldToken));
+        console.log("EvroToken addr: ", address(evroToken));
     }
 
     function abs(uint256 x, uint256 y) public pure returns (uint256) {

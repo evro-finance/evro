@@ -3,7 +3,7 @@
 pragma solidity 0.8.24;
 
 struct TroveChange {
-    uint256 appliedRedistBoldDebtGain;
+    uint256 appliedRedistEvroDebtGain;
     uint256 appliedRedistCollGain;
     uint256 collIncrease;
     uint256 collDecrease;

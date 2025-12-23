@@ -26,7 +26,7 @@ contract AnchoredInvariantsTest is Logging, BaseInvariantTest, BaseMultiCollater
         p[3] = TestDeployer.TroveManagerParams(1.6 ether, 1.25 ether, 0.1 ether, 1.01 ether, 0.05 ether, 0.1 ether);
         TestDeployer deployer = new TestDeployer();
         Contracts memory contracts;
-        (contracts.branches, contracts.collateralRegistry, contracts.boldToken, contracts.hintHelpers,, contracts.weth,)
+        (contracts.branches, contracts.collateralRegistry, contracts.evroToken, contracts.hintHelpers,, contracts.weth,)
         = deployer.deployAndConnectContractsMultiColl(p);
         setupContracts(contracts);
 
@@ -1030,7 +1030,7 @@ contract AnchoredInvariantsTest is Logging, BaseInvariantTest, BaseMultiCollater
         // upper hint: 0
         // lower hint: 30960623452289762463130736603892188849115197753010878244835568881362241800197
         // upfront fee: 56.245103106642574315 ether
-        // function: withdrawBold()
+        // function: withdrawEvro()
         vm.prank(hope);
         handler.adjustTrove(
             0,

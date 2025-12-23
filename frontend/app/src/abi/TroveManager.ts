@@ -613,8 +613,8 @@ export const TroveManager = [
   },
   {
     "type": "event",
-    "name": "BoldTokenAddressChanged",
-    "inputs": [{ "name": "_newBoldTokenAddress", "type": "address", "indexed": false, "internalType": "address" }],
+    "name": "EvroTokenAddressChanged",
+    "inputs": [{ "name": "_newEvroTokenAddress", "type": "address", "indexed": false, "internalType": "address" }],
     "anonymous": false,
   },
   {

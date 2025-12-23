@@ -35,7 +35,7 @@ const ZERO_ADDRESS = "0x" + "0".repeat(40);
 const ZAddress = z.string().regex(/^0x[0-9a-fA-F]{40}$/);
 const ZDeploymentManifest = z.object({
   collateralRegistry: ZAddress,
-  boldToken: ZAddress,
+  evroToken: ZAddress,
   hintHelpers: ZAddress,
   multiTroveGetter: ZAddress,
   debtInFrontHelper: ZAddress,
@@ -171,7 +171,7 @@ function contractNameToAppEnvVariable(contractName: string, prefix: string = "")
   prefix = `NEXT_PUBLIC_${prefix}`;
   switch (contractName) {
     // protocol contracts
-    case "boldToken":
+    case "evroToken":
       return `${prefix}_BOLD_TOKEN`;
     case "collateralRegistry":
       return `${prefix}_COLLATERAL_REGISTRY`;

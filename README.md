@@ -197,7 +197,7 @@ The Liquity v2 system prices collateral via Chainlink oracles. When a Trove fall
 
 The core Liquity contracts are organized in this manner:
 
-- There is a single `CollateralRegistry`, a single `BoldToken`, and a set of core system contracts deployed for each collateral “branch”.
+- There is a single `CollateralRegistry`, a single `EvroToken`, and a set of core system contracts deployed for each collateral “branch”.
 
 - A single `CollateralRegistry` maps external collateral ERC20 tokens to a `TroveManager` address. The `CollateralRegistry` also routes redemptions across the different collateral branches.
 

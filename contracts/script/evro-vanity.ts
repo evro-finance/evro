@@ -37,7 +37,7 @@ for (let i = 0;; ++i) {
   const salt = keccak256(stringToBytes(saltStr), "bytes");
   const evroAddress = computeCreate2Address(salt, evroInitCodeHash);
 
-  if (evroAddress[0] === 0xb0 && evroAddress[1] === 0x1d /*&& evroAddress[18] === 0xb0 && evroAddress[19] === 0x1d*/) {
+  if (evroAddress[0] === 0xe0 /*&& evroAddress[18] === 0xe0*/) {
     console.log("Salt found:", saltStr);
     console.log("EVRO address:", getAddress(bytesToHex(evroAddress)));
     break;

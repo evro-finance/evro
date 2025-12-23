@@ -27,7 +27,7 @@ uint256 constant ROOT_NODE_ID = 0;
 * The list is a modification of the following audited SortedDoublyLinkedList:
 * https://github.com/livepeer/protocol/blob/master/contracts/libraries/SortedDoublyLL.sol
 *
-* Changes made in the Bold implementation:
+* Changes made in the Evro implementation:
 *
 * - Keys have been removed from nodes
 *

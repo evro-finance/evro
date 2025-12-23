@@ -6,7 +6,7 @@ import "./ILiquityBase.sol";
 import "./ITroveNFT.sol";
 import "./IBorrowerOperations.sol";
 import "./IStabilityPool.sol";
-import "./IBoldToken.sol";
+import "./IEvroToken.sol";
 import "./ISortedTroves.sol";
 import "../Types/LatestTroveData.sol";
 import "../Types/LatestBatchData.sol";
@@ -25,7 +25,7 @@ interface ITroveManager is ILiquityBase {
 
     function troveNFT() external view returns (ITroveNFT);
     function stabilityPool() external view returns (IStabilityPool);
-    //function boldToken() external view returns (IBoldToken);
+    //function evroToken() external view returns (IEvroToken);
     function sortedTroves() external view returns (ISortedTroves);
     function borrowerOperations() external view returns (IBorrowerOperations);
 
@@ -45,7 +45,7 @@ interface ITroveManager is ILiquityBase {
             uint256 batchDebtShares
         );
 
-    function rewardSnapshots(uint256 _id) external view returns (uint256 coll, uint256 boldDebt);
+    function rewardSnapshots(uint256 _id) external view returns (uint256 coll, uint256 evroDebt);
 
     function getTroveIdsCount() external view returns (uint256);
 
@@ -59,14 +59,14 @@ interface ITroveManager is ILiquityBase {
 
     function redeemCollateral(
         address _sender,
-        uint256 _boldAmount,
+        uint256 _evroAmount,
         uint256 _price,
         uint256 _redemptionRate,
         uint256 _maxIterations
     ) external returns (uint256 _redemeedAmount);
 
     function shutdown() external;
-    function urgentRedemption(uint256 _boldAmount, uint256[] calldata _troveIds, uint256 _minCollateral) external;
+    function urgentRedemption(uint256 _evroAmount, uint256[] calldata _troveIds, uint256 _minCollateral) external;
 
     function getUnbackedPortionPriceAndRedeemability() external returns (uint256, uint256, bool);
 

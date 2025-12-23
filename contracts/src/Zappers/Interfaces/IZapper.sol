@@ -10,7 +10,7 @@ interface IZapper {
         address owner;
         uint256 ownerIndex;
         uint256 collAmount;
-        uint256 boldAmount;
+        uint256 evroAmount;
         uint256 upperHint;
         uint256 lowerHint;
         uint256 annualInterestRate;
