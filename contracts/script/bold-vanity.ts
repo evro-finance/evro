@@ -14,7 +14,7 @@ import {
 import EvroToken from "../out/EvroToken.sol/EvroToken.json";
 
 const DEPLOYER = "0xbEC25C5590e89596BDE2DfCdc71579E66858772c";
-const SALT_PREFIX = "beBOLD";
+const SALT_PREFIX = "beEVRO";
 const CREATE2_DEPLOYER = "0x4e59b44847b379578588920cA78FbF26c0B4956C";
 const CREATE2_PREFIX = concatBytes([hexToBytes("0xFF"), hexToBytes(CREATE2_DEPLOYER)]);
 
@@ -24,7 +24,7 @@ const computeCreate2Address = (salt: ByteArray, initCodeHash: ByteArray): ByteAr
 const startsWith = <T extends string>(str: string, prefix: T): str is `${T}${string}` => str.startsWith(prefix);
 assert(startsWith(EvroToken.bytecode.object, "0x"));
 
-const boldInitCodeHash = keccak256(
+const evroInitCodeHash = keccak256(
   concatBytes([
     hexToBytes(EvroToken.bytecode.object),
     padBytes(hexToBytes(DEPLOYER)),
@@ -35,11 +35,11 @@ const boldInitCodeHash = keccak256(
 for (let i = 0;; ++i) {
   const saltStr = `${SALT_PREFIX}${i}`;
   const salt = keccak256(stringToBytes(saltStr), "bytes");
-  const boldAddress = computeCreate2Address(salt, boldInitCodeHash);
+  const evroAddress = computeCreate2Address(salt, evroInitCodeHash);
 
-  if (boldAddress[0] === 0xb0 && boldAddress[1] === 0x1d /*&& boldAddress[18] === 0xb0 && boldAddress[19] === 0x1d*/) {
+  if (evroAddress[0] === 0xb0 && evroAddress[1] === 0x1d /*&& evroAddress[18] === 0xb0 && evroAddress[19] === 0x1d*/) {
     console.log("Salt found:", saltStr);
-    console.log("BOLD address:", getAddress(bytesToHex(boldAddress)));
+    console.log("EVRO address:", getAddress(bytesToHex(evroAddress)));
     break;
   }
 }

@@ -114,7 +114,7 @@ const waitForContractAddress = async (hash: `0x${string}`) => {
   return receipt.contractAddress;
 };
 
-const mintBold = async (to: `0x${string}`, amount: bigint) => {
+const mintEvro = async (to: `0x${string}`, amount: bigint) => {
   const price = await priceFeed.read.getPrice();
   const collAmount = amount * BigInt(2e18) / price;
 
@@ -125,7 +125,7 @@ const mintBold = async (to: `0x${string}`, amount: bigint) => {
     to, // _owner
     0n, // _ownerIndex
     collAmount, // _ETHAmount
-    amount, // _boldAmount
+    amount, // _evroAmount
     0n, // _upperHint
     0n, // _lowerHint
     MIN_ANNUAL_INTEREST_RATE, // _annualInterestRate
@@ -157,7 +157,7 @@ const main = async () => {
   const lqtyAmount = BigInt(1_000e18);
   await lqtyToken.write.mint([governanceProxy.address, lqtyAmount]).then(waitForSuccess);
   await governanceProxy.write.depositLQTY([lqtyAmount]).then(waitForSuccess);
-  await mintBold(governanceProxy.address, MIN_DEBT);
+  await mintEvro(governanceProxy.address, MIN_DEBT);
 
   // Warp to the beginning of the next epoch
   epochStart += EPOCH_DURATION;

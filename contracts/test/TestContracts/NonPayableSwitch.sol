@@ -3,7 +3,6 @@
 pragma solidity 0.8.24;
 
 import "openzeppelin-contracts/contracts/token/ERC20/utils/SafeERC20.sol";
-// import "forge-std/console2.sol";
 
 contract NonPayableSwitch {
     using SafeERC20 for IERC20;
