@@ -27,15 +27,15 @@ contract UniV3Exchange is LeftoversSweep, UniPriceConverter, IExchange {
         uniV3Router = _uniV3Router;
     }
 
-    function swapFromBold(uint256 _boldAmount, uint256 _minCollAmount) external {
+    function swapFromEvro(uint256 _evroAmount, uint256 _minCollAmount) external {
         ISwapRouter uniV3RouterCached = uniV3Router;
 
         // Set initial balances to make sure there are not lefovers
         InitialBalances memory initialBalances;
         _setInitialTokensAndBalances(collToken, evroToken, initialBalances);
 
-        evroToken.transferFrom(msg.sender, address(this), _boldAmount);
-        evroToken.approve(address(uniV3RouterCached), _boldAmount);
+        evroToken.transferFrom(msg.sender, address(this), _evroAmount);
+        evroToken.approve(address(uniV3RouterCached), _evroAmount);
 
         ISwapRouter.ExactOutputSingleParams memory params = ISwapRouter.ExactOutputSingleParams({
             tokenIn: address(evroToken),
@@ -44,7 +44,7 @@ contract UniV3Exchange is LeftoversSweep, UniPriceConverter, IExchange {
             recipient: msg.sender,
             deadline: block.timestamp,
             amountOut: _minCollAmount,
-            amountInMaximum: _boldAmount,
+            amountInMaximum: _evroAmount,
             sqrtPriceLimitX96: 0 // See: https://ethereum.stackexchange.com/a/156018/9205
         });
 
@@ -54,7 +54,7 @@ contract UniV3Exchange is LeftoversSweep, UniPriceConverter, IExchange {
         _returnLeftovers(initialBalances);
     }
 
-    function swapToBold(uint256 _collAmount, uint256 _minBoldAmount) external returns (uint256) {
+    function swapToEvro(uint256 _collAmount, uint256 _minEvroAmount) external returns (uint256) {
         ISwapRouter uniV3RouterCached = uniV3Router;
 
         // Set initial balances to make sure there are not lefovers
@@ -71,7 +71,7 @@ contract UniV3Exchange is LeftoversSweep, UniPriceConverter, IExchange {
             recipient: msg.sender,
             deadline: block.timestamp,
             amountIn: _collAmount,
-            amountOutMinimum: _minBoldAmount,
+            amountOutMinimum: _minEvroAmount,
             sqrtPriceLimitX96: 0 // See: https://ethereum.stackexchange.com/a/156018/9205
         });
 
@@ -84,7 +84,7 @@ contract UniV3Exchange is LeftoversSweep, UniPriceConverter, IExchange {
     }
 
     function priceToSqrtPrice(IEvroToken _evroToken, IERC20 _collToken, uint256 _price) public pure returns (uint160) {
-        // inverse price if Bold goes first
+        // inverse price if Evro goes first
         uint256 price = _zeroForOne(_evroToken, _collToken) ? DECIMAL_PRECISION * DECIMAL_PRECISION / _price : _price;
         return priceToSqrtPriceX96(price);
     }

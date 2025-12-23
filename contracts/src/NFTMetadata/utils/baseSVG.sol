@@ -31,7 +31,7 @@ library baseSVG {
             ),
             _styles(_assetReader),
             _leverageLogo(),
-            _boldLogo(_assetReader),
+            _evroLogo(_assetReader),
             _staticTextEls()
         );
     }
@@ -61,7 +61,7 @@ library baseSVG {
         );
     }
 
-    function _boldLogo(FixedAssetReader _assetReader) internal view returns (string memory) {
+    function _evroLogo(FixedAssetReader _assetReader) internal view returns (string memory) {
         return svg.el(
             "image",
             string.concat(

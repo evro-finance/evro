@@ -48,7 +48,7 @@ contract BasicOps is DevTestSetup {
         borrowerOperations.openTrove(
             A, 0, 2e18, 2000e18, 0, 0, MIN_ANNUAL_INTEREST_RATE, 1000e18, address(0), address(0), address(0)
         );
-        // Transfer some Bold to B so that B can close Trove accounting for interest and upfront fee
+        // Transfer some Evro to B so that B can close Trove accounting for interest and upfront fee
         evroToken.transfer(B, 100e18);
         vm.stopPrank();
 
@@ -178,9 +178,9 @@ contract BasicOps is DevTestSetup {
         makeSPDepositAndClaim(A, 100e18);
 
         // Check A's balance decreased and SP deposit increased (A gained some interest)
-        assertGt(evroToken.balanceOf(A), 1800e18, "Wrong bold balance");
-        assertLt(evroToken.balanceOf(A), 1801e18, "Wrong bold balance");
-        assertApproximatelyEqual(stabilityPool.getCompoundedBoldDeposit(A), 200e18, 1e3, "Wrong SP deposit");
+        assertGt(evroToken.balanceOf(A), 1800e18, "Wrong evro balance");
+        assertLt(evroToken.balanceOf(A), 1801e18, "Wrong evro balance");
+        assertApproximatelyEqual(stabilityPool.getCompoundedEvroDeposit(A), 200e18, 1e3, "Wrong SP deposit");
     }
 
     function testSPWithdrawal() public {
@@ -198,14 +198,14 @@ contract BasicOps is DevTestSetup {
 
         // Check A's balance decreased and SP deposit increased
         assertEq(evroToken.balanceOf(A), 1900e18);
-        assertApproximatelyEqual(stabilityPool.getCompoundedBoldDeposit(A), 100e18, 1e2);
+        assertApproximatelyEqual(stabilityPool.getCompoundedEvroDeposit(A), 100e18, 1e2);
 
         // A withdraws their full SP deposit less 1e18
         makeSPWithdrawalAndClaim(A, 99e18);
 
         // Check A's balance increased and SP deposit decreased to 0 (A gained some interest)
-        assertGt(evroToken.balanceOf(A), 1999e18, "Wrong bold balance");
-        assertLt(evroToken.balanceOf(A), 2000e18, "Wrong bold balance");
-        assertEq(stabilityPool.getCompoundedBoldDeposit(A), 1e18, "Wrong SP deposit");
+        assertGt(evroToken.balanceOf(A), 1999e18, "Wrong evro balance");
+        assertLt(evroToken.balanceOf(A), 2000e18, "Wrong evro balance");
+        assertEq(stabilityPool.getCompoundedEvroDeposit(A), 1e18, "Wrong SP deposit");
     }
 }

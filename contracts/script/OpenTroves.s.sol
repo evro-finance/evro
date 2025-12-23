@@ -145,7 +145,7 @@ contract OpenTroves is Script {
                     _owner: address(proxy),
                     _ownerIndex: 0,
                     _ETHAmount: ethAmount,
-                    _boldAmount: 2_000 ether,
+                    _evroAmount: 2_000 ether,
                     _upperHint: upperHint,
                     _lowerHint: lowerHint,
                     _annualInterestRate: interestRate,

@@ -159,8 +159,8 @@ contract DevTestSetup is BaseTest {
         liquidate(A, troveIDs.C);
 
         // D sends BOLD to A and B so they have some to use in tests
-        transferBold(D, A, evroToken.balanceOf(D) / 2);
-        transferBold(D, B, evroToken.balanceOf(D));
+        transferEvro(D, A, evroToken.balanceOf(D) / 2);
+        transferEvro(D, B, evroToken.balanceOf(D));
 
         assertEq(uint8(troveManager.getTroveStatus(troveIDs.C)), uint8(ITroveManager.Status.closedByLiquidation));
     }
@@ -172,8 +172,8 @@ contract DevTestSetup is BaseTest {
         liquidate(A, troveIDs.C);
 
         // D sends BOLD to A and B so they have some to use in tests
-        transferBold(D, A, evroToken.balanceOf(D) / 2);
-        transferBold(D, B, evroToken.balanceOf(D));
+        transferEvro(D, A, evroToken.balanceOf(D) / 2);
+        transferEvro(D, B, evroToken.balanceOf(D));
 
         assertEq(uint8(troveManager.getTroveStatus(troveIDs.C)), uint8(ITroveManager.Status.closedByLiquidation));
     }
@@ -188,8 +188,8 @@ contract DevTestSetup is BaseTest {
         liquidate(A, troveIDs.C);
 
         // D sends BOLD to A and B so they have some to use in tests
-        transferBold(D, A, evroToken.balanceOf(D) / 2);
-        transferBold(D, B, evroToken.balanceOf(D));
+        transferEvro(D, A, evroToken.balanceOf(D) / 2);
+        transferEvro(D, B, evroToken.balanceOf(D));
 
         assertEq(uint8(troveManager.getTroveStatus(troveIDs.C)), uint8(ITroveManager.Status.closedByLiquidation));
     }
@@ -198,7 +198,7 @@ contract DevTestSetup is BaseTest {
         ABCDEF memory troveIDs;
         (troveIDs.A, troveIDs.B, troveIDs.C, troveIDs.D) = _setupForBatchLiquidateTrovesPureOffset(1);
         // B leaves so only A is in the pool
-        makeSPWithdrawalAndClaim(B, stabilityPool.getCompoundedBoldDeposit(B));
+        makeSPWithdrawalAndClaim(B, stabilityPool.getCompoundedEvroDeposit(B));
         return troveIDs;
     }
 
@@ -258,11 +258,11 @@ contract DevTestSetup is BaseTest {
             troveIDs.D = openTroveNoHints100pct(D, coll, debtRequest, _troveInterestRates.D);
         }
 
-        // A, B, C, D transfer all their Bold to E
-        transferBold(A, E, evroToken.balanceOf(A));
-        transferBold(B, E, evroToken.balanceOf(B));
-        transferBold(C, E, evroToken.balanceOf(C));
-        transferBold(D, E, evroToken.balanceOf(D));
+        // A, B, C, D transfer all their Evro to E
+        transferEvro(A, E, evroToken.balanceOf(A));
+        transferEvro(B, E, evroToken.balanceOf(B));
+        transferEvro(C, E, evroToken.balanceOf(C));
+        transferEvro(D, E, evroToken.balanceOf(D));
     }
 
     function _setupForRedemptionAscendingInterest() internal returns (uint256, uint256, ABCDEF memory) {

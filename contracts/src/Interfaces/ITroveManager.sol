@@ -45,7 +45,7 @@ interface ITroveManager is ILiquityBase {
             uint256 batchDebtShares
         );
 
-    function rewardSnapshots(uint256 _id) external view returns (uint256 coll, uint256 boldDebt);
+    function rewardSnapshots(uint256 _id) external view returns (uint256 coll, uint256 evroDebt);
 
     function getTroveIdsCount() external view returns (uint256);
 
@@ -59,14 +59,14 @@ interface ITroveManager is ILiquityBase {
 
     function redeemCollateral(
         address _sender,
-        uint256 _boldAmount,
+        uint256 _evroAmount,
         uint256 _price,
         uint256 _redemptionRate,
         uint256 _maxIterations
     ) external returns (uint256 _redemeedAmount);
 
     function shutdown() external;
-    function urgentRedemption(uint256 _boldAmount, uint256[] calldata _troveIds, uint256 _minCollateral) external;
+    function urgentRedemption(uint256 _evroAmount, uint256[] calldata _troveIds, uint256 _minCollateral) external;
 
     function getUnbackedPortionPriceAndRedeemability() external returns (uint256, uint256, bool);
 

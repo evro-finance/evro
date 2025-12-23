@@ -40,16 +40,16 @@ abstract contract SPInvariantsBase is Assertions, BaseInvariantTest {
 
     function assert_AllFundsClaimable() internal view {
         uint256 stabilityPoolColl = stabilityPool.getCollBalance();
-        uint256 stabilityPoolBold = stabilityPool.getTotalBoldDeposits();
+        uint256 stabilityPoolEvro = stabilityPool.getTotalEvroDeposits();
         uint256 yieldGainsOwed = stabilityPool.getYieldGainsOwed();
 
         uint256 claimableColl = 0;
-        uint256 claimableBold = 0;
+        uint256 claimableEvro = 0;
         uint256 sumYieldGains = 0;
 
         for (uint256 i = 0; i < actors.length; ++i) {
             claimableColl += stabilityPool.getDepositorCollGain(actors[i].account);
-            claimableBold += stabilityPool.getCompoundedBoldDeposit(actors[i].account);
+            claimableEvro += stabilityPool.getCompoundedEvroDeposit(actors[i].account);
             sumYieldGains += stabilityPool.getDepositorYieldGain(actors[i].account);
         }
 
@@ -58,8 +58,8 @@ abstract contract SPInvariantsBase is Assertions, BaseInvariantTest {
         assertGeDecimal(stabilityPoolColl, claimableColl, 18, "SP coll insolvency");
         assertApproxEqAbsRelDecimal(stabilityPoolColl, claimableColl, 1e-5 ether, 1, 18, "SP coll loss");
 
-        assertGeDecimal(stabilityPoolBold, claimableBold, 18, "SP BOLD insolvency");
-        assertApproxEqAbsRelDecimal(stabilityPoolBold, claimableBold, 1e-7 ether, 1, 18, "SP BOLD loss");
+        assertGeDecimal(stabilityPoolEvro, claimableEvro, 18, "SP BOLD insolvency");
+        assertApproxEqAbsRelDecimal(stabilityPoolEvro, claimableEvro, 1e-7 ether, 1, 18, "SP BOLD loss");
 
         // Critical: ensure no one can claim more yield than exists
         assertGeDecimal(yieldGainsOwed, sumYieldGains, 18, "SP yield insolvency");

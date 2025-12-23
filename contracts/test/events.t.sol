@@ -492,8 +492,8 @@ contract TroveEventsTest is EventsTest, ITroveEvents {
         (, uint256 otherColl) = openTroveWithExactICRAndDebt(B, 0, 10 * CCR, 100_000 ether, 0.01 ether);
 
         // deposit to SP less than the total liquidated debt, so we get a mix of SP offset & redistribution
-        uint256 boldInSP = 25_000 ether;
-        makeSPDepositNoClaim(B, boldInSP);
+        uint256 evroInSP = 25_000 ether;
+        makeSPDepositNoClaim(B, evroInSP);
 
         uint256[3] memory liquidatedDebt;
         liquidatedDebt[0] = 10_000 ether;
@@ -517,7 +517,7 @@ contract TroveEventsTest is EventsTest, ITroveEvents {
             uint256 collRemaining = liquidatedColl[i];
 
             LiquidationParams memory l;
-            l.debtOffsetBySP = Math.min(liquidatedDebt[i], boldInSP - t.debtOffsetBySP - 1e18);
+            l.debtOffsetBySP = Math.min(liquidatedDebt[i], evroInSP - t.debtOffsetBySP - 1e18);
             l.debtRedistributed = liquidatedDebt[i] - l.debtOffsetBySP;
 
             l.ethGasCompensation = ETH_GAS_COMPENSATION;
@@ -560,20 +560,20 @@ contract TroveEventsTest is EventsTest, ITroveEvents {
         (troveId[2],) = openTroveHelper(A, 2, 300 ether, 30_000 ether, 0.03 ether);
 
         // Fully redeem first 2 Troves, and partially the 3rd
-        uint256[3] memory redeemBold;
-        redeemBold[0] = troveManager.getTroveEntireDebt(troveId[0]);
-        redeemBold[1] = troveManager.getTroveEntireDebt(troveId[1]);
-        redeemBold[2] = troveManager.getTroveEntireDebt(troveId[2]) / 2;
+        uint256[3] memory redeemEvro;
+        redeemEvro[0] = troveManager.getTroveEntireDebt(troveId[0]);
+        redeemEvro[1] = troveManager.getTroveEntireDebt(troveId[1]);
+        redeemEvro[2] = troveManager.getTroveEntireDebt(troveId[2]) / 2;
 
         uint256 price = priceFeed.getPrice();
-        uint256 totalRedeemedBold = redeemBold[0] + redeemBold[1] + redeemBold[2];
-        uint256 redemptionRate = collateralRegistry.getRedemptionRateForRedeemedAmount(totalRedeemedBold);
+        uint256 totalRedeemedEvro = redeemEvro[0] + redeemEvro[1] + redeemEvro[2];
+        uint256 redemptionRate = collateralRegistry.getRedemptionRateForRedeemedAmount(totalRedeemedEvro);
 
         vm.recordLogs();
         for (uint256 i = 0; i < 3; ++i) {
-            uint256 redeemEth = redeemBold[i] * DECIMAL_PRECISION / price;
+            uint256 redeemEth = redeemEvro[i] * DECIMAL_PRECISION / price;
             uint256 redeemFee = redeemEth * redemptionRate / DECIMAL_PRECISION;
-            uint256 debt = troveManager.getTroveEntireDebt(troveId[i]) - redeemBold[i];
+            uint256 debt = troveManager.getTroveEntireDebt(troveId[i]) - redeemEvro[i];
             uint256 coll = troveManager.getTroveEntireColl(troveId[i]) - redeemEth + redeemFee;
             uint256 stake = coll;
             uint256 interestRate = troveManager.getTroveAnnualInterestRate(troveId[i]);
@@ -591,7 +591,7 @@ contract TroveEventsTest is EventsTest, ITroveEvents {
         Vm.Log[] memory expectedTroveUpdatedEvents = vm.getRecordedLogs();
 
         vm.prank(A);
-        collateralRegistry.redeemCollateral(totalRedeemedBold, 3, _100pct);
+        collateralRegistry.redeemCollateral(totalRedeemedEvro, 3, _100pct);
 
         Vm.Log[] memory actualTroveUpdatedEvents = vm.getRecordedLogs().filter(TroveUpdated.selector);
         assertEqLogs(actualTroveUpdatedEvents, expectedTroveUpdatedEvents, "Wrong TroveUpdated events");
@@ -604,18 +604,18 @@ contract TroveEventsTest is EventsTest, ITroveEvents {
         (troveId[2],) = openTroveHelper(A, 2, 300 ether, 30_000 ether, 0.03 ether);
 
         // Fully redeem first 2 Troves, and partially the 3rd
-        uint256[3] memory redeemBold;
-        redeemBold[0] = troveManager.getTroveEntireDebt(troveId[0]);
-        redeemBold[1] = troveManager.getTroveEntireDebt(troveId[1]);
-        redeemBold[2] = troveManager.getTroveEntireDebt(troveId[2]) / 2;
+        uint256[3] memory redeemEvro;
+        redeemEvro[0] = troveManager.getTroveEntireDebt(troveId[0]);
+        redeemEvro[1] = troveManager.getTroveEntireDebt(troveId[1]);
+        redeemEvro[2] = troveManager.getTroveEntireDebt(troveId[2]) / 2;
 
         uint256 price = priceFeed.getPrice();
-        uint256 totalRedeemedBold = redeemBold[0] + redeemBold[1] + redeemBold[2];
-        uint256 redemptionRate = collateralRegistry.getRedemptionRateForRedeemedAmount(totalRedeemedBold);
+        uint256 totalRedeemedEvro = redeemEvro[0] + redeemEvro[1] + redeemEvro[2];
+        uint256 redemptionRate = collateralRegistry.getRedemptionRateForRedeemedAmount(totalRedeemedEvro);
 
         vm.recordLogs();
         for (uint256 i = 0; i < 3; ++i) {
-            uint256 redeemEth = redeemBold[i] * DECIMAL_PRECISION / price;
+            uint256 redeemEth = redeemEvro[i] * DECIMAL_PRECISION / price;
             uint256 redeemFee = redeemEth * redemptionRate / DECIMAL_PRECISION;
             uint256 interestRate = troveManager.getTroveAnnualInterestRate(troveId[i]);
 
@@ -625,7 +625,7 @@ contract TroveEventsTest is EventsTest, ITroveEvents {
                 interestRate,
                 0, // _debtIncreaseFromRedist
                 0, // _debtIncreaseFromUpfrontFee
-                -int256(redeemBold[i]),
+                -int256(redeemEvro[i]),
                 0, // _collIncreaseFromRedist
                 -int256(redeemEth - redeemFee)
             );
@@ -633,7 +633,7 @@ contract TroveEventsTest is EventsTest, ITroveEvents {
         Vm.Log[] memory expectedTroveUpdatedEvents = vm.getRecordedLogs();
 
         vm.prank(A);
-        collateralRegistry.redeemCollateral(totalRedeemedBold, 3, _100pct);
+        collateralRegistry.redeemCollateral(totalRedeemedEvro, 3, _100pct);
 
         Vm.Log[] memory actualTroveUpdatedEvents = vm.getRecordedLogs().filter(TroveOperation.selector);
         assertEqLogs(actualTroveUpdatedEvents, expectedTroveUpdatedEvents, "Wrong TroveOperation events");
@@ -641,11 +641,11 @@ contract TroveEventsTest is EventsTest, ITroveEvents {
 }
 
 struct Deposit {
-    uint256 recordedBold;
+    uint256 recordedEvro;
     uint256 stashedColl;
-    uint256 pendingBoldLoss;
+    uint256 pendingEvroLoss;
     uint256 pendingCollGain;
-    uint256 pendingBoldYieldGain;
+    uint256 pendingEvroYieldGain;
 }
 
 struct StabilityPoolRewardsState {
@@ -684,8 +684,8 @@ contract StabilityPoolEventsTest is EventsTest, IStabilityPoolEvents {
         // Touch the deposit for one last time
         makeSPDepositNoClaim(A, 2 * liquidatedDebt);
 
-        deposit.recordedBold = stabilityPool.getCompoundedBoldDeposit(A);
-        assertGt(deposit.recordedBold, 0, "Recorded BOLD deposit should be > 0");
+        deposit.recordedEvro = stabilityPool.getCompoundedEvroDeposit(A);
+        assertGt(deposit.recordedEvro, 0, "Recorded BOLD deposit should be > 0");
 
         deposit.stashedColl = stabilityPool.stashedColl(A);
         assertGt(deposit.stashedColl, 0, "Stashed Coll should be > 0");
@@ -699,8 +699,8 @@ contract StabilityPoolEventsTest is EventsTest, IStabilityPoolEvents {
         current.S = stabilityPool.scaleToS(current.scale);
         assertGt(current.S, 0, "S should be > 0");
 
-        deposit.pendingBoldLoss = deposit.recordedBold - stabilityPool.getCompoundedBoldDeposit(A);
-        assertGt(deposit.pendingBoldLoss, 0, "Pending BOLD loss should be > 0");
+        deposit.pendingEvroLoss = deposit.recordedEvro - stabilityPool.getCompoundedEvroDeposit(A);
+        assertGt(deposit.pendingEvroLoss, 0, "Pending BOLD loss should be > 0");
 
         deposit.pendingCollGain = stabilityPool.getDepositorCollGain(A);
         assertGt(deposit.pendingCollGain, 0, "Pending Coll gain should be > 0");
@@ -712,8 +712,8 @@ contract StabilityPoolEventsTest is EventsTest, IStabilityPoolEvents {
         current.B = stabilityPool.scaleToB(current.scale);
         assertGt(current.B, 0, "B should be > 0");
 
-        deposit.pendingBoldYieldGain = stabilityPool.getDepositorYieldGain(A);
-        assertGt(deposit.pendingBoldYieldGain, 0, "Pending BOLD yield gain should be > 0");
+        deposit.pendingEvroYieldGain = stabilityPool.getDepositorYieldGain(A);
+        assertGt(deposit.pendingEvroYieldGain, 0, "Pending BOLD yield gain should be > 0");
     }
 
     function test_ProvideToSPNoClaimEmitsDepositUpdated() external {
@@ -724,7 +724,7 @@ contract StabilityPoolEventsTest is EventsTest, IStabilityPoolEvents {
         vm.expectEmit();
         emit DepositUpdated(
             A,
-            deposit.recordedBold - deposit.pendingBoldLoss + deposit.pendingBoldYieldGain + topUp,
+            deposit.recordedEvro - deposit.pendingEvroLoss + deposit.pendingEvroYieldGain + topUp,
             deposit.stashedColl + deposit.pendingCollGain,
             current.P,
             current.S,
@@ -742,7 +742,7 @@ contract StabilityPoolEventsTest is EventsTest, IStabilityPoolEvents {
 
         vm.expectEmit();
         emit DepositUpdated(
-            A, deposit.recordedBold - deposit.pendingBoldLoss + topUp, 0, current.P, current.S, current.B, current.scale
+            A, deposit.recordedEvro - deposit.pendingEvroLoss + topUp, 0, current.P, current.S, current.B, current.scale
         );
 
         makeSPDepositAndClaim(A, topUp);
@@ -757,9 +757,9 @@ contract StabilityPoolEventsTest is EventsTest, IStabilityPoolEvents {
         emit DepositOperation(
             A,
             Operation.provideToSP,
-            deposit.pendingBoldLoss,
+            deposit.pendingEvroLoss,
             int256(topUp),
-            deposit.pendingBoldYieldGain,
+            deposit.pendingEvroYieldGain,
             0, // _yieldGainClaimed
             deposit.pendingCollGain,
             0 // _ethGainClaimed
@@ -777,10 +777,10 @@ contract StabilityPoolEventsTest is EventsTest, IStabilityPoolEvents {
         emit DepositOperation(
             A,
             Operation.provideToSP,
-            deposit.pendingBoldLoss,
+            deposit.pendingEvroLoss,
             int256(topUp),
-            deposit.pendingBoldYieldGain,
-            deposit.pendingBoldYieldGain,
+            deposit.pendingEvroYieldGain,
+            deposit.pendingEvroYieldGain,
             deposit.pendingCollGain,
             deposit.pendingCollGain + deposit.stashedColl
         );
@@ -791,12 +791,12 @@ contract StabilityPoolEventsTest is EventsTest, IStabilityPoolEvents {
     function test_WithdrawFromSPNoClaimEmitsDepositUpdated() external {
         (Deposit memory deposit, StabilityPoolRewardsState memory current) = makeSPDepositAndGenerateRewards();
 
-        uint256 withdrawal = deposit.recordedBold / 2;
+        uint256 withdrawal = deposit.recordedEvro / 2;
 
         vm.expectEmit();
         emit DepositUpdated(
             A,
-            deposit.recordedBold - deposit.pendingBoldLoss + deposit.pendingBoldYieldGain - withdrawal,
+            deposit.recordedEvro - deposit.pendingEvroLoss + deposit.pendingEvroYieldGain - withdrawal,
             deposit.stashedColl + deposit.pendingCollGain,
             current.P,
             current.S,
@@ -810,12 +810,12 @@ contract StabilityPoolEventsTest is EventsTest, IStabilityPoolEvents {
     function test_WithdrawFromSPAndClaimEmitsDepositUpdated() external {
         (Deposit memory deposit, StabilityPoolRewardsState memory current) = makeSPDepositAndGenerateRewards();
 
-        uint256 withdrawal = deposit.recordedBold / 2;
+        uint256 withdrawal = deposit.recordedEvro / 2;
 
         vm.expectEmit();
         emit DepositUpdated(
             A,
-            deposit.recordedBold - deposit.pendingBoldLoss - withdrawal,
+            deposit.recordedEvro - deposit.pendingEvroLoss - withdrawal,
             0,
             current.P,
             current.S,
@@ -829,15 +829,15 @@ contract StabilityPoolEventsTest is EventsTest, IStabilityPoolEvents {
     function test_WithdrawFromSPNoClaimEmitsDepositOperation() external {
         (Deposit memory deposit,) = makeSPDepositAndGenerateRewards();
 
-        uint256 withdrawal = deposit.recordedBold / 2;
+        uint256 withdrawal = deposit.recordedEvro / 2;
 
         vm.expectEmit();
         emit DepositOperation(
             A,
             Operation.withdrawFromSP,
-            deposit.pendingBoldLoss,
+            deposit.pendingEvroLoss,
             -int256(withdrawal),
-            deposit.pendingBoldYieldGain,
+            deposit.pendingEvroYieldGain,
             0, // _yieldGainClaimed
             deposit.pendingCollGain,
             0 // _ethGainClaimed
@@ -849,16 +849,16 @@ contract StabilityPoolEventsTest is EventsTest, IStabilityPoolEvents {
     function test_WithdrawFromSPAndClaimEmitsDepositOperation() external {
         (Deposit memory deposit,) = makeSPDepositAndGenerateRewards();
 
-        uint256 withdrawal = deposit.recordedBold / 2;
+        uint256 withdrawal = deposit.recordedEvro / 2;
 
         vm.expectEmit();
         emit DepositOperation(
             A,
             Operation.withdrawFromSP,
-            deposit.pendingBoldLoss,
+            deposit.pendingEvroLoss,
             -int256(withdrawal),
-            deposit.pendingBoldYieldGain,
-            deposit.pendingBoldYieldGain,
+            deposit.pendingEvroYieldGain,
+            deposit.pendingEvroYieldGain,
             deposit.pendingCollGain,
             deposit.pendingCollGain + deposit.stashedColl
         );
@@ -875,12 +875,12 @@ contract StabilityPoolEventsTest is EventsTest, IStabilityPoolEvents {
         makeSPDepositNoClaim(B, 1e18);
 
         vm.expectEmit();
-        emit DepositUpdated(A, deposit.pendingBoldYieldGain, stashedColl, curr.P, curr.S, curr.B, curr.scale);
-        makeSPWithdrawalNoClaim(A, deposit.recordedBold - deposit.pendingBoldLoss); // can't withdraw pending yield
+        emit DepositUpdated(A, deposit.pendingEvroYieldGain, stashedColl, curr.P, curr.S, curr.B, curr.scale);
+        makeSPWithdrawalNoClaim(A, deposit.recordedEvro - deposit.pendingEvroLoss); // can't withdraw pending yield
 
         vm.expectEmit();
         emit DepositUpdated(A, 0, stashedColl, 0, 0, 0, 0);
-        makeSPWithdrawalNoClaim(A, deposit.pendingBoldYieldGain); // now we can withdraw previously pending yield
+        makeSPWithdrawalNoClaim(A, deposit.pendingEvroYieldGain); // now we can withdraw previously pending yield
 
         // Now we have a deposit with stashed Coll gains and nothing else
 
@@ -897,8 +897,8 @@ contract StabilityPoolEventsTest is EventsTest, IStabilityPoolEvents {
         // B deposits so A can fully claim
         makeSPDepositNoClaim(B, 1e18);
 
-        makeSPWithdrawalNoClaim(A, deposit.recordedBold - deposit.pendingBoldLoss); // can't withdraw pending yield
-        makeSPWithdrawalNoClaim(A, deposit.pendingBoldYieldGain); // now we can withdraw previously pending yield
+        makeSPWithdrawalNoClaim(A, deposit.recordedEvro - deposit.pendingEvroLoss); // can't withdraw pending yield
+        makeSPWithdrawalNoClaim(A, deposit.pendingEvroYieldGain); // now we can withdraw previously pending yield
 
         // Now we have a deposit with stashed Coll gains and nothing else
 

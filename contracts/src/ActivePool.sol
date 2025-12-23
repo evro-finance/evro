@@ -13,9 +13,9 @@ import "./Interfaces/IInterestRouter.sol";
 import "./Interfaces/IDefaultPool.sol";
 
 /*
- * The Active Pool holds the collateral and Bold debt (but not Bold tokens) for all active troves.
+ * The Active Pool holds the collateral and Evro debt (but not Evro tokens) for all active troves.
  *
- * When a trove is liquidated, it's Coll and Bold debt are transferred from the Active Pool, to either the
+ * When a trove is liquidated, it's Coll and Evro debt are transferred from the Active Pool, to either the
  * Stability Pool, the Default Pool, or both, depending on the liquidation conditions.
  *
  */
@@ -32,7 +32,7 @@ contract ActivePool is IActivePool {
     IEvroToken public immutable evroToken;
 
     IInterestRouter public immutable interestRouter;
-    IBoldRewardsReceiver public immutable stabilityPool;
+    IEvroRewardsReceiver public immutable stabilityPool;
 
     uint256 internal collBalance; // deposited coll tracker
 
@@ -68,14 +68,14 @@ contract ActivePool is IActivePool {
     event TroveManagerAddressChanged(address _newTroveManagerAddress);
     event DefaultPoolAddressChanged(address _newDefaultPoolAddress);
     event StabilityPoolAddressChanged(address _newStabilityPoolAddress);
-    event ActivePoolBoldDebtUpdated(uint256 _recordedDebtSum);
+    event ActivePoolEvroDebtUpdated(uint256 _recordedDebtSum);
     event ActivePoolCollBalanceUpdated(uint256 _collBalance);
 
     constructor(IAddressesRegistry _addressesRegistry) {
         collToken = _addressesRegistry.collToken();
         borrowerOperationsAddress = address(_addressesRegistry.borrowerOperations());
         troveManagerAddress = address(_addressesRegistry.troveManager());
-        stabilityPool = IBoldRewardsReceiver(_addressesRegistry.stabilityPool());
+        stabilityPool = IEvroRewardsReceiver(_addressesRegistry.stabilityPool());
         defaultPoolAddress = address(_addressesRegistry.defaultPool());
         interestRouter = _addressesRegistry.interestRouter();
         evroToken = _addressesRegistry.evroToken();
@@ -137,7 +137,7 @@ contract ActivePool is IActivePool {
 
         uint256 newAggRecordedDebt = aggRecordedDebt;
         newAggRecordedDebt += calcPendingAggInterest();
-        newAggRecordedDebt += _troveChange.appliedRedistBoldDebtGain;
+        newAggRecordedDebt += _troveChange.appliedRedistEvroDebtGain;
         newAggRecordedDebt += _troveChange.debtIncrease;
         newAggRecordedDebt += _troveChange.batchAccruedManagementFee;
         newAggRecordedDebt -= _troveChange.debtDecrease;
@@ -153,7 +153,7 @@ contract ActivePool is IActivePool {
     }
 
     // Returns sum of agg.recorded debt plus agg. pending interest. Excludes pending redist. gains.
-    function getBoldDebt() external view returns (uint256) {
+    function getEvroDebt() external view returns (uint256) {
         return aggRecordedDebt + calcPendingAggInterest() + aggBatchManagementFees + calcPendingAggBatchManagementFee();
     }
 
@@ -225,7 +225,7 @@ contract ActivePool is IActivePool {
         // Do the arithmetic in 2 steps here to avoid underflow from the decrease
         uint256 newAggRecordedDebt = aggRecordedDebt; // 1 SLOAD
         newAggRecordedDebt += _mintAggInterest(_troveChange.upfrontFee); // adds minted agg. interest + upfront fee
-        newAggRecordedDebt += _troveChange.appliedRedistBoldDebtGain;
+        newAggRecordedDebt += _troveChange.appliedRedistEvroDebtGain;
         newAggRecordedDebt += _troveChange.debtIncrease;
         newAggRecordedDebt -= _troveChange.debtDecrease;
         aggRecordedDebt = newAggRecordedDebt; // 1 SSTORE
@@ -257,7 +257,7 @@ contract ActivePool is IActivePool {
 
             if (spYield > 0) {
                 evroToken.mint(address(stabilityPool), spYield);
-                stabilityPool.triggerBoldRewards(spYield);
+                stabilityPool.triggerEvroRewards(spYield);
             }
         }
 

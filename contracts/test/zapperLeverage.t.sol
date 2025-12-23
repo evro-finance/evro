@@ -55,9 +55,9 @@ contract ZapperLeverageMainnet is DevTestSetup {
     struct OpenTroveVars {
         uint256 price;
         uint256 flashLoanAmount;
-        uint256 expectedBoldAmount;
+        uint256 expectedEvroAmount;
         uint256 maxNetDebt;
-        uint256 effectiveBoldAmount;
+        uint256 effectiveEvroAmount;
         uint256 value;
         uint256 troveId;
     }
@@ -68,9 +68,9 @@ contract ZapperLeverageMainnet is DevTestSetup {
         uint256 currentLR;
         uint256 currentCollAmount;
         uint256 flashLoanAmount;
-        uint256 expectedBoldAmount;
+        uint256 expectedEvroAmount;
         uint256 maxNetDebtIncrease;
-        uint256 effectiveBoldAmount;
+        uint256 effectiveEvroAmount;
     }
 
     struct TestVars {
@@ -82,13 +82,13 @@ contract ZapperLeverageMainnet is DevTestSetup {
         uint256 resultingCollateralRatio;
         uint256 flashLoanAmount;
         uint256 price;
-        uint256 boldBalanceBeforeA;
+        uint256 evroBalanceBeforeA;
         uint256 ethBalanceBeforeA;
         uint256 collBalanceBeforeA;
-        uint256 boldBalanceBeforeZapper;
+        uint256 evroBalanceBeforeZapper;
         uint256 ethBalanceBeforeZapper;
         uint256 collBalanceBeforeZapper;
-        uint256 boldBalanceBeforeExchange;
+        uint256 evroBalanceBeforeExchange;
         uint256 ethBalanceBeforeExchange;
         uint256 collBalanceBeforeExchange;
     }
@@ -192,22 +192,22 @@ contract ZapperLeverageMainnet is DevTestSetup {
         TestDeployer.LiquityContracts[] memory _contractsArray,
         TestDeployer.Zappers[] memory _zappersArray
     ) internal {
-        uint256 boldAmount;
+        uint256 evroAmount;
         for (uint256 i = 0; i < NUM_COLLATERALS; i++) {
             (uint256 price,) = _contractsArray[i].priceFeed.fetchPrice();
             ICurvePool curvePool = CurveExchange(address(_zappersArray[i].leverageZapperCurve.exchange())).curvePool();
 
             // Add liquidity
             uint256 collAmount = 1000 ether;
-            boldAmount = collAmount * price / DECIMAL_PRECISION;
+            evroAmount = collAmount * price / DECIMAL_PRECISION;
             deal(address(_contractsArray[i].collToken), A, collAmount);
-            deal(address(evroToken), A, boldAmount);
+            deal(address(evroToken), A, evroAmount);
             vm.startPrank(A);
             // approve
             _contractsArray[i].collToken.approve(address(curvePool), collAmount);
-            evroToken.approve(address(curvePool), boldAmount);
+            evroToken.approve(address(curvePool), evroAmount);
             uint256[2] memory amounts;
-            amounts[0] = boldAmount;
+            amounts[0] = evroAmount;
             amounts[1] = collAmount;
             curvePool.add_liquidity(amounts, 0);
             vm.stopPrank();
@@ -216,15 +216,15 @@ contract ZapperLeverageMainnet is DevTestSetup {
         // Add liquidity to USDC-BOLD
         usdcCurvePool = HybridCurveUniV3Exchange(address(_zappersArray[0].leverageZapperHybrid.exchange())).curvePool();
         uint256 usdcAmount = 1e15; // 1B with 6 decimals
-        boldAmount = usdcAmount * 1e12; // from 6 to 18 decimals
+        evroAmount = usdcAmount * 1e12; // from 6 to 18 decimals
         deal(address(USDC), A, usdcAmount);
-        deal(address(evroToken), A, boldAmount);
+        deal(address(evroToken), A, evroAmount);
         vm.startPrank(A);
         // approve
         USDC.approve(address(usdcCurvePool), usdcAmount);
-        evroToken.approve(address(usdcCurvePool), boldAmount);
+        evroToken.approve(address(usdcCurvePool), evroAmount);
         uint256[] memory amountsDynamic = new uint256[](2);
-        amountsDynamic[0] = boldAmount;
+        amountsDynamic[0] = evroAmount;
         amountsDynamic[1] = usdcAmount;
         // add liquidity
         usdcCurvePool.add_liquidity(amountsDynamic, 0);
@@ -238,21 +238,21 @@ contract ZapperLeverageMainnet is DevTestSetup {
 
             // tokens and amounts
             uint256 collAmount = 1000 ether;
-            uint256 boldAmount = collAmount * price / DECIMAL_PRECISION;
+            uint256 evroAmount = collAmount * price / DECIMAL_PRECISION;
             address[2] memory tokens;
             uint256[2] memory amounts;
             if (address(evroToken) < address(_contractsArray[i].collToken)) {
                 //console2.log("b < c");
                 tokens[0] = address(evroToken);
                 tokens[1] = address(_contractsArray[i].collToken);
-                amounts[0] = boldAmount;
+                amounts[0] = evroAmount;
                 amounts[1] = collAmount;
             } else {
                 //console2.log("c < b");
                 tokens[0] = address(_contractsArray[i].collToken);
                 tokens[1] = address(evroToken);
                 amounts[0] = collAmount;
-                amounts[1] = boldAmount;
+                amounts[1] = evroAmount;
             }
 
             // Add liquidity
@@ -261,9 +261,9 @@ contract ZapperLeverageMainnet is DevTestSetup {
 
             // deal and approve
             deal(address(_contractsArray[i].collToken), A, collAmount);
-            deal(address(evroToken), A, boldAmount);
+            deal(address(evroToken), A, evroAmount);
             _contractsArray[i].collToken.approve(address(uniV3PositionManager), collAmount);
-            evroToken.approve(address(uniV3PositionManager), boldAmount);
+            evroToken.approve(address(uniV3PositionManager), evroAmount);
 
             // mint new position
             address uniV3PoolAddress =
@@ -320,12 +320,12 @@ contract ZapperLeverageMainnet is DevTestSetup {
         // This should be done in the frontend
         vars.flashLoanAmount =
             _inputParams.collAmount * (_inputParams.leverageRatio - DECIMAL_PRECISION) / DECIMAL_PRECISION;
-        vars.expectedBoldAmount = vars.flashLoanAmount * vars.price / DECIMAL_PRECISION;
-        vars.maxNetDebt = vars.expectedBoldAmount * 105 / 100; // slippage
-        vars.effectiveBoldAmount = _getBoldAmountToSwap(
+        vars.expectedEvroAmount = vars.flashLoanAmount * vars.price / DECIMAL_PRECISION;
+        vars.maxNetDebt = vars.expectedEvroAmount * 105 / 100; // slippage
+        vars.effectiveEvroAmount = _getEvroAmountToSwap(
             _inputParams.exchangeType,
             _inputParams.branch,
-            vars.expectedBoldAmount,
+            vars.expectedEvroAmount,
             vars.maxNetDebt,
             vars.flashLoanAmount,
             _inputParams.collToken
@@ -336,7 +336,7 @@ contract ZapperLeverageMainnet is DevTestSetup {
             ownerIndex: _inputParams.index,
             collAmount: _inputParams.collAmount,
             flashLoanAmount: vars.flashLoanAmount,
-            boldAmount: vars.effectiveBoldAmount,
+            evroAmount: vars.effectiveEvroAmount,
             upperHint: 0,
             lowerHint: 0,
             annualInterestRate: _inputParams.batchManager == address(0) ? 5e16 : 0,
@@ -352,20 +352,20 @@ contract ZapperLeverageMainnet is DevTestSetup {
         vars.troveId = addressToTroveIdThroughZapper(address(_inputParams.leverageZapper), A, _inputParams.index);
         vm.stopPrank();
 
-        return (vars.troveId, vars.effectiveBoldAmount);
+        return (vars.troveId, vars.effectiveEvroAmount);
     }
 
     function _setInitialBalances(ILeverageZapper _leverageZapper, uint256 _branch, TestVars memory vars)
         internal
         view
     {
-        vars.boldBalanceBeforeA = evroToken.balanceOf(A);
+        vars.evroBalanceBeforeA = evroToken.balanceOf(A);
         vars.ethBalanceBeforeA = A.balance;
         vars.collBalanceBeforeA = contractsArray[_branch].collToken.balanceOf(A);
-        vars.boldBalanceBeforeZapper = evroToken.balanceOf(address(_leverageZapper));
+        vars.evroBalanceBeforeZapper = evroToken.balanceOf(address(_leverageZapper));
         vars.ethBalanceBeforeZapper = address(_leverageZapper).balance;
         vars.collBalanceBeforeZapper = contractsArray[_branch].collToken.balanceOf(address(_leverageZapper));
-        vars.boldBalanceBeforeExchange = evroToken.balanceOf(address(_leverageZapper.exchange()));
+        vars.evroBalanceBeforeExchange = evroToken.balanceOf(address(_leverageZapper.exchange()));
         vars.ethBalanceBeforeExchange = address(_leverageZapper.exchange()).balance;
         vars.collBalanceBeforeExchange =
             contractsArray[_branch].collToken.balanceOf(address(_leverageZapper.exchange()));
@@ -468,13 +468,13 @@ contract ZapperLeverageMainnet is DevTestSetup {
         uint256 ICR = contractsArray[_branch].troveManager.getCurrentICR(vars.troveId, vars.price);
         assertTrue(ICR >= vars.resultingCollateralRatio || vars.resultingCollateralRatio - ICR < 3e16, "Wrong CR");
         // token balances
-        assertEq(evroToken.balanceOf(A), vars.boldBalanceBeforeA, "BOLD bal mismatch");
+        assertEq(evroToken.balanceOf(A), vars.evroBalanceBeforeA, "BOLD bal mismatch");
         assertEq(
-            evroToken.balanceOf(address(_leverageZapper)), vars.boldBalanceBeforeZapper, "Zapper should not keep BOLD"
+            evroToken.balanceOf(address(_leverageZapper)), vars.evroBalanceBeforeZapper, "Zapper should not keep BOLD"
         );
         assertEq(
             evroToken.balanceOf(address(_leverageZapper.exchange())),
-            vars.boldBalanceBeforeExchange,
+            vars.evroBalanceBeforeExchange,
             "Exchange should not keep BOLD"
         );
         assertEq(
@@ -523,7 +523,7 @@ contract ZapperLeverageMainnet is DevTestSetup {
             ownerIndex: 0,
             collAmount: 10 ether,
             flashLoanAmount: 10 ether,
-            boldAmount: 10000e18,
+            evroAmount: 10000e18,
             upperHint: 0,
             lowerHint: 0,
             annualInterestRate: 5e16,
@@ -555,7 +555,7 @@ contract ZapperLeverageMainnet is DevTestSetup {
         uint256 branch;
     }
 
-    function _getLeverUpFlashLoanAndBoldAmount(LeverUpParams memory _params) internal returns (uint256, uint256) {
+    function _getLeverUpFlashLoanAndEvroAmount(LeverUpParams memory _params) internal returns (uint256, uint256) {
         LeverVars memory vars;
         (vars.price,) = _params.priceFeed.fetchPrice();
         vars.currentCR = _params.troveManager.getCurrentICR(_params.troveId, vars.price);
@@ -563,36 +563,36 @@ contract ZapperLeverageMainnet is DevTestSetup {
         assertGt(_params.leverageRatio, vars.currentLR, "Leverage ratio should increase");
         vars.currentCollAmount = getTroveEntireColl(_params.troveManager, _params.troveId);
         vars.flashLoanAmount = vars.currentCollAmount * _params.leverageRatio / vars.currentLR - vars.currentCollAmount;
-        vars.expectedBoldAmount = vars.flashLoanAmount * vars.price / DECIMAL_PRECISION;
-        vars.maxNetDebtIncrease = vars.expectedBoldAmount * 105 / 100; // slippage
-        // The actual bold we need, capped by the slippage above, to get flash loan amount
-        vars.effectiveBoldAmount = _getBoldAmountToSwap(
+        vars.expectedEvroAmount = vars.flashLoanAmount * vars.price / DECIMAL_PRECISION;
+        vars.maxNetDebtIncrease = vars.expectedEvroAmount * 105 / 100; // slippage
+        // The actual evro we need, capped by the slippage above, to get flash loan amount
+        vars.effectiveEvroAmount = _getEvroAmountToSwap(
             _params.exchangeType,
             _params.branch,
-            vars.expectedBoldAmount,
+            vars.expectedEvroAmount,
             vars.maxNetDebtIncrease,
             vars.flashLoanAmount,
             _params.collToken
         );
 
-        return (vars.flashLoanAmount, vars.effectiveBoldAmount);
+        return (vars.flashLoanAmount, vars.effectiveEvroAmount);
     }
 
     function leverUpTrove(LeverUpParams memory _params) internal returns (uint256, uint256) {
         // This should be done in the frontend
-        (uint256 flashLoanAmount, uint256 effectiveBoldAmount) = _getLeverUpFlashLoanAndBoldAmount(_params);
+        (uint256 flashLoanAmount, uint256 effectiveEvroAmount) = _getLeverUpFlashLoanAndEvroAmount(_params);
 
         ILeverageZapper.LeverUpTroveParams memory params = ILeverageZapper.LeverUpTroveParams({
             troveId: _params.troveId,
             flashLoanAmount: flashLoanAmount,
-            boldAmount: effectiveBoldAmount,
+            evroAmount: effectiveEvroAmount,
             maxUpfrontFee: 1000e18
         });
         vm.startPrank(A);
         _params.leverageZapper.leverUpTrove(params);
         vm.stopPrank();
 
-        return (flashLoanAmount, effectiveBoldAmount);
+        return (flashLoanAmount, effectiveEvroAmount);
     }
 
     function testCanLeverUpTroveWithCurve() external {
@@ -668,15 +668,15 @@ contract ZapperLeverageMainnet is DevTestSetup {
         uint256 ICR = contractsArray[_branch].troveManager.getCurrentICR(vars.troveId, vars.price);
         assertTrue(ICR >= vars.resultingCollateralRatio || vars.resultingCollateralRatio - ICR < 2e16, "Wrong CR");
         // token balances
-        assertEq(evroToken.balanceOf(A), vars.boldBalanceBeforeA, "BOLD bal mismatch");
+        assertEq(evroToken.balanceOf(A), vars.evroBalanceBeforeA, "BOLD bal mismatch");
         assertEq(A.balance, vars.ethBalanceBeforeA, "ETH bal mismatch");
         assertGe(contractsArray[_branch].collToken.balanceOf(A), vars.collBalanceBeforeA, "Coll bal mismatch");
         assertEq(
-            evroToken.balanceOf(address(_leverageZapper)), vars.boldBalanceBeforeZapper, "Zapper should not keep BOLD"
+            evroToken.balanceOf(address(_leverageZapper)), vars.evroBalanceBeforeZapper, "Zapper should not keep BOLD"
         );
         assertEq(
             evroToken.balanceOf(address(_leverageZapper.exchange())),
-            vars.boldBalanceBeforeExchange,
+            vars.evroBalanceBeforeExchange,
             "Exchange should not keep BOLD"
         );
         assertEq(
@@ -754,12 +754,12 @@ contract ZapperLeverageMainnet is DevTestSetup {
         getterParams.branch = _branch;
 
         // This should be done in the frontend
-        (uint256 flashLoanAmount, uint256 effectiveBoldAmount) = _getLeverUpFlashLoanAndBoldAmount(getterParams);
+        (uint256 flashLoanAmount, uint256 effectiveEvroAmount) = _getLeverUpFlashLoanAndEvroAmount(getterParams);
 
         ILeverageZapper.LeverUpTroveParams memory params = ILeverageZapper.LeverUpTroveParams({
             troveId: vars.troveId,
             flashLoanAmount: flashLoanAmount,
-            boldAmount: effectiveBoldAmount,
+            evroAmount: effectiveEvroAmount,
             maxUpfrontFee: 1000e18
         });
         vm.startPrank(A);
@@ -788,7 +788,7 @@ contract ZapperLeverageMainnet is DevTestSetup {
         ILeverageZapper.LeverUpTroveParams memory params = ILeverageZapper.LeverUpTroveParams({
             troveId: addressToTroveIdThroughZapper(address(_leverageZapper), A),
             flashLoanAmount: 10 ether,
-            boldAmount: 10000e18,
+            evroAmount: 10000e18,
             maxUpfrontFee: 1000e18
         });
         vm.startPrank(A);
@@ -845,12 +845,12 @@ contract ZapperLeverageMainnet is DevTestSetup {
         getterParams.priceFeed = contractsArray[_branch].priceFeed;
         getterParams.exchangeType = _exchangeType;
         getterParams.branch = _branch;
-        (uint256 flashLoanAmount, uint256 effectiveBoldAmount) = _getLeverUpFlashLoanAndBoldAmount(getterParams);
+        (uint256 flashLoanAmount, uint256 effectiveEvroAmount) = _getLeverUpFlashLoanAndEvroAmount(getterParams);
 
         ILeverageZapper.LeverUpTroveParams memory params = ILeverageZapper.LeverUpTroveParams({
             troveId: troveId,
             flashLoanAmount: flashLoanAmount,
-            boldAmount: effectiveBoldAmount,
+            evroAmount: effectiveEvroAmount,
             maxUpfrontFee: 1000e18
         });
         // B tries to lever up A’s trove
@@ -913,13 +913,13 @@ contract ZapperLeverageMainnet is DevTestSetup {
         getterParams.priceFeed = contractsArray[_branch].priceFeed;
         getterParams.exchangeType = _exchangeType;
         getterParams.branch = _branch;
-        (uint256 flashLoanAmount, uint256 effectiveBoldAmount) = _getLeverUpFlashLoanAndBoldAmount(getterParams);
+        (uint256 flashLoanAmount, uint256 effectiveEvroAmount) = _getLeverUpFlashLoanAndEvroAmount(getterParams);
 
         // B tries to lever up A’s trove calling our flash loan provider module
         ILeverageZapper.LeverUpTroveParams memory params = ILeverageZapper.LeverUpTroveParams({
             troveId: troveId,
             flashLoanAmount: flashLoanAmount,
-            boldAmount: effectiveBoldAmount,
+            evroAmount: effectiveEvroAmount,
             maxUpfrontFee: 1000e18
         });
         IFlashLoanProvider flashLoanProvider = _leverageZapper.flashLoanProvider();
@@ -988,12 +988,12 @@ contract ZapperLeverageMainnet is DevTestSetup {
         getterParams.priceFeed = contractsArray[_branch].priceFeed;
         getterParams.exchangeType = _exchangeType;
         getterParams.branch = _branch;
-        (uint256 flashLoanAmount, uint256 effectiveBoldAmount) = _getLeverUpFlashLoanAndBoldAmount(getterParams);
+        (uint256 flashLoanAmount, uint256 effectiveEvroAmount) = _getLeverUpFlashLoanAndEvroAmount(getterParams);
 
         ILeverageZapper.LeverUpTroveParams memory params = ILeverageZapper.LeverUpTroveParams({
             troveId: troveId,
             flashLoanAmount: flashLoanAmount,
-            boldAmount: effectiveBoldAmount,
+            evroAmount: effectiveEvroAmount,
             maxUpfrontFee: 1000e18
         });
         IFlashLoanProvider flashLoanProvider = _leverageZapper.flashLoanProvider();
@@ -1014,7 +1014,7 @@ contract ZapperLeverageMainnet is DevTestSetup {
 
     // Lever down
 
-    function _getLeverDownFlashLoanAndBoldAmount(
+    function _getLeverDownFlashLoanAndEvroAmount(
         ILeverageZapper _leverageZapper,
         uint256 _troveId,
         uint256 _leverageRatio,
@@ -1028,10 +1028,10 @@ contract ZapperLeverageMainnet is DevTestSetup {
         assertLt(_leverageRatio, currentLR, "Leverage ratio should decrease");
         uint256 currentCollAmount = getTroveEntireColl(_troveManager, _troveId);
         uint256 flashLoanAmount = currentCollAmount - currentCollAmount * _leverageRatio / currentLR;
-        uint256 expectedBoldAmount = flashLoanAmount * price / DECIMAL_PRECISION;
-        uint256 minBoldDebt = expectedBoldAmount * 95 / 100; // slippage
+        uint256 expectedEvroAmount = flashLoanAmount * price / DECIMAL_PRECISION;
+        uint256 minEvroDebt = expectedEvroAmount * 95 / 100; // slippage
 
-        return (flashLoanAmount, minBoldDebt);
+        return (flashLoanAmount, minEvroDebt);
     }
 
     function leverDownTrove(
@@ -1042,13 +1042,13 @@ contract ZapperLeverageMainnet is DevTestSetup {
         IPriceFeed _priceFeed
     ) internal returns (uint256) {
         // This should be done in the frontend
-        (uint256 flashLoanAmount, uint256 minBoldDebt) =
-            _getLeverDownFlashLoanAndBoldAmount(_leverageZapper, _troveId, _leverageRatio, _troveManager, _priceFeed);
+        (uint256 flashLoanAmount, uint256 minEvroDebt) =
+            _getLeverDownFlashLoanAndEvroAmount(_leverageZapper, _troveId, _leverageRatio, _troveManager, _priceFeed);
 
         ILeverageZapper.LeverDownTroveParams memory params = ILeverageZapper.LeverDownTroveParams({
             troveId: _troveId,
             flashLoanAmount: flashLoanAmount,
-            minBoldAmount: minBoldDebt
+            minEvroAmount: minEvroDebt
         });
         vm.startPrank(A);
         _leverageZapper.leverDownTrove(params);
@@ -1133,15 +1133,15 @@ contract ZapperLeverageMainnet is DevTestSetup {
             ICR >= vars.resultingCollateralRatio || vars.resultingCollateralRatio - ICR < CRTolerance, "Wrong CR"
         );
         // token balances
-        assertEq(evroToken.balanceOf(A), vars.boldBalanceBeforeA, "BOLD bal mismatch");
+        assertEq(evroToken.balanceOf(A), vars.evroBalanceBeforeA, "BOLD bal mismatch");
         assertEq(A.balance, vars.ethBalanceBeforeA, "ETH bal mismatch");
         assertGe(contractsArray[_branch].collToken.balanceOf(A), vars.collBalanceBeforeA, "Coll bal mismatch");
         assertEq(
-            evroToken.balanceOf(address(_leverageZapper)), vars.boldBalanceBeforeZapper, "Zapper should not keep BOLD"
+            evroToken.balanceOf(address(_leverageZapper)), vars.evroBalanceBeforeZapper, "Zapper should not keep BOLD"
         );
         assertEq(
             evroToken.balanceOf(address(_leverageZapper.exchange())),
-            vars.boldBalanceBeforeExchange,
+            vars.evroBalanceBeforeExchange,
             "Exchange should not keep BOLD"
         );
         assertEq(
@@ -1204,7 +1204,7 @@ contract ZapperLeverageMainnet is DevTestSetup {
         openTroveParams.batchManager = address(0);
         (uint256 troveId,) = openLeveragedTroveWithIndex(openTroveParams);
 
-        (uint256 flashLoanAmount, uint256 minBoldDebt) = _getLeverDownFlashLoanAndBoldAmount(
+        (uint256 flashLoanAmount, uint256 minEvroDebt) = _getLeverDownFlashLoanAndEvroAmount(
             _leverageZapper,
             troveId,
             1.5e18, // _leverageRatio,
@@ -1215,7 +1215,7 @@ contract ZapperLeverageMainnet is DevTestSetup {
         ILeverageZapper.LeverDownTroveParams memory params = ILeverageZapper.LeverDownTroveParams({
             troveId: troveId,
             flashLoanAmount: flashLoanAmount,
-            minBoldAmount: minBoldDebt
+            minEvroAmount: minEvroDebt
         });
         vm.startPrank(A);
         // Change receiver in BO
@@ -1242,7 +1242,7 @@ contract ZapperLeverageMainnet is DevTestSetup {
         ILeverageZapper.LeverDownTroveParams memory params = ILeverageZapper.LeverDownTroveParams({
             troveId: addressToTroveIdThroughZapper(address(_leverageZapper), A),
             flashLoanAmount: 10 ether,
-            minBoldAmount: 10000e18
+            minEvroAmount: 10000e18
         });
         vm.startPrank(A);
         vm.expectRevert("LZ: Caller not FlashLoan provider");
@@ -1290,7 +1290,7 @@ contract ZapperLeverageMainnet is DevTestSetup {
         (uint256 troveId,) = openLeveragedTroveWithIndex(openTroveParams);
 
         // B tries to lever up A’s trove
-        (uint256 flashLoanAmount, uint256 minBoldDebt) = _getLeverDownFlashLoanAndBoldAmount(
+        (uint256 flashLoanAmount, uint256 minEvroDebt) = _getLeverDownFlashLoanAndEvroAmount(
             _leverageZapper,
             troveId,
             1.5e18, // _leverageRatio,
@@ -1301,7 +1301,7 @@ contract ZapperLeverageMainnet is DevTestSetup {
         ILeverageZapper.LeverDownTroveParams memory params = ILeverageZapper.LeverDownTroveParams({
             troveId: troveId,
             flashLoanAmount: flashLoanAmount,
-            minBoldAmount: minBoldDebt
+            minEvroAmount: minEvroDebt
         });
         vm.startPrank(B);
         vm.expectRevert(AddRemoveManagers.NotOwnerNorRemoveManager.selector);
@@ -1358,7 +1358,7 @@ contract ZapperLeverageMainnet is DevTestSetup {
         (uint256 troveId,) = openLeveragedTroveWithIndex(openTroveParams);
 
         // B tries to lever down A’s trove calling our flash loan provider module
-        (uint256 flashLoanAmount, uint256 minBoldDebt) = _getLeverDownFlashLoanAndBoldAmount(
+        (uint256 flashLoanAmount, uint256 minEvroDebt) = _getLeverDownFlashLoanAndEvroAmount(
             _leverageZapper,
             troveId,
             1.5e18, // _leverageRatio,
@@ -1369,7 +1369,7 @@ contract ZapperLeverageMainnet is DevTestSetup {
         ILeverageZapper.LeverDownTroveParams memory params = ILeverageZapper.LeverDownTroveParams({
             troveId: troveId,
             flashLoanAmount: flashLoanAmount,
-            minBoldAmount: minBoldDebt
+            minEvroAmount: minEvroDebt
         });
         IFlashLoanProvider flashLoanProvider = _leverageZapper.flashLoanProvider();
         vm.startPrank(B);
@@ -1428,7 +1428,7 @@ contract ZapperLeverageMainnet is DevTestSetup {
         (uint256 troveId,) = openLeveragedTroveWithIndex(openTroveParams);
 
         // B tries to lever down A’s trove calling Balancer Vault directly
-        (uint256 flashLoanAmount, uint256 minBoldDebt) = _getLeverDownFlashLoanAndBoldAmount(
+        (uint256 flashLoanAmount, uint256 minEvroDebt) = _getLeverDownFlashLoanAndEvroAmount(
             _leverageZapper,
             troveId,
             1.5e18, // _leverageRatio,
@@ -1439,7 +1439,7 @@ contract ZapperLeverageMainnet is DevTestSetup {
         ILeverageZapper.LeverDownTroveParams memory params = ILeverageZapper.LeverDownTroveParams({
             troveId: troveId,
             flashLoanAmount: flashLoanAmount,
-            minBoldAmount: minBoldDebt
+            minEvroAmount: minEvroDebt
         });
         IFlashLoanProvider flashLoanProvider = _leverageZapper.flashLoanProvider();
         IERC20[] memory tokens = new IERC20[](1);
@@ -1514,10 +1514,10 @@ contract ZapperLeverageMainnet is DevTestSetup {
         address _account,
         uint256 _index,
         uint256 _collAmount,
-        uint256 _boldAmount,
+        uint256 _evroAmount,
         bool _lst
     ) internal returns (uint256) {
-        return openTrove(_zapper, _account, _index, _collAmount, _boldAmount, _lst, MIN_ANNUAL_INTEREST_RATE);
+        return openTrove(_zapper, _account, _index, _collAmount, _evroAmount, _lst, MIN_ANNUAL_INTEREST_RATE);
     }
 
     function openTrove(
@@ -1525,7 +1525,7 @@ contract ZapperLeverageMainnet is DevTestSetup {
         address _account,
         uint256 _index,
         uint256 _collAmount,
-        uint256 _boldAmount,
+        uint256 _evroAmount,
         bool _lst,
         uint256 _interestRate
     ) internal returns (uint256) {
@@ -1533,7 +1533,7 @@ contract ZapperLeverageMainnet is DevTestSetup {
             owner: _account,
             ownerIndex: _index,
             collAmount: _collAmount,
-            boldAmount: _boldAmount,
+            evroAmount: _evroAmount,
             upperHint: 0,
             lowerHint: 0,
             annualInterestRate: _interestRate,
@@ -1554,15 +1554,15 @@ contract ZapperLeverageMainnet is DevTestSetup {
 
     function _testCanCloseTrove(IZapper _zapper, uint256 _branch) internal {
         uint256 collAmount = 10 ether;
-        uint256 boldAmount = 10000e18;
+        uint256 evroAmount = 10000e18;
 
         bool lst = _branch > 0;
-        uint256 troveId = openTrove(_zapper, A, 0, collAmount, boldAmount, lst);
+        uint256 troveId = openTrove(_zapper, A, 0, collAmount, evroAmount, lst);
 
         // open a 2nd trove so we can close the 1st one
         openTrove(_zapper, B, 0, 100 ether, 10000e18, lst);
 
-        uint256 boldBalanceBefore = evroToken.balanceOf(A);
+        uint256 evroBalanceBefore = evroToken.balanceOf(A);
         uint256 collBalanceBefore = contractsArray[_branch].collToken.balanceOf(A);
         uint256 ethBalanceBefore = A.balance;
         (uint256 price,) = contractsArray[_branch].priceFeed.fetchPrice();
@@ -1574,8 +1574,8 @@ contract ZapperLeverageMainnet is DevTestSetup {
 
         assertEq(getTroveEntireColl(contractsArray[_branch].troveManager, troveId), 0, "Coll mismatch");
         assertEq(getTroveEntireDebt(contractsArray[_branch].troveManager, troveId), 0, "Debt mismatch");
-        assertGe(evroToken.balanceOf(A), boldBalanceBefore, "BOLD bal should not decrease");
-        assertLe(evroToken.balanceOf(A), boldBalanceBefore * 105 / 100, "BOLD bal can only increase by slippage margin");
+        assertGe(evroToken.balanceOf(A), evroBalanceBefore, "BOLD bal should not decrease");
+        assertLe(evroToken.balanceOf(A), evroBalanceBefore * 105 / 100, "BOLD bal can only increase by slippage margin");
         if (lst) {
             assertGe(contractsArray[_branch].collToken.balanceOf(A), collBalanceBefore, "Coll bal should not decrease");
             assertApproxEqAbs(
@@ -1620,10 +1620,10 @@ contract ZapperLeverageMainnet is DevTestSetup {
 
     function _testCannotCloseTroveIfLessCollThanExpected(IZapper _zapper, uint256 _branch) internal {
         uint256 collAmount = 10 ether;
-        uint256 boldAmount = 10000e18;
+        uint256 evroAmount = 10000e18;
 
         bool lst = _branch > 0;
-        uint256 troveId = openTrove(_zapper, A, 0, collAmount, boldAmount, lst);
+        uint256 troveId = openTrove(_zapper, A, 0, collAmount, evroAmount, lst);
 
         // open a 2nd trove so we can close the 1st one
         openTrove(_zapper, B, 0, 100 ether, 10000e18, lst);
@@ -1647,25 +1647,25 @@ contract ZapperLeverageMainnet is DevTestSetup {
         IZapper zapper = IZapper(leverageZapperHybridArray[0]);
 
         uint256 collAmount = 10 ether;
-        uint256 boldAmount = 10000e18;
+        uint256 evroAmount = 10000e18;
 
         // open a 2nd trove so we can close the A's one, with higher interest so it doesn't get redeemed
         openTrove(zapper, B, 0, 100 ether, 10000e18, false, 1e17);
 
-        uint256 troveId = openTrove(zapper, A, 0, collAmount, boldAmount, false);
+        uint256 troveId = openTrove(zapper, A, 0, collAmount, evroAmount, false);
 
         // Try to close trove
         // This should be done in the frontend
         (uint256 flashLoanAmount, uint256 minExpectedCollateral) =
             _getCloseFlashLoanAmount(troveId, contractsArray[0].troveManager, contractsArray[0].priceFeed);
 
-        // Now attacker redeems from trove and increases Bold price
+        // Now attacker redeems from trove and increases Evro price
         vm.startPrank(B);
         // Redemption
         collateralRegistry.redeemCollateral(10000e18, 0, 1e18);
         uint256 troveDebt = getTroveEntireDebt(contractsArray[0].troveManager, troveId);
         uint256 troveColl = getTroveEntireColl(contractsArray[0].troveManager, troveId);
-        assertLt(troveDebt, boldAmount, "Trove debt should have decreased");
+        assertLt(troveDebt, evroAmount, "Trove debt should have decreased");
         assertLt(troveColl, collAmount, "Trove coll should have decreased");
 
         // Swap WETH to USDC to increase price
@@ -1757,10 +1757,10 @@ contract ZapperLeverageMainnet is DevTestSetup {
     function _testOnlyOwnerOrManagerCanCloseTroveFromZapper(IZapper _zapper, uint256 _branch) internal {
         // Open trove
         uint256 collAmount = 10 ether;
-        uint256 boldAmount = 10000e18;
+        uint256 evroAmount = 10000e18;
 
         bool lst = _branch > 0;
-        uint256 troveId = openTrove(_zapper, A, 0, collAmount, boldAmount, lst);
+        uint256 troveId = openTrove(_zapper, A, 0, collAmount, evroAmount, lst);
 
         // B tries to close A’s trove
         (uint256 flashLoanAmount, uint256 minExpectedCollateral) =
@@ -1802,10 +1802,10 @@ contract ZapperLeverageMainnet is DevTestSetup {
     function _testOnlyOwnerOrManagerCanCloseTroveFromBalancerFLProvider(IZapper _zapper, uint256 _branch) internal {
         // Open trove
         uint256 collAmount = 10 ether;
-        uint256 boldAmount = 10000e18;
+        uint256 evroAmount = 10000e18;
 
         bool lst = _branch > 0;
-        uint256 troveId = openTrove(_zapper, A, 0, collAmount, boldAmount, lst);
+        uint256 troveId = openTrove(_zapper, A, 0, collAmount, evroAmount, lst);
 
         // B tries to close A’s trove calling our flash loan provider module
         (uint256 flashLoanAmount, uint256 minExpectedCollateral) =
@@ -1859,10 +1859,10 @@ contract ZapperLeverageMainnet is DevTestSetup {
     function _testOnlyOwnerOrManagerCanCloseTroveFromBalancerVault(IZapper _zapper, uint256 _branch) internal {
         // Open trove
         uint256 collAmount = 10 ether;
-        uint256 boldAmount = 10000e18;
+        uint256 evroAmount = 10000e18;
 
         bool lst = _branch > 0;
-        uint256 troveId = openTrove(_zapper, A, 0, collAmount, boldAmount, lst);
+        uint256 troveId = openTrove(_zapper, A, 0, collAmount, evroAmount, lst);
 
         // B tries to close A’s trove calling Balancer Vault directly
         (uint256 flashLoanAmount, uint256 minExpectedCollateral) =
@@ -1921,54 +1921,54 @@ contract ZapperLeverageMainnet is DevTestSetup {
 
     // helper price functions
 
-    // Helper to get the actual bold we need, capped by a max value, to get flash loan amount
-    function _getBoldAmountToSwap(
+    // Helper to get the actual evro we need, capped by a max value, to get flash loan amount
+    function _getEvroAmountToSwap(
         ExchangeType _exchangeType,
         uint256 _branch,
-        uint256 _boldAmount,
-        uint256 _maxBoldAmount,
+        uint256 _evroAmount,
+        uint256 _maxEvroAmount,
         uint256 _minCollAmount,
         IERC20 _collToken
     ) internal returns (uint256) {
         if (_exchangeType == ExchangeType.Curve) {
-            return _getBoldAmountToSwapCurve(_branch, _boldAmount, _maxBoldAmount, _minCollAmount);
+            return _getEvroAmountToSwapCurve(_branch, _evroAmount, _maxEvroAmount, _minCollAmount);
         }
 
         if (_exchangeType == ExchangeType.UniV3) {
-            return _getBoldAmountToSwapUniV3(_maxBoldAmount, _minCollAmount, _collToken);
+            return _getEvroAmountToSwapUniV3(_maxEvroAmount, _minCollAmount, _collToken);
         }
 
-        return _getBoldAmountToSwapHybrid(_maxBoldAmount, _minCollAmount, _collToken);
+        return _getEvroAmountToSwapHybrid(_maxEvroAmount, _minCollAmount, _collToken);
     }
 
-    function _getBoldAmountToSwapCurve(
+    function _getEvroAmountToSwapCurve(
         uint256 _branch,
-        uint256 _boldAmount,
-        uint256 _maxBoldAmount,
+        uint256 _evroAmount,
+        uint256 _maxEvroAmount,
         uint256 _minCollAmount
     ) internal view returns (uint256) {
         ICurvePool curvePool = CurveExchange(address(leverageZapperCurveArray[_branch].exchange())).curvePool();
 
-        uint256 step = (_maxBoldAmount - _boldAmount) / 5; // In max 5 iterations we should reach the target, unless price is lower
+        uint256 step = (_maxEvroAmount - _evroAmount) / 5; // In max 5 iterations we should reach the target, unless price is lower
         uint256 dy;
         // TODO: Optimizations: binary search, change the step depending on last dy, ...
         // Or check if there’s any helper implemented anywhere
-        uint256 lastBoldAmount = _maxBoldAmount + step;
+        uint256 lastEvroAmount = _maxEvroAmount + step;
         do {
-            lastBoldAmount -= step;
-            dy = curvePool.get_dy(BOLD_TOKEN_INDEX, COLL_TOKEN_INDEX, lastBoldAmount);
-        } while (dy > _minCollAmount && lastBoldAmount > step);
+            lastEvroAmount -= step;
+            dy = curvePool.get_dy(BOLD_TOKEN_INDEX, COLL_TOKEN_INDEX, lastEvroAmount);
+        } while (dy > _minCollAmount && lastEvroAmount > step);
 
-        uint256 boldAmountToSwap = dy >= _minCollAmount ? lastBoldAmount : lastBoldAmount + step;
-        require(boldAmountToSwap <= _maxBoldAmount, "Bold amount required too high");
+        uint256 evroAmountToSwap = dy >= _minCollAmount ? lastEvroAmount : lastEvroAmount + step;
+        require(evroAmountToSwap <= _maxEvroAmount, "Evro amount required too high");
 
-        return boldAmountToSwap;
+        return evroAmountToSwap;
     }
 
     // See: https://docs.uniswap.org/contracts/v3/reference/periphery/interfaces/IQuoterV2
     // These functions are not marked view because they rely on calling non-view functions and reverting to compute the result.
     // They are also not gas efficient and should not be called on-chain.
-    function _getBoldAmountToSwapUniV3(uint256 _maxBoldAmount, uint256 _minCollAmount, IERC20 _collToken)
+    function _getEvroAmountToSwapUniV3(uint256 _maxEvroAmount, uint256 _minCollAmount, IERC20 _collToken)
         internal /* view */
         returns (uint256)
     {
@@ -1980,12 +1980,12 @@ contract ZapperLeverageMainnet is DevTestSetup {
             sqrtPriceLimitX96: 0
         });
         (uint256 amountIn,,,) = uniV3Quoter.quoteExactOutputSingle(params);
-        require(amountIn <= _maxBoldAmount, "Price too high");
+        require(amountIn <= _maxEvroAmount, "Price too high");
 
         return amountIn;
     }
 
-    function _getBoldAmountToSwapHybrid(uint256 _maxBoldAmount, uint256 _minCollAmount, IERC20 _collToken)
+    function _getEvroAmountToSwapHybrid(uint256 _maxEvroAmount, uint256 _minCollAmount, IERC20 _collToken)
         internal /* view */
         returns (uint256)
     {
@@ -2017,12 +2017,12 @@ contract ZapperLeverageMainnet is DevTestSetup {
 
         // Curve
         // USDC <- BOLD
-        uint256 boldAmountToSwap = usdcCurvePool.get_dx(int128(BOLD_TOKEN_INDEX), int128(USDC_INDEX), usdcAmount);
-        require(boldAmountToSwap <= _maxBoldAmount, "Bold amount required too high");
+        uint256 evroAmountToSwap = usdcCurvePool.get_dx(int128(BOLD_TOKEN_INDEX), int128(USDC_INDEX), usdcAmount);
+        require(evroAmountToSwap <= _maxEvroAmount, "Evro amount required too high");
 
-        boldAmountToSwap = Math.min(boldAmountToSwap * 101 / 100, _maxBoldAmount); // TODO
+        evroAmountToSwap = Math.min(evroAmountToSwap * 101 / 100, _maxEvroAmount); // TODO
 
-        return boldAmountToSwap;
+        return evroAmountToSwap;
     }
 
     // Helpers
@@ -2041,13 +2041,13 @@ contract ZapperLeverageMainnet is DevTestSetup {
     }
 
     function _testHybridExchangeHelpers(
-        uint256 _boldAmount,
+        uint256 _evroAmount,
         IERC20 _collToken,
         uint256 _desiredCollAmount,
         uint256 _acceptedSlippage
     ) internal {
         (uint256 collAmount, uint256 slippage) =
-            hybridCurveUniV3ExchangeHelpers.getCollFromBold(_boldAmount, _collToken, _desiredCollAmount);
+            hybridCurveUniV3ExchangeHelpers.getCollFromEvro(_evroAmount, _collToken, _desiredCollAmount);
         //console2.log(collAmount, "collAmount");
         //console2.log(slippage, "slippage");
         assertGe(collAmount, (DECIMAL_PRECISION - slippage) * _desiredCollAmount / DECIMAL_PRECISION);
@@ -2057,7 +2057,7 @@ contract ZapperLeverageMainnet is DevTestSetup {
     function testHybridExchangeHelpersNoDeviation() public {
         (uint256 price,) = contractsArray[0].priceFeed.fetchPrice();
         (uint256 collAmount, uint256 slippage) =
-            hybridCurveUniV3ExchangeHelpers.getCollFromBold(price, contractsArray[0].collToken, 0);
+            hybridCurveUniV3ExchangeHelpers.getCollFromEvro(price, contractsArray[0].collToken, 0);
         assertGt(collAmount, 0);
         assertEq(slippage, 0);
     }

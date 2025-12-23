@@ -22,7 +22,7 @@ contract ZapperWETHGnosisTest is Test {
     IBorrowerOperations borrowerOperations;
     ITroveManager troveManager;
     ITroveNFT troveNFT;
-    IERC20 boldToken;
+    IERC20 evroToken;
     IWETH weth;
 
     // Helper to get trove collateral
@@ -54,10 +54,10 @@ contract ZapperWETHGnosisTest is Test {
         borrowerOperations = wethZapper.borrowerOperations();
         troveManager = wethZapper.troveManager();
         troveNFT = troveManager.troveNFT();
-        // Deployed contract has boldToken(), local code has evroToken() - use low-level call
-        (bool success, bytes memory data) = WETH_ZAPPER.staticcall(abi.encodeWithSignature("boldToken()"));
-        require(success, "Failed to get boldToken");
-        boldToken = IERC20(abi.decode(data, (address)));
+        // Deployed contract has evroToken(), local code has evroToken() - use low-level call
+        (bool success, bytes memory data) = WETH_ZAPPER.staticcall(abi.encodeWithSignature("evroToken()"));
+        require(success, "Failed to get evroToken");
+        evroToken = IERC20(abi.decode(data, (address)));
         weth = IWETH(wethZapper.WETH());
         
         // Also load the registry for reference
@@ -74,7 +74,7 @@ contract ZapperWETHGnosisTest is Test {
 
     function testCanOpenTrove() external {
         uint256 collAmount = 4000 ether; // Need 150% CCR at 0.85 EUR/xDAI
-        uint256 boldAmount = 2000e18;
+        uint256 evroAmount = 2000e18;
 
         uint256 balanceBefore = A.balance;
 
@@ -82,7 +82,7 @@ contract ZapperWETHGnosisTest is Test {
             owner: A,
             ownerIndex: 0,
             collAmount: 0, // not needed for WETHZapper
-            boldAmount: boldAmount,
+            evroAmount: evroAmount,
             upperHint: 0,
             lowerHint: 0,
             annualInterestRate: 5e16, // 5%
@@ -102,7 +102,7 @@ contract ZapperWETHGnosisTest is Test {
         assertEq(troveNFT.ownerOf(troveId), A, "A should own the trove");
         
         // Verify BOLD was received
-        assertEq(boldToken.balanceOf(A), boldAmount, "A should have received BOLD");
+        assertEq(evroToken.balanceOf(A), evroAmount, "A should have received BOLD");
         
         // Verify ETH was spent
         assertEq(A.balance, balanceBefore - collAmount - ETH_GAS_COMPENSATION, "ETH balance mismatch");
@@ -111,13 +111,13 @@ contract ZapperWETHGnosisTest is Test {
     function testCanAddCollateral() external {
         // First open a trove
         uint256 initialColl = 4000 ether;
-        uint256 boldAmount = 2000e18;
+        uint256 evroAmount = 2000e18;
 
         IZapper.OpenTroveParams memory params = IZapper.OpenTroveParams({
             owner: A,
             ownerIndex: 0,
             collAmount: 0,
-            boldAmount: boldAmount,
+            evroAmount: evroAmount,
             upperHint: 0,
             lowerHint: 0,
             annualInterestRate: 5e16,
@@ -145,13 +145,13 @@ contract ZapperWETHGnosisTest is Test {
     function testCanWithdrawCollateral() external {
         // First open a trove with extra collateral
         uint256 initialColl = 5000 ether;
-        uint256 boldAmount = 2000e18;
+        uint256 evroAmount = 2000e18;
 
         IZapper.OpenTroveParams memory params = IZapper.OpenTroveParams({
             owner: A,
             ownerIndex: 0,
             collAmount: 0,
-            boldAmount: boldAmount,
+            evroAmount: evroAmount,
             upperHint: 0,
             lowerHint: 0,
             annualInterestRate: 5e16,
@@ -181,13 +181,13 @@ contract ZapperWETHGnosisTest is Test {
     function testCanCloseTrove() external {
         // First open a trove with B so A isn't the only trove
         uint256 initialColl = 4000 ether;
-        uint256 boldAmount = 2000e18;
+        uint256 evroAmount = 2000e18;
 
         IZapper.OpenTroveParams memory paramsB = IZapper.OpenTroveParams({
             owner: B,
             ownerIndex: 0,
             collAmount: 0,
-            boldAmount: boldAmount,
+            evroAmount: evroAmount,
             upperHint: 0,
             lowerHint: 0,
             annualInterestRate: 5e16,
@@ -206,7 +206,7 @@ contract ZapperWETHGnosisTest is Test {
             owner: A,
             ownerIndex: 0,
             collAmount: 0,
-            boldAmount: boldAmount,
+            evroAmount: evroAmount,
             upperHint: 0,
             lowerHint: 0,
             annualInterestRate: 5e16,
@@ -227,13 +227,13 @@ contract ZapperWETHGnosisTest is Test {
         uint256 debtToRepay = _getTroveDebt(troveId);
         
         // Deal extra BOLD to cover the upfront fee
-        uint256 boldBalance = boldToken.balanceOf(A);
-        if (debtToRepay > boldBalance) {
-            deal(address(boldToken), A, debtToRepay);
+        uint256 evroBalance = evroToken.balanceOf(A);
+        if (debtToRepay > evroBalance) {
+            deal(address(evroToken), A, debtToRepay);
         }
         
         // Approve BOLD for repayment
-        boldToken.approve(address(wethZapper), debtToRepay);
+        evroToken.approve(address(wethZapper), debtToRepay);
 
         uint256 ethBalanceBefore = A.balance;
         
@@ -253,7 +253,7 @@ contract ZapperWETHGnosisTest is Test {
         assertTrue(address(borrowerOperations) != address(0), "BorrowerOps should be set");
         assertTrue(address(troveManager) != address(0), "TroveManager should be set");
         assertTrue(address(troveNFT) != address(0), "TroveNFT should be set");
-        assertTrue(address(boldToken) != address(0), "EvroToken should be set");
+        assertTrue(address(evroToken) != address(0), "EvroToken should be set");
         assertTrue(address(weth) != address(0), "WETH should be set");
         
         // Log the addresses for debugging
@@ -261,7 +261,7 @@ contract ZapperWETHGnosisTest is Test {
         console.log("BorrowerOperations:", address(borrowerOperations));
         console.log("TroveManager:", address(troveManager));
         console.log("TroveNFT:", address(troveNFT));
-        console.log("EvroToken:", address(boldToken));
+        console.log("EvroToken:", address(evroToken));
         console.log("WETH:", address(weth));
         console.log("WETHZapper:", address(wethZapper));
         console.log("Zapper's BorrowerOps:", address(wethZapper.borrowerOperations()));

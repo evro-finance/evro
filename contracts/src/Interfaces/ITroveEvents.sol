@@ -20,19 +20,19 @@ interface ITroveEvents {
     event Liquidation(
         uint256 _debtOffsetBySP,
         uint256 _debtRedistributed,
-        uint256 _boldGasCompensation,
+        uint256 _evroGasCompensation,
         uint256 _collGasCompensation,
         uint256 _collSentToSP,
         uint256 _collRedistributed,
         uint256 _collSurplus,
         uint256 _L_ETH,
-        uint256 _L_boldDebt,
+        uint256 _L_evroDebt,
         uint256 _price
     );
 
     event Redemption(
-        uint256 _attemptedBoldAmount,
-        uint256 _actualBoldAmount,
+        uint256 _attemptedEvroAmount,
+        uint256 _actualEvroAmount,
         uint256 _ETHSent,
         uint256 _ETHFee,
         uint256 _price,

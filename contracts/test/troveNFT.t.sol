@@ -23,11 +23,11 @@ contract troveNFTTest is DevTestSetup {
         address _account,
         uint256 _index,
         uint256 _coll,
-        uint256 _boldAmount,
+        uint256 _evroAmount,
         uint256 _annualInterestRate
     ) public returns (uint256 troveId) {
         TroveChange memory troveChange;
-        troveChange.debtIncrease = _boldAmount;
+        troveChange.debtIncrease = _evroAmount;
         troveChange.newWeightedRecordedDebt = troveChange.debtIncrease * _annualInterestRate;
         uint256 avgInterestRate =
             contractsArray[_collIndex].activePool.getNewApproxAvgInterestRateFromTroveChange(troveChange);
@@ -39,7 +39,7 @@ contract troveNFTTest is DevTestSetup {
             _account,
             _index,
             _coll,
-            _boldAmount,
+            _evroAmount,
             0, // _upperHint
             0, // _lowerHint
             _annualInterestRate,

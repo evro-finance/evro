@@ -52,7 +52,7 @@ contract HybridCurveUniV3ExchangeHelpers is IExchangeHelpers {
         // Curve
         ICurveStableswapNGPool _curvePool,
         uint128 _usdcIndex,
-        uint128 _boldIndex,
+        uint128 _evroIndex,
         // UniV3
         uint24 _feeUsdcWeth,
         uint24 _feeWethColl,
@@ -64,7 +64,7 @@ contract HybridCurveUniV3ExchangeHelpers is IExchangeHelpers {
         // Curve
         curvePool = _curvePool;
         USDC_INDEX = _usdcIndex;
-        BOLD_TOKEN_INDEX = _boldIndex;
+        BOLD_TOKEN_INDEX = _evroIndex;
 
         // Uniswap
         feeUsdcWeth = _feeUsdcWeth;
@@ -72,12 +72,12 @@ contract HybridCurveUniV3ExchangeHelpers is IExchangeHelpers {
         uniV3Quoter = _uniV3Quoter;
     }
 
-    function getCollFromBold(uint256 _boldAmount, IERC20 _collToken, uint256 _desiredCollAmount)
+    function getCollFromEvro(uint256 _evroAmount, IERC20 _collToken, uint256 _desiredCollAmount)
         external /* view */
         returns (uint256 collAmount, uint256 deviation)
     {
         // BOLD -> USDC
-        uint256 curveUsdcAmount = curvePool.get_dy(int128(BOLD_TOKEN_INDEX), int128(USDC_INDEX), _boldAmount);
+        uint256 curveUsdcAmount = curvePool.get_dy(int128(BOLD_TOKEN_INDEX), int128(USDC_INDEX), _evroAmount);
 
         // USDC -> Coll
         bytes memory path;

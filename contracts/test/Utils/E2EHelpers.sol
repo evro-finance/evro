@@ -166,14 +166,14 @@ contract E2EHelpers is Test, UseDeployment, TroveId {
         deal(token, to, give);
     }
 
-    function _openTrove(uint256 i, address owner, uint256 ownerIndex, uint256 boldAmount) internal returns (uint256) {
+    function _openTrove(uint256 i, address owner, uint256 ownerIndex, uint256 evroAmount) internal returns (uint256) {
         IZapper.OpenTroveParams memory p;
         p.owner = owner;
         p.ownerIndex = ownerIndex;
-        p.boldAmount = boldAmount;
-        p.collAmount = boldAmount * 2 ether / branches[i].priceFeed.getPrice();
+        p.evroAmount = evroAmount;
+        p.collAmount = evroAmount * 2 ether / branches[i].priceFeed.getPrice();
         p.annualInterestRate = 0.05 ether;
-        p.maxUpfrontFee = hintHelpers.predictOpenTroveUpfrontFee(i, boldAmount, p.annualInterestRate);
+        p.maxUpfrontFee = hintHelpers.predictOpenTroveUpfrontFee(i, evroAmount, p.annualInterestRate);
 
         (uint256 collTokenAmount, uint256 value) = branches[i].collToken == weth
             ? (0, p.collAmount + ETH_GAS_COMPENSATION)
@@ -187,7 +187,7 @@ contract E2EHelpers is Test, UseDeployment, TroveId {
         branches[i].zapper.openTroveWithRawETH{value: value}(p);
         vm.stopPrank();
 
-        return boldAmount;
+        return evroAmount;
     }
 
     function _closeTroveFromCollateral(uint256 i, address owner, uint256 ownerIndex, bool _leveraged)
@@ -216,7 +216,7 @@ contract E2EHelpers is Test, UseDeployment, TroveId {
         return debt;
     }
 
-    function _openLeveragedTrove(uint256 i, address owner, uint256 ownerIndex, uint256 boldAmount)
+    function _openLeveragedTrove(uint256 i, address owner, uint256 ownerIndex, uint256 evroAmount)
         internal
         returns (uint256)
     {
@@ -225,11 +225,11 @@ contract E2EHelpers is Test, UseDeployment, TroveId {
         ILeverageZapper.OpenLeveragedTroveParams memory p;
         p.owner = owner;
         p.ownerIndex = ownerIndex;
-        p.boldAmount = boldAmount;
-        p.collAmount = boldAmount * 0.5 ether / price;
-        p.flashLoanAmount = boldAmount * (1 ether - PRICE_TOLERANCE) / price;
+        p.evroAmount = evroAmount;
+        p.collAmount = evroAmount * 0.5 ether / price;
+        p.flashLoanAmount = evroAmount * (1 ether - PRICE_TOLERANCE) / price;
         p.annualInterestRate = 0.1 ether;
-        p.maxUpfrontFee = hintHelpers.predictOpenTroveUpfrontFee(i, boldAmount, p.annualInterestRate);
+        p.maxUpfrontFee = hintHelpers.predictOpenTroveUpfrontFee(i, evroAmount, p.annualInterestRate);
 
         (uint256 collTokenAmount, uint256 value) = branches[i].collToken == weth
             ? (0, p.collAmount + ETH_GAS_COMPENSATION)
@@ -243,10 +243,10 @@ contract E2EHelpers is Test, UseDeployment, TroveId {
         branches[i].leverageZapper.openLeveragedTroveWithRawETH{value: value}(p);
         vm.stopPrank();
 
-        return boldAmount;
+        return evroAmount;
     }
 
-    function _leverUpTrove(uint256 i, address owner, uint256 ownerIndex, uint256 boldAmount)
+    function _leverUpTrove(uint256 i, address owner, uint256 ownerIndex, uint256 evroAmount)
         internal
         returns (uint256)
     {
@@ -254,18 +254,18 @@ contract E2EHelpers is Test, UseDeployment, TroveId {
 
         ILeverageZapper.LeverUpTroveParams memory p = ILeverageZapper.LeverUpTroveParams({
             troveId: troveId,
-            boldAmount: boldAmount,
-            flashLoanAmount: boldAmount * (1 ether - PRICE_TOLERANCE) / branches[i].priceFeed.getPrice(),
-            maxUpfrontFee: hintHelpers.predictAdjustTroveUpfrontFee(i, troveId, boldAmount)
+            evroAmount: evroAmount,
+            flashLoanAmount: evroAmount * (1 ether - PRICE_TOLERANCE) / branches[i].priceFeed.getPrice(),
+            maxUpfrontFee: hintHelpers.predictAdjustTroveUpfrontFee(i, troveId, evroAmount)
         });
 
         vm.prank(owner);
         branches[i].leverageZapper.leverUpTrove(p);
 
-        return boldAmount;
+        return evroAmount;
     }
 
-    function _leverDownTrove(uint256 i, address owner, uint256 ownerIndex, uint256 boldAmount)
+    function _leverDownTrove(uint256 i, address owner, uint256 ownerIndex, uint256 evroAmount)
         internal
         returns (uint256)
     {
@@ -274,8 +274,8 @@ contract E2EHelpers is Test, UseDeployment, TroveId {
 
         ILeverageZapper.LeverDownTroveParams memory p = ILeverageZapper.LeverDownTroveParams({
             troveId: troveId,
-            minBoldAmount: boldAmount,
-            flashLoanAmount: boldAmount * (1 ether + PRICE_TOLERANCE) / branches[i].priceFeed.getPrice()
+            minEvroAmount: evroAmount,
+            flashLoanAmount: evroAmount * (1 ether + PRICE_TOLERANCE) / branches[i].priceFeed.getPrice()
         });
 
         vm.prank(owner);
@@ -284,10 +284,10 @@ contract E2EHelpers is Test, UseDeployment, TroveId {
         return debtBefore - branches[i].troveManager.getLatestTroveData(troveId).entireDebt;
     }
 
-    function _provideToSP(uint256 i, address depositor, uint256 boldAmount) internal {
-        deal(BOLD, depositor, boldAmount);
+    function _provideToSP(uint256 i, address depositor, uint256 evroAmount) internal {
+        deal(BOLD, depositor, evroAmount);
         vm.prank(depositor);
-        branches[i].stabilityPool.provideToSP(boldAmount, false);
+        branches[i].stabilityPool.provideToSP(evroAmount, false);
     }
 
     function _claimFromSP(uint256 i, address depositor) internal {

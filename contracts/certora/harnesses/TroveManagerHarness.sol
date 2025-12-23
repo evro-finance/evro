@@ -12,12 +12,12 @@ contract TroveManagerHarness is TroveManager {
     function redeemCollateralFromTroveHarnessed (
         IDefaultPool _defaultPool,
         SingleRedemptionValues memory _singleRedemption,
-        uint256 _maxBoldamount,
+        uint256 _maxEvroamount,
         uint256 _price,
         uint256 _redemptionRate
     ) external returns (uint256) {
         _redeemCollateralFromTrove(_defaultPool, _singleRedemption,
-            _maxBoldamount, _price, _redemptionRate);
-        return _singleRedemption.boldLot;
+            _maxEvroamount, _price, _redemptionRate);
+        return _singleRedemption.evroLot;
     }
 }

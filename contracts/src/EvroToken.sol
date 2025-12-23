@@ -106,7 +106,7 @@ contract EvroToken is Ownable, IEvroToken, ERC20Permit {
     function _requireValidRecipient(address _recipient) internal view {
         require(
             _recipient != address(0) && _recipient != address(this),
-            "EvroToken: Cannot transfer tokens directly to the Bold token contract or the zero address"
+            "EvroToken: Cannot transfer tokens directly to the Evro token contract or the zero address"
         );
     }
 

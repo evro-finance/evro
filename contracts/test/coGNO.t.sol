@@ -15,11 +15,11 @@ contract CoGNOTest is DevTestSetup {
         address _account,
         uint256 _index,
         uint256 _coll,
-        uint256 _boldAmount,
+        uint256 _evroAmount,
         uint256 _annualInterestRate
     ) internal returns (uint256 troveId) {
         TroveChange memory troveChange;
-        troveChange.debtIncrease = _boldAmount;
+        troveChange.debtIncrease = _evroAmount;
         troveChange.newWeightedRecordedDebt = troveChange.debtIncrease * _annualInterestRate;
         uint256 avgInterestRate =
             contractsArray[0].activePool.getNewApproxAvgInterestRateFromTroveChange(troveChange);
@@ -30,7 +30,7 @@ contract CoGNOTest is DevTestSetup {
             _account,
             _index,
             _coll,
-            _boldAmount,
+            _evroAmount,
             0,
             0,
             _annualInterestRate,

@@ -12,16 +12,16 @@ import {Governance} from "V2-gov/src/Governance.sol";
 contract GovernanceProxy is IGovernance, IUserProxyFactory, IMultiDelegateCall {
     Governance public immutable governance;
     IERC20 public immutable lqty;
-    IERC20 public immutable bold;
+    IERC20 public immutable evro;
 
     constructor(Governance _governance) {
         governance = _governance;
         lqty = _governance.lqty();
-        bold = _governance.bold();
+        evro = _governance.evro();
 
         address userProxy = _governance.deriveUserProxyAddress(address(this));
         lqty.approve(userProxy, type(uint256).max);
-        bold.approve(address(_governance), type(uint256).max);
+        evro.approve(address(_governance), type(uint256).max);
     }
 
     function registerInitialInitiatives(address[] memory) external pure override {
@@ -72,8 +72,8 @@ contract GovernanceProxy is IGovernance, IUserProxyFactory, IMultiDelegateCall {
         return governance.VOTING_THRESHOLD_FACTOR();
     }
 
-    function boldAccrued() external view override returns (uint256) {
-        return governance.boldAccrued();
+    function evroAccrued() external view override returns (uint256) {
+        return governance.evroAccrued();
     }
 
     function votesSnapshot() external view override returns (uint256 votes, uint256 forEpoch) {

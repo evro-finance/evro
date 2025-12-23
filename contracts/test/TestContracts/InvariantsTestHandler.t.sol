@@ -205,30 +205,30 @@ contract InvariantsTestHandler is Assertions, BaseHandler, BaseMultiCollateralTe
     struct ProvideToSPContext {
         TestDeployer.LiquityContractsDev c;
         uint256 pendingInterest;
-        uint256 totalBoldDeposits;
+        uint256 totalEvroDeposits;
         uint256 blockedSPYield;
-        uint256 initialBoldDeposit;
-        uint256 boldDeposit;
-        uint256 boldYield;
+        uint256 initialEvroDeposit;
+        uint256 evroDeposit;
+        uint256 evroYield;
         uint256 ethGain;
         uint256 ethStash;
         uint256 ethClaimed;
-        uint256 boldClaimed;
+        uint256 evroClaimed;
         string errorString;
     }
 
     struct WithdrawFromSPContext {
         TestDeployer.LiquityContractsDev c;
         uint256 pendingInterest;
-        uint256 totalBoldDeposits;
+        uint256 totalEvroDeposits;
         uint256 blockedSPYield;
-        uint256 initialBoldDeposit;
-        uint256 boldDeposit;
-        uint256 boldYield;
+        uint256 initialEvroDeposit;
+        uint256 evroDeposit;
+        uint256 evroYield;
         uint256 ethGain;
         uint256 ethStash;
         uint256 ethClaimed;
-        uint256 boldClaimed;
+        uint256 evroClaimed;
         uint256 withdrawn;
         string errorString;
     }
@@ -347,8 +347,8 @@ contract InvariantsTestHandler is Assertions, BaseHandler, BaseMultiCollateralTe
     // Public ghost variables (per branch, exposed to InvariantsTest)
     mapping(uint256 branchIdx => uint256) public designatedVictimId; // ID of zombie Trove that'll be redeemed first
     mapping(uint256 branchIdx => uint256) public collSurplus;
-    mapping(uint256 branchIdx => uint256) public spBoldDeposits;
-    mapping(uint256 branchIdx => uint256) public spBoldYield;
+    mapping(uint256 branchIdx => uint256) public spEvroDeposits;
+    mapping(uint256 branchIdx => uint256) public spEvroYield;
     mapping(uint256 branchIdx => uint256) public spColl;
     mapping(uint256 branchIdx => uint256) public totalCollRedist;
     mapping(uint256 branchIdx => uint256) public totalDebtRedist;
@@ -358,7 +358,7 @@ contract InvariantsTestHandler is Assertions, BaseHandler, BaseMultiCollateralTe
     mapping(uint256 branchIdx => uint256) _price;
 
     // All free-floating BOLD is kept in the handler, to be dealt out to actors as needed
-    uint256 _handlerBold;
+    uint256 _handlerEvro;
 
     // Used to keep track of base rate
     uint256 _baseRate = INITIAL_BASE_RATE;
@@ -724,8 +724,8 @@ contract InvariantsTestHandler is Assertions, BaseHandler, BaseMultiCollateralTe
             _sweepWETHAndUnapprove(msg.sender, ETH_GAS_COMPENSATION, address(v.c.borrowerOperations));
         } else {
             // Cleanup (success)
-            _sweepBold(msg.sender, v.borrowed);
-            if (v.join) _sweepBold(v.batchManager, v.batchManagementFee);
+            _sweepEvro(msg.sender, v.borrowed);
+            if (v.join) _sweepEvro(v.batchManager, v.batchManagementFee);
         }
     }
 
@@ -773,7 +773,7 @@ contract InvariantsTestHandler is Assertions, BaseHandler, BaseMultiCollateralTe
 
         collChange = v.prop != AdjustedTroveProperties.onlyDebt ? _bound(collChange, 0, v.t.entireColl + 1) : 0;
         debtChange = v.prop != AdjustedTroveProperties.onlyColl ? _bound(debtChange, 0, v.t.entireDebt + 1) : 0;
-        if (!isDebtInc) debtChange = Math.min(debtChange, _handlerBold);
+        if (!isDebtInc) debtChange = Math.min(debtChange, _handlerEvro);
         v.maxDebtDec = v.t.entireDebt > MIN_DEBT ? v.t.entireDebt - MIN_DEBT : 0;
         v.collDelta = isCollInc ? int256(collChange) : -int256(collChange);
         v.debtDelta = isDebtInc ? int256(debtChange) : -int256(Math.min(debtChange, v.maxDebtDec));
@@ -802,7 +802,7 @@ contract InvariantsTestHandler is Assertions, BaseHandler, BaseMultiCollateralTe
 
         // TODO: randomly deal less?
         if (isCollInc) _dealCollAndApprove(i, msg.sender, collChange, address(v.c.borrowerOperations));
-        if (!isDebtInc) _dealBold(msg.sender, debtChange);
+        if (!isDebtInc) _dealEvro(msg.sender, debtChange);
 
         vm.prank(msg.sender);
         try _functionCaller.call(
@@ -912,14 +912,14 @@ contract InvariantsTestHandler is Assertions, BaseHandler, BaseMultiCollateralTe
 
             // Cleanup (failure)
             if (isCollInc) _sweepCollAndUnapprove(i, msg.sender, collChange, address(v.c.borrowerOperations));
-            if (!isDebtInc) _sweepBold(msg.sender, debtChange);
+            if (!isDebtInc) _sweepEvro(msg.sender, debtChange);
         } else {
             // Cleanup (success)
             if (!isCollInc) _sweepColl(i, msg.sender, collChange);
-            if (isDebtInc) _sweepBold(msg.sender, debtChange);
+            if (isDebtInc) _sweepEvro(msg.sender, debtChange);
             // Take back remaining BOLD after repayment truncation
-            if (!isDebtInc) _sweepBold(msg.sender, debtChange - uint256(-v.debtDelta));
-            if (v.batchManager != address(0)) _sweepBold(v.batchManager, v.batchManagementFee);
+            if (!isDebtInc) _sweepEvro(msg.sender, debtChange - uint256(-v.debtDelta));
+            if (v.batchManager != address(0)) _sweepEvro(v.batchManager, v.batchManagementFee);
         }
     }
 
@@ -1053,8 +1053,8 @@ contract InvariantsTestHandler is Assertions, BaseHandler, BaseMultiCollateralTe
 
         logCall("closeTrove", i.toString());
 
-        v.dealt = Math.min(v.t.entireDebt, _handlerBold);
-        _dealBold(msg.sender, v.dealt);
+        v.dealt = Math.min(v.t.entireDebt, _handlerEvro);
+        _dealEvro(msg.sender, v.dealt);
 
         vm.prank(msg.sender);
         try v.c.borrowerOperations.closeTrove(v.troveId) {
@@ -1096,8 +1096,8 @@ contract InvariantsTestHandler is Assertions, BaseHandler, BaseMultiCollateralTe
             (selector, v.errorString) = _decodeCustomError(revertData);
 
             // Justify failures
-            if (selector == BorrowerOperations.NotEnoughBoldBalance.selector) {
-                assertLtDecimal(v.dealt, v.t.entireDebt, 18, "Shouldn't have failed as caller had enough Bold");
+            if (selector == BorrowerOperations.NotEnoughEvroBalance.selector) {
+                assertLtDecimal(v.dealt, v.t.entireDebt, 18, "Shouldn't have failed as caller had enough Evro");
             } else if (selector == BorrowerOperations.TCRBelowCCR.selector) {
                 uint256 newTCR = _TCR(i, -int256(v.t.entireColl), -int256(v.t.entireDebt), 0);
                 assertFalse(isShutdown[i], "Shouldn't have failed as branch had been shut down");
@@ -1117,12 +1117,12 @@ contract InvariantsTestHandler is Assertions, BaseHandler, BaseMultiCollateralTe
             _log();
 
             // Cleanup (failure)
-            _sweepBold(msg.sender, v.dealt);
+            _sweepEvro(msg.sender, v.dealt);
         } else {
             // Cleanup (success)
             _sweepColl(i, msg.sender, v.t.entireColl);
             _sweepWETH(msg.sender, ETH_GAS_COMPENSATION);
-            if (v.batchManager != address(0)) _sweepBold(v.batchManager, v.batchManagementFee);
+            if (v.batchManager != address(0)) _sweepEvro(v.batchManager, v.batchManagementFee);
         }
     }
 
@@ -1154,7 +1154,7 @@ contract InvariantsTestHandler is Assertions, BaseHandler, BaseMultiCollateralTe
         vm.prank(msg.sender);
 
         try c.troveManager.batchLiquidateTroves(_troveIdsFrom(i, l.batch)) {
-            info("SP BOLD: ", c.stabilityPool.getTotalBoldDeposits().decimal());
+            info("SP BOLD: ", c.stabilityPool.getTotalEvroDeposits().decimal());
             info("P: ", c.stabilityPool.P().decimal());
             _log();
 
@@ -1207,7 +1207,7 @@ contract InvariantsTestHandler is Assertions, BaseHandler, BaseMultiCollateralTe
             // Effects (system)
             _mintYield(i, pendingInterest, 0);
             spColl[i] += l.t.spCollGain;
-            spBoldDeposits[i] -= l.t.spOffset;
+            spEvroDeposits[i] -= l.t.spOffset;
             collSurplus[i] += l.t.collSurplus;
             totalCollRedist[i] += l.t.collRedist;
             totalDebtRedist[i] += l.t.debtRedist;
@@ -1251,7 +1251,7 @@ contract InvariantsTestHandler is Assertions, BaseHandler, BaseMultiCollateralTe
             _sweepWETH(msg.sender, l.liquidated.size() * ETH_GAS_COMPENSATION);
 
             for (uint256 j = 0; j < l.batchManagers.size(); ++j) {
-                _sweepBold(l.batchManagers.get(j), batchManagementFee[j]);
+                _sweepEvro(l.batchManagers.get(j), batchManagementFee[j]);
             }
         }
 
@@ -1265,15 +1265,15 @@ contract InvariantsTestHandler is Assertions, BaseHandler, BaseMultiCollateralTe
             maxNumTroves = Math.max(numTroves(i), maxNumTroves);
         }
 
-        amount = _bound(amount, 0, _handlerBold);
+        amount = _bound(amount, 0, _handlerEvro);
         maxIterationsPerCollateral = _bound(maxIterationsPerCollateral, 0, maxNumTroves * 11 / 10);
 
         uint256 totalUnbacked = _getTotalUnbacked();
         if (totalUnbacked > 0) amount = Math.min(amount, totalUnbacked);
 
         uint256 oldBaseRate = _getBaseRate();
-        uint256 boldSupply = evroToken.totalSupply();
-        uint256 redemptionRate = _getRedemptionRate(oldBaseRate + _getBaseRateIncrease(boldSupply, amount));
+        uint256 evroSupply = evroToken.totalSupply();
+        uint256 redemptionRate = _getRedemptionRate(oldBaseRate + _getBaseRateIncrease(evroSupply, amount));
 
         uint256[] memory pendingInterest = new uint256[](branches.length);
         for (uint256 i = 0; i < branches.length; ++i) {
@@ -1303,7 +1303,7 @@ contract InvariantsTestHandler is Assertions, BaseHandler, BaseMultiCollateralTe
         logCall("redeemCollateral", amount.decimal(), maxIterationsPerCollateral.toString());
 
         // TODO: randomly deal less than amount?
-        _dealBold(msg.sender, amount);
+        _dealEvro(msg.sender, amount);
 
         string memory errorString;
         vm.prank(msg.sender);
@@ -1313,7 +1313,7 @@ contract InvariantsTestHandler is Assertions, BaseHandler, BaseMultiCollateralTe
             assertGtDecimal(amount, 0, 18, "Should have failed as amount was zero");
 
             // Effects (global)
-            _baseRate = Math.min(oldBaseRate + _getBaseRateIncrease(boldSupply, totalDebtRedeemed), _100pct);
+            _baseRate = Math.min(oldBaseRate + _getBaseRateIncrease(evroSupply, totalDebtRedeemed), _100pct);
             _timeSinceLastRedemption %= ONE_MINUTE;
 
             for (uint256 j = 0; j < branches.length; ++j) {
@@ -1374,7 +1374,7 @@ contract InvariantsTestHandler is Assertions, BaseHandler, BaseMultiCollateralTe
             _log();
 
             // Cleanup (failure)
-            _sweepBold(msg.sender, amount);
+            _sweepEvro(msg.sender, amount);
         } else {
             // Cleanup (success)
             for (uint256 j = 0; j < branches.length; ++j) {
@@ -1384,14 +1384,14 @@ contract InvariantsTestHandler is Assertions, BaseHandler, BaseMultiCollateralTe
                 _sweepColl(j, msg.sender, collReceived);
 
                 for (uint256 i = 0; i < r[j].batchManagers.size(); ++i) {
-                    _sweepBold(r[j].batchManagers.get(i), batchManagementFee[j][i]);
+                    _sweepEvro(r[j].batchManagers.get(i), batchManagementFee[j][i]);
                 }
             }
 
             // There can be a slight discrepancy when hitting batched Troves
             uint256 remainingAmount = evroToken.balanceOf(msg.sender);
             assertApproxEqAbsDecimal(remainingAmount, amount - totalDebtRedeemed, 1e5, 18, "Wrong remaining BOLD");
-            _sweepBold(msg.sender, remainingAmount);
+            _sweepEvro(msg.sender, remainingAmount);
         }
 
         _resetRedemption();
@@ -1445,7 +1445,7 @@ contract InvariantsTestHandler is Assertions, BaseHandler, BaseMultiCollateralTe
 
     function urgentRedemption(uint256 i, uint256 amount) external {
         i = _bound(i, 0, branches.length - 1);
-        amount = _bound(amount, 0, _handlerBold);
+        amount = _bound(amount, 0, _handlerEvro);
 
         TestDeployer.LiquityContractsDev memory c = branches[i];
         uint256 pendingInterest = c.activePool.calcPendingAggInterest();
@@ -1462,7 +1462,7 @@ contract InvariantsTestHandler is Assertions, BaseHandler, BaseMultiCollateralTe
         logCall("urgentRedemption", i.toString(), amount.decimal());
 
         // TODO: randomly deal less than amount?
-        _dealBold(msg.sender, amount);
+        _dealEvro(msg.sender, amount);
 
         string memory errorString;
         vm.prank(msg.sender);
@@ -1530,7 +1530,7 @@ contract InvariantsTestHandler is Assertions, BaseHandler, BaseMultiCollateralTe
             _log();
 
             // Cleanup (failure)
-            _sweepBold(msg.sender, amount);
+            _sweepEvro(msg.sender, amount);
         } else {
             // Cleanup (success)
 
@@ -1540,13 +1540,13 @@ contract InvariantsTestHandler is Assertions, BaseHandler, BaseMultiCollateralTe
             _sweepColl(i, msg.sender, collReceived);
 
             for (uint256 j = 0; j < r.batchManagers.size(); ++j) {
-                _sweepBold(r.batchManagers.get(j), batchManagementFee[j]);
+                _sweepEvro(r.batchManagers.get(j), batchManagementFee[j]);
             }
 
             // There can be a slight discrepancy when hitting batched Troves
             uint256 remainingAmount = evroToken.balanceOf(msg.sender);
             assertApproxEqAbsDecimal(remainingAmount, amount - r.totalDebtRedeemed, 1e5, 18, "Wrong remaining BOLD");
-            _sweepBold(msg.sender, remainingAmount);
+            _sweepEvro(msg.sender, remainingAmount);
         }
 
         _resetUrgentRedemption();
@@ -1615,7 +1615,7 @@ contract InvariantsTestHandler is Assertions, BaseHandler, BaseMultiCollateralTe
             _log();
         } else {
             // Cleanup (success)
-            if (v.batchManager != address(0)) _sweepBold(v.batchManager, v.batchManagementFee);
+            if (v.batchManager != address(0)) _sweepEvro(v.batchManager, v.batchManagementFee);
         }
     }
 
@@ -1623,32 +1623,32 @@ contract InvariantsTestHandler is Assertions, BaseHandler, BaseMultiCollateralTe
         ProvideToSPContext memory v;
 
         i = _bound(i, 0, branches.length - 1);
-        amount = _bound(amount, 0, _handlerBold);
+        amount = _bound(amount, 0, _handlerEvro);
 
         v.c = branches[i];
         v.pendingInterest = v.c.activePool.calcPendingAggInterest();
-        v.totalBoldDeposits = v.c.stabilityPool.getTotalBoldDeposits();
-        v.blockedSPYield = v.totalBoldDeposits < DECIMAL_PRECISION
+        v.totalEvroDeposits = v.c.stabilityPool.getTotalEvroDeposits();
+        v.blockedSPYield = v.totalEvroDeposits < DECIMAL_PRECISION
             ? v.c.activePool.calcPendingSPYield() + v.c.stabilityPool.getYieldGainsPending()
             : 0;
-        v.initialBoldDeposit = v.c.stabilityPool.deposits(msg.sender);
-        v.boldDeposit = v.c.stabilityPool.getCompoundedBoldDeposit(msg.sender);
-        v.boldYield = v.c.stabilityPool.getDepositorYieldGainWithPending(msg.sender);
+        v.initialEvroDeposit = v.c.stabilityPool.deposits(msg.sender);
+        v.evroDeposit = v.c.stabilityPool.getCompoundedEvroDeposit(msg.sender);
+        v.evroYield = v.c.stabilityPool.getDepositorYieldGainWithPending(msg.sender);
         v.ethGain = v.c.stabilityPool.getDepositorCollGain(msg.sender);
         v.ethStash = v.c.stabilityPool.stashedColl(msg.sender);
         v.ethClaimed = claim ? v.ethStash + v.ethGain : 0;
-        v.boldClaimed = claim ? v.boldYield : 0;
+        v.evroClaimed = claim ? v.evroYield : 0;
 
-        info("initial deposit: ", v.initialBoldDeposit.decimal());
-        info("compounded deposit: ", v.boldDeposit.decimal());
-        info("yield gain: ", v.boldYield.decimal());
+        info("initial deposit: ", v.initialEvroDeposit.decimal());
+        info("compounded deposit: ", v.evroDeposit.decimal());
+        info("yield gain: ", v.evroYield.decimal());
         info("coll gain: ", v.ethGain.decimal());
         info("stashed coll: ", v.ethStash.decimal());
         info("blocked SP yield: ", v.blockedSPYield.decimal());
         logCall("provideToSP", i.toString(), amount.decimal(), claim.toString());
 
         // TODO: randomly deal less than amount?
-        _dealBold(msg.sender, amount);
+        _dealEvro(msg.sender, amount);
 
         vm.prank(msg.sender);
         try v.c.stabilityPool.provideToSP(amount, claim) {
@@ -1659,22 +1659,22 @@ contract InvariantsTestHandler is Assertions, BaseHandler, BaseMultiCollateralTe
             v.ethStash += v.ethGain;
             v.ethStash -= v.ethClaimed;
 
-            v.boldDeposit += amount;
-            v.boldDeposit += v.boldYield;
-            v.boldDeposit -= v.boldClaimed;
+            v.evroDeposit += amount;
+            v.evroDeposit += v.evroYield;
+            v.evroDeposit -= v.evroClaimed;
 
             // See if the change unblocked any pending yield
-            v.totalBoldDeposits += amount;
-            v.totalBoldDeposits += v.boldYield;
-            v.totalBoldDeposits -= v.boldClaimed;
+            v.totalEvroDeposits += amount;
+            v.totalEvroDeposits += v.evroYield;
+            v.totalEvroDeposits -= v.evroClaimed;
 
-            uint256 newBoldYield =
-                v.totalBoldDeposits >= DECIMAL_PRECISION ? v.blockedSPYield * v.boldDeposit / v.totalBoldDeposits : 0;
+            uint256 newEvroYield =
+                v.totalEvroDeposits >= DECIMAL_PRECISION ? v.blockedSPYield * v.evroDeposit / v.totalEvroDeposits : 0;
 
             assertApproxEqAbsDecimal(
-                v.c.stabilityPool.getCompoundedBoldDeposit(msg.sender), v.boldDeposit, 1e7, 18, "Wrong deposit"
+                v.c.stabilityPool.getCompoundedEvroDeposit(msg.sender), v.evroDeposit, 1e7, 18, "Wrong deposit"
             );
-            assertApproxEq(v.c.stabilityPool.getDepositorYieldGain(msg.sender), newBoldYield, 1e11, "Wrong yield gain");
+            assertApproxEq(v.c.stabilityPool.getDepositorYieldGain(msg.sender), newEvroYield, 1e11, "Wrong yield gain");
             assertEqDecimal(v.c.stabilityPool.getDepositorCollGain(msg.sender), 0, 18, "Wrong coll gain");
             assertEqDecimal(v.c.stabilityPool.stashedColl(msg.sender), v.ethStash, 18, "Wrong stashed coll");
 
@@ -1682,10 +1682,10 @@ contract InvariantsTestHandler is Assertions, BaseHandler, BaseMultiCollateralTe
             _mintYield(i, v.pendingInterest, 0);
 
             spColl[i] -= v.ethClaimed;
-            spBoldDeposits[i] += amount;
-            spBoldDeposits[i] += v.boldYield;
-            spBoldDeposits[i] -= v.boldClaimed;
-            spBoldYield[i] -= v.boldYield;
+            spEvroDeposits[i] += amount;
+            spEvroDeposits[i] += v.evroYield;
+            spEvroDeposits[i] -= v.evroClaimed;
+            spEvroYield[i] -= v.evroYield;
         } catch Error(string memory reason) {
             v.errorString = reason;
 
@@ -1704,10 +1704,10 @@ contract InvariantsTestHandler is Assertions, BaseHandler, BaseMultiCollateralTe
             _log();
 
             // Cleanup (failure)
-            _sweepBold(msg.sender, amount); // Take back the BOLD that was dealt
+            _sweepEvro(msg.sender, amount); // Take back the BOLD that was dealt
         } else {
             // Cleanup (success)
-            _sweepBold(msg.sender, v.boldClaimed);
+            _sweepEvro(msg.sender, v.evroClaimed);
             _sweepColl(i, msg.sender, v.ethClaimed);
         }
     }
@@ -1719,24 +1719,24 @@ contract InvariantsTestHandler is Assertions, BaseHandler, BaseMultiCollateralTe
 
         v.c = branches[i];
         v.pendingInterest = v.c.activePool.calcPendingAggInterest();
-        v.totalBoldDeposits = v.c.stabilityPool.getTotalBoldDeposits();
-        v.blockedSPYield = v.totalBoldDeposits < DECIMAL_PRECISION
+        v.totalEvroDeposits = v.c.stabilityPool.getTotalEvroDeposits();
+        v.blockedSPYield = v.totalEvroDeposits < DECIMAL_PRECISION
             ? v.c.activePool.calcPendingSPYield() + v.c.stabilityPool.getYieldGainsPending()
             : 0;
-        v.initialBoldDeposit = v.c.stabilityPool.deposits(msg.sender);
-        v.boldDeposit = v.c.stabilityPool.getCompoundedBoldDeposit(msg.sender);
-        v.boldYield = v.c.stabilityPool.getDepositorYieldGainWithPending(msg.sender);
+        v.initialEvroDeposit = v.c.stabilityPool.deposits(msg.sender);
+        v.evroDeposit = v.c.stabilityPool.getCompoundedEvroDeposit(msg.sender);
+        v.evroYield = v.c.stabilityPool.getDepositorYieldGainWithPending(msg.sender);
         v.ethGain = v.c.stabilityPool.getDepositorCollGain(msg.sender);
         v.ethStash = v.c.stabilityPool.stashedColl(msg.sender);
         v.ethClaimed = claim ? v.ethStash + v.ethGain : 0;
-        v.boldClaimed = claim ? v.boldYield : 0;
+        v.evroClaimed = claim ? v.evroYield : 0;
 
-        amount = _bound(amount, 0, v.boldDeposit * 11 / 10); // sometimes try withdrawing too much
-        v.withdrawn = Math.min(amount, v.boldDeposit);
+        amount = _bound(amount, 0, v.evroDeposit * 11 / 10); // sometimes try withdrawing too much
+        v.withdrawn = Math.min(amount, v.evroDeposit);
 
-        info("initial deposit: ", v.initialBoldDeposit.decimal());
-        info("compounded deposit: ", v.boldDeposit.decimal());
-        info("yield gain: ", v.boldYield.decimal());
+        info("initial deposit: ", v.initialEvroDeposit.decimal());
+        info("compounded deposit: ", v.evroDeposit.decimal());
+        info("yield gain: ", v.evroYield.decimal());
         info("coll gain: ", v.ethGain.decimal());
         info("stashed coll: ", v.ethStash.decimal());
         info("blocked SP yield: ", v.blockedSPYield.decimal());
@@ -1745,10 +1745,10 @@ contract InvariantsTestHandler is Assertions, BaseHandler, BaseMultiCollateralTe
         vm.prank(msg.sender);
         try v.c.stabilityPool.withdrawFromSP(amount, claim) {
             // Preconditions
-            assertGtDecimal(v.initialBoldDeposit, 0, 18, "Should have failed as user had zero deposit");
+            assertGtDecimal(v.initialEvroDeposit, 0, 18, "Should have failed as user had zero deposit");
             assertGeDecimal(
-                v.totalBoldDeposits + v.boldYield,
-                v.boldClaimed + v.withdrawn + MIN_BOLD_IN_SP,
+                v.totalEvroDeposits + v.evroYield,
+                v.evroClaimed + v.withdrawn + MIN_BOLD_IN_SP,
                 18,
                 "Should have failed as withdrawal left less than MIN_BOLD_IN_SP"
             );
@@ -1757,12 +1757,12 @@ contract InvariantsTestHandler is Assertions, BaseHandler, BaseMultiCollateralTe
             v.ethStash += v.ethGain;
             v.ethStash -= v.ethClaimed;
 
-            v.boldDeposit += v.boldYield;
-            v.boldDeposit -= v.boldClaimed;
-            v.boldDeposit -= v.withdrawn;
+            v.evroDeposit += v.evroYield;
+            v.evroDeposit -= v.evroClaimed;
+            v.evroDeposit -= v.withdrawn;
 
             assertApproxEqAbsDecimal(
-                v.c.stabilityPool.getCompoundedBoldDeposit(msg.sender), v.boldDeposit, 1e7, 18, "Wrong deposit"
+                v.c.stabilityPool.getCompoundedEvroDeposit(msg.sender), v.evroDeposit, 1e7, 18, "Wrong deposit"
             );
             assertEqDecimal(v.c.stabilityPool.getDepositorYieldGain(msg.sender), 0, 18, "Wrong yield gain");
             assertEqDecimal(v.c.stabilityPool.getDepositorCollGain(msg.sender), 0, 18, "Wrong coll gain");
@@ -1772,20 +1772,20 @@ contract InvariantsTestHandler is Assertions, BaseHandler, BaseMultiCollateralTe
             _mintYield(i, v.pendingInterest, 0);
 
             spColl[i] -= v.ethClaimed;
-            spBoldDeposits[i] += v.boldYield;
-            spBoldDeposits[i] -= v.boldClaimed;
-            spBoldDeposits[i] -= v.withdrawn;
-            spBoldYield[i] -= v.boldYield;
+            spEvroDeposits[i] += v.evroYield;
+            spEvroDeposits[i] -= v.evroClaimed;
+            spEvroDeposits[i] -= v.withdrawn;
+            spEvroYield[i] -= v.evroYield;
         } catch Error(string memory reason) {
             v.errorString = reason;
 
             // Justify failures
             if (reason.equals("StabilityPool: User must have a non-zero deposit")) {
-                assertEqDecimal(v.initialBoldDeposit, 0, 18, "Shouldn't have failed as user had a non-zero deposit");
-            } else if (reason.equals("Withdrawal must leave totalBoldDeposits >= MIN_BOLD_IN_SP")) {
+                assertEqDecimal(v.initialEvroDeposit, 0, 18, "Shouldn't have failed as user had a non-zero deposit");
+            } else if (reason.equals("Withdrawal must leave totalEvroDeposits >= MIN_BOLD_IN_SP")) {
                 assertLtDecimal(
-                    v.totalBoldDeposits + v.boldYield,
-                    v.boldClaimed + v.withdrawn + MIN_BOLD_IN_SP,
+                    v.totalEvroDeposits + v.evroYield,
+                    v.evroClaimed + v.withdrawn + MIN_BOLD_IN_SP,
                     18,
                     "Shouldn't have failed as withdrawal left more than MIN_BOLD_IN_SP"
                 );
@@ -1801,7 +1801,7 @@ contract InvariantsTestHandler is Assertions, BaseHandler, BaseMultiCollateralTe
             _log();
         } else {
             // Cleanup (success)
-            _sweepBold(msg.sender, v.boldClaimed + v.withdrawn);
+            _sweepEvro(msg.sender, v.evroClaimed + v.withdrawn);
             _sweepColl(i, msg.sender, v.ethClaimed);
         }
     }
@@ -1811,7 +1811,7 @@ contract InvariantsTestHandler is Assertions, BaseHandler, BaseMultiCollateralTe
 
         TestDeployer.LiquityContractsDev memory c = branches[i];
         uint256 pendingInterest = c.activePool.calcPendingAggInterest();
-        uint256 initialBoldDeposit = c.stabilityPool.deposits(msg.sender);
+        uint256 initialEvroDeposit = c.stabilityPool.deposits(msg.sender);
         uint256 ethStash = c.stabilityPool.stashedColl(msg.sender);
 
         logCall("claimAllCollGains", i.toString());
@@ -1821,11 +1821,11 @@ contract InvariantsTestHandler is Assertions, BaseHandler, BaseMultiCollateralTe
 
         try c.stabilityPool.claimAllCollGains() {
             // Preconditions
-            assertEqDecimal(initialBoldDeposit, 0, 18, "Should have failed as user had a non-zero deposit");
+            assertEqDecimal(initialEvroDeposit, 0, 18, "Should have failed as user had a non-zero deposit");
             assertGtDecimal(ethStash, 0, 18, "Should have failed as ETH stash was zero");
 
             // Effects (deposit)
-            assertEqDecimal(c.stabilityPool.getCompoundedBoldDeposit(msg.sender), 0, 18, "Wrong deposit");
+            assertEqDecimal(c.stabilityPool.getCompoundedEvroDeposit(msg.sender), 0, 18, "Wrong deposit");
             assertEqDecimal(c.stabilityPool.getDepositorYieldGain(msg.sender), 0, 18, "Wrong yield gain");
             assertEqDecimal(c.stabilityPool.getDepositorCollGain(msg.sender), 0, 18, "Wrong coll gain");
             assertEqDecimal(c.stabilityPool.stashedColl(msg.sender), 0, 18, "Wrong stashed coll");
@@ -1838,7 +1838,7 @@ contract InvariantsTestHandler is Assertions, BaseHandler, BaseMultiCollateralTe
 
             // Justify failures
             if (reason.equals("StabilityPool: User must have no deposit")) {
-                assertGtDecimal(initialBoldDeposit, 0, 18, "Shouldn't have failed as user had no deposit");
+                assertGtDecimal(initialEvroDeposit, 0, 18, "Shouldn't have failed as user had no deposit");
             } else if (reason.equals("StabilityPool: Amount must be non-zero")) {
                 assertEqDecimal(ethStash, 0, 18, "Shouldn't have failed as ETH stash was non-zero");
             } else {
@@ -2026,7 +2026,7 @@ contract InvariantsTestHandler is Assertions, BaseHandler, BaseMultiCollateralTe
             _log();
         } else {
             // Cleanup (success)
-            _sweepBold(msg.sender, batchManagementFee);
+            _sweepEvro(msg.sender, batchManagementFee);
         }
     }
 
@@ -2143,7 +2143,7 @@ contract InvariantsTestHandler is Assertions, BaseHandler, BaseMultiCollateralTe
             _log();
         } else {
             // Cleanup (success)
-            _sweepBold(v.newBatchManager, v.batchManagementFee);
+            _sweepEvro(v.newBatchManager, v.batchManagementFee);
         }
     }
 
@@ -2257,7 +2257,7 @@ contract InvariantsTestHandler is Assertions, BaseHandler, BaseMultiCollateralTe
             _log();
         } else {
             // Cleanup (success)
-            _sweepBold(v.batchManager, v.batchManagementFee);
+            _sweepEvro(v.batchManager, v.batchManagementFee);
         }
     }
 
@@ -2385,7 +2385,7 @@ contract InvariantsTestHandler is Assertions, BaseHandler, BaseMultiCollateralTe
             _log();
         } else {
             // Cleanup (success)
-            _sweepBold(msg.sender, v.b.accruedManagementFee);
+            _sweepEvro(msg.sender, v.b.accruedManagementFee);
         }
     }
 
@@ -2399,8 +2399,8 @@ contract InvariantsTestHandler is Assertions, BaseHandler, BaseMultiCollateralTe
         return _baseRate * decaySinceLastRedemption / DECIMAL_PRECISION;
     }
 
-    function _getBaseRateIncrease(uint256 boldSupply, uint256 redeemed) internal pure returns (uint256) {
-        return boldSupply > 0 ? redeemed * DECIMAL_PRECISION / boldSupply / REDEMPTION_BETA : 0;
+    function _getBaseRateIncrease(uint256 evroSupply, uint256 redeemed) internal pure returns (uint256) {
+        return evroSupply > 0 ? redeemed * DECIMAL_PRECISION / evroSupply / REDEMPTION_BETA : 0;
     }
 
     function _getRedemptionRate(uint256 baseRate) internal pure returns (uint256) {
@@ -2412,7 +2412,7 @@ contract InvariantsTestHandler is Assertions, BaseHandler, BaseMultiCollateralTe
     }
 
     function _getUnbacked(uint256 i) internal view returns (uint256) {
-        uint256 sp = spBoldDeposits[i];
+        uint256 sp = spEvroDeposits[i];
         uint256 totalDebt = _getTotalDebt(i);
 
         return sp < totalDebt ? totalDebt - sp : 0;
@@ -2571,9 +2571,9 @@ contract InvariantsTestHandler is Assertions, BaseHandler, BaseMultiCollateralTe
 
     function _mintYield(uint256 i, uint256 pendingInterest, uint256 upfrontFee) internal {
         uint256 mintedYield = pendingInterest + upfrontFee;
-        uint256 mintedSPBoldYield = mintedYield * SP_YIELD_SPLIT / DECIMAL_PRECISION;
+        uint256 mintedSPEvroYield = mintedYield * SP_YIELD_SPLIT / DECIMAL_PRECISION;
 
-        spBoldYield[i] += mintedSPBoldYield;
+        spEvroYield[i] += mintedSPEvroYield;
         _pendingInterest[i] = 0;
     }
 
@@ -2643,15 +2643,15 @@ contract InvariantsTestHandler is Assertions, BaseHandler, BaseMultiCollateralTe
         collToken.approve(spender, allowance - amount);
     }
 
-    function _dealBold(address to, uint256 amount) internal {
+    function _dealEvro(address to, uint256 amount) internal {
         evroToken.transfer(to, amount);
-        _handlerBold -= amount;
+        _handlerEvro -= amount;
     }
 
-    function _sweepBold(address from, uint256 amount) internal {
+    function _sweepEvro(address from, uint256 amount) internal {
         vm.prank(from);
         evroToken.transfer(address(this), amount);
-        _handlerBold += amount;
+        _handlerEvro += amount;
     }
 
     function _addToLiquidationBatch(address owner) internal {
@@ -2660,7 +2660,7 @@ contract InvariantsTestHandler is Assertions, BaseHandler, BaseMultiCollateralTe
 
     function _aggregateLiquidation(uint256 i, LatestTroveData memory trove, LiquidationTotals storage t) internal {
         // Offset debt by SP
-        uint256 spRemaining = spBoldDeposits[i] - t.spOffset;
+        uint256 spRemaining = spEvroDeposits[i] - t.spOffset;
         uint256 spOffset = Math.min(trove.entireDebt, spRemaining > MIN_BOLD_IN_SP ? spRemaining - MIN_BOLD_IN_SP : 0);
         t.spOffset += spOffset;
 
@@ -2861,7 +2861,7 @@ contract InvariantsTestHandler is Assertions, BaseHandler, BaseMultiCollateralTe
                         owner: msg.sender,
                         ownerIndex: _troveIndexOf[v.i][msg.sender],
                         collAmount: v.coll,
-                        boldAmount: v.borrowed,
+                        evroAmount: v.borrowed,
                         upperHint: v.upperHint,
                         lowerHint: v.lowerHint,
                         interestBatchManager: v.batchManager,
@@ -2910,9 +2910,9 @@ contract InvariantsTestHandler is Assertions, BaseHandler, BaseMultiCollateralTe
 
         if (prop == AdjustedTroveProperties.onlyDebt) {
             if (isDebtIncrease) {
-                return "withdrawBold()";
+                return "withdrawEvro()";
             } else {
-                return "repayBold()";
+                return "repayEvro()";
             }
         }
 
@@ -2942,9 +2942,9 @@ contract InvariantsTestHandler is Assertions, BaseHandler, BaseMultiCollateralTe
 
         if (prop == AdjustedTroveProperties.onlyDebt) {
             if (isDebtIncrease) {
-                return abi.encodeCall(IBorrowerOperations.withdrawBold, (troveId, debtChange, maxUpfrontFee));
+                return abi.encodeCall(IBorrowerOperations.withdrawEvro, (troveId, debtChange, maxUpfrontFee));
             } else {
-                return abi.encodeCall(IBorrowerOperations.repayBold, (troveId, debtChange));
+                return abi.encodeCall(IBorrowerOperations.repayEvro, (troveId, debtChange));
             }
         }
 
@@ -3094,8 +3094,8 @@ contract InvariantsTestHandler is Assertions, BaseHandler, BaseMultiCollateralTe
                 return (selector, "BorrowerOperations.CollWithdrawalTooHigh()");
             }
 
-            if (selector == BorrowerOperations.NotEnoughBoldBalance.selector) {
-                return (selector, "BorrowerOperations.NotEnoughBoldBalance()");
+            if (selector == BorrowerOperations.NotEnoughEvroBalance.selector) {
+                return (selector, "BorrowerOperations.NotEnoughEvroBalance()");
             }
 
             if (selector == BorrowerOperations.InterestRateNotNew.selector) {

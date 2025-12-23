@@ -32,20 +32,20 @@ contract RedeemCollateral is Script {
         IEvroToken evroToken = IEvroToken(collateralRegistry.evroToken());
         vm.label(address(evroToken), "EvroToken");
 
-        uint256 boldBefore = evroToken.balanceOf(msg.sender);
+        uint256 evroBefore = evroToken.balanceOf(msg.sender);
         uint256[] memory collBefore = new uint256[](collateralRegistry.totalCollaterals());
         for (uint256 i = 0; i < collBefore.length; ++i) {
             collBefore[i] = collateralRegistry.getToken(i).balanceOf(msg.sender);
         }
 
-        uint256 attemptedBoldAmount = vm.envUint("AMOUNT") * DECIMAL_PRECISION;
-        console.log("Attempting to redeem (BOLD):", attemptedBoldAmount.decimal());
+        uint256 attemptedEvroAmount = vm.envUint("AMOUNT") * DECIMAL_PRECISION;
+        console.log("Attempting to redeem (BOLD):", attemptedEvroAmount.decimal());
 
-        uint256 maxFeePct = collateralRegistry.getRedemptionRateForRedeemedAmount(attemptedBoldAmount);
-        collateralRegistry.redeemCollateral(attemptedBoldAmount, 10, maxFeePct);
+        uint256 maxFeePct = collateralRegistry.getRedemptionRateForRedeemedAmount(attemptedEvroAmount);
+        collateralRegistry.redeemCollateral(attemptedEvroAmount, 10, maxFeePct);
 
-        uint256 actualBoldAmount = boldBefore - evroToken.balanceOf(msg.sender);
-        console.log("Actually redeemed (BOLD):", actualBoldAmount.decimal());
+        uint256 actualEvroAmount = evroBefore - evroToken.balanceOf(msg.sender);
+        console.log("Actually redeemed (BOLD):", actualEvroAmount.decimal());
 
         uint256[] memory collAmount = new uint256[](collBefore.length);
         for (uint256 i = 0; i < collBefore.length; ++i) {

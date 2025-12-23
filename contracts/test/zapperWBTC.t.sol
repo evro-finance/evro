@@ -84,7 +84,7 @@ contract ZapperWBTCTest is DevTestSetup {
     function testZapperCanOpenTrove() external {
         uint256 wwbtcAmount = 10 ether;
         uint256 wbtcAmount = wwbtcAmount / 1e10;
-        uint256 boldAmount = 10000e18;
+        uint256 evroAmount = 10000e18;
 
         uint256 wbtcBalanceBefore = wbtc.balanceOf(A);
         assertGt(wbtcBalanceBefore, 0, "WBTC bal 0");
@@ -93,7 +93,7 @@ contract ZapperWBTCTest is DevTestSetup {
             owner: A,
             ownerIndex: 0,
             collAmount: wwbtcAmount,
-            boldAmount: boldAmount,
+            evroAmount: evroAmount,
             upperHint: 0,
             lowerHint: 0,
             annualInterestRate: 5e16,
@@ -111,15 +111,15 @@ contract ZapperWBTCTest is DevTestSetup {
         assertEq(troveNFT.ownerOf(troveId), A, "Wrong owner");
         assertGt(troveId, 0, "Trove id should be set");
         assertEq(troveManager.getTroveEntireColl(troveId), wwbtcAmount, "Coll mismatch");
-        assertGt(troveManager.getTroveEntireDebt(troveId), boldAmount, "Debt mismatch");
-        assertEq(evroToken.balanceOf(A), boldAmount, "BOLD bal mismatch");
+        assertGt(troveManager.getTroveEntireDebt(troveId), evroAmount, "Debt mismatch");
+        assertEq(evroToken.balanceOf(A), evroAmount, "BOLD bal mismatch");
         assertEq(wbtc.balanceOf(A), wbtcBalanceBefore - wbtcAmount, "WBTC bal mismatch");
     }
 
     function testCanOpenTroveWithBatchManager() external {
         uint256 wwbtcAmount = 10 ether;
         uint256 wbtcAmount = wwbtcAmount / 1e10;
-        uint256 boldAmount = 10000e18;
+        uint256 evroAmount = 10000e18;
 
         uint256 wbtcBalanceBefore = wbtc.balanceOf(A);
         assertGt(wbtcBalanceBefore, 0, "WBTC bal 0");
@@ -130,7 +130,7 @@ contract ZapperWBTCTest is DevTestSetup {
             owner: A,
             ownerIndex: 0,
             collAmount: wwbtcAmount,
-            boldAmount: boldAmount,
+            evroAmount: evroAmount,
             upperHint: 0,
             lowerHint: 0,
             annualInterestRate: 0,
@@ -149,8 +149,8 @@ contract ZapperWBTCTest is DevTestSetup {
         assertEq(troveNFT.ownerOf(troveId), A, "Wrong owner");
         assertGt(troveId, 0, "Trove id should be set");
         assertEq(troveManager.getTroveEntireColl(troveId), wwbtcAmount, "Coll mismatch");
-        assertGt(troveManager.getTroveEntireDebt(troveId), boldAmount, "Debt mismatch");
-        assertEq(evroToken.balanceOf(A), boldAmount, "BOLD bal mismatch");
+        assertGt(troveManager.getTroveEntireDebt(troveId), evroAmount, "Debt mismatch");
+        assertEq(evroToken.balanceOf(A), evroAmount, "BOLD bal mismatch");
         assertEq(wbtc.balanceOf(A), wbtcBalanceBefore - wbtcAmount, "WBTC bal mismatch");
         assertEq(borrowerOperations.interestBatchManagerOf(troveId), B, "Wrong batch manager");
         (,,,,,,,, address tmBatchManagerAddress,) = troveManager.Troves(troveId);
@@ -159,7 +159,7 @@ contract ZapperWBTCTest is DevTestSetup {
 
     function testCanNotOpenTroveWithBatchManagerAndInterest() external {
         uint256 wwbtcAmount = 10 ether;
-        uint256 boldAmount = 10000e18;
+        uint256 evroAmount = 10000e18;
 
         registerBatchManager(B);
 
@@ -167,7 +167,7 @@ contract ZapperWBTCTest is DevTestSetup {
             owner: A,
             ownerIndex: 0,
             collAmount: wwbtcAmount,
-            boldAmount: boldAmount,
+            evroAmount: evroAmount,
             upperHint: 0,
             lowerHint: 0,
             annualInterestRate: 5e16,
@@ -188,13 +188,13 @@ contract ZapperWBTCTest is DevTestSetup {
         uint256 wbtcAmount1 = wwbtcAmount1 / 1e10;
         uint256 wwbtcAmount2 = 5 ether;
         uint256 wbtcAmount2 = wwbtcAmount2 / 1e10;
-        uint256 boldAmount = 10000e18;
+        uint256 evroAmount = 10000e18;
 
         IZapper.OpenTroveParams memory params = IZapper.OpenTroveParams({
             owner: A,
             ownerIndex: 0,
             collAmount: wwbtcAmount1,
-            boldAmount: boldAmount,
+            evroAmount: evroAmount,
             upperHint: 0,
             lowerHint: 0,
             annualInterestRate: 5e16,
@@ -216,8 +216,8 @@ contract ZapperWBTCTest is DevTestSetup {
         vm.stopPrank();
 
         assertEq(troveManager.getTroveEntireColl(troveId), wwbtcAmount1 + wwbtcAmount2, "Coll mismatch");
-        assertGt(troveManager.getTroveEntireDebt(troveId), boldAmount, "Debt mismatch");
-        assertEq(evroToken.balanceOf(A), boldAmount, "BOLD bal mismatch");
+        assertGt(troveManager.getTroveEntireDebt(troveId), evroAmount, "Debt mismatch");
+        assertEq(evroToken.balanceOf(A), evroAmount, "BOLD bal mismatch");
         assertEq(wbtc.balanceOf(A), wbtcBalanceBefore - wbtcAmount2, "WBTC bal mismatch");
     }
 
@@ -226,14 +226,14 @@ contract ZapperWBTCTest is DevTestSetup {
         uint256 wbtcAmount1 = wwbtcAmount1 / 1e10;
         uint256 wwbtcAmount2 = 1 ether;
         uint256 wbtcAmount2 = wwbtcAmount2 / 1e10;
-        uint256 boldAmount = 10000e18;
+        uint256 evroAmount = 10000e18;
 
 
         IZapper.OpenTroveParams memory params = IZapper.OpenTroveParams({
             owner: A,
             ownerIndex: 0,
             collAmount: wwbtcAmount1,
-            boldAmount: boldAmount,
+            evroAmount: evroAmount,
             upperHint: 0,
             lowerHint: 0,
             annualInterestRate: 5e16,
@@ -255,8 +255,8 @@ contract ZapperWBTCTest is DevTestSetup {
         vm.stopPrank();
 
         assertEq(troveManager.getTroveEntireColl(troveId), wwbtcAmount1 - wwbtcAmount2, "Coll mismatch");
-        assertGt(troveManager.getTroveEntireDebt(troveId), boldAmount, "Debt mismatch");
-        assertEq(evroToken.balanceOf(A), boldAmount, "BOLD bal mismatch");
+        assertGt(troveManager.getTroveEntireDebt(troveId), evroAmount, "Debt mismatch");
+        assertEq(evroToken.balanceOf(A), evroAmount, "BOLD bal mismatch");
         assertEq(wbtc.balanceOf(A), wbtcBalanceBefore + wbtcAmount2, "WBTC bal mismatch");
     }
 
@@ -265,13 +265,13 @@ contract ZapperWBTCTest is DevTestSetup {
         uint256 wbtcAmount1 = wwbtcAmount1 / 1e10;
         uint256 wwbtcAmount2 = 1 ether;
         uint256 wbtcAmount2 = wwbtcAmount2 / 1e10;
-        uint256 boldAmount = 10000e18;
+        uint256 evroAmount = 10000e18;
 
         IZapper.OpenTroveParams memory params = IZapper.OpenTroveParams({
             owner: A,
             ownerIndex: 0,
             collAmount: wwbtcAmount1,
-            boldAmount: boldAmount,
+            evroAmount: evroAmount,
             upperHint: 0,
             lowerHint: 0,
             annualInterestRate: 5e16,
@@ -298,13 +298,13 @@ contract ZapperWBTCTest is DevTestSetup {
     function testCanNotAddReceiverWithoutRemoveManager() external {
         uint256 wwbtcAmount = 10 ether;
         uint256 wbtcAmount = wwbtcAmount / 1e10;
-        uint256 boldAmount1 = 10000e18;
+        uint256 evroAmount1 = 10000e18;
 
         IZapper.OpenTroveParams memory params = IZapper.OpenTroveParams({
             owner: A,
             ownerIndex: 0,
             collAmount: wwbtcAmount,
-            boldAmount: boldAmount1,
+            evroAmount: evroAmount1,
             upperHint: 0,
             lowerHint: 0,
             annualInterestRate: MIN_ANNUAL_INTEREST_RATE,
@@ -327,17 +327,17 @@ contract ZapperWBTCTest is DevTestSetup {
         vm.stopPrank();
     }
 
-    function testCanRepayBold() external {
+    function testCanRepayEvro() external {
         uint256 wwbtcAmount = 10 ether;
         uint256 wbtcAmount = wwbtcAmount / 1e10;
-        uint256 boldAmount1 = 10000e18;
-        uint256 boldAmount2 = 1000e18;
+        uint256 evroAmount1 = 10000e18;
+        uint256 evroAmount2 = 1000e18;
 
         IZapper.OpenTroveParams memory params = IZapper.OpenTroveParams({
             owner: A,
             ownerIndex: 0,
             collAmount: wwbtcAmount,
-            boldAmount: boldAmount1,
+            evroAmount: evroAmount1,
             upperHint: 0,
             lowerHint: 0,
             annualInterestRate: MIN_ANNUAL_INTEREST_RATE,
@@ -352,40 +352,40 @@ contract ZapperWBTCTest is DevTestSetup {
         uint256 troveId = wbtcZapper.openTroveWithWBTC{value: ETH_GAS_COMPENSATION}(params);
         vm.stopPrank();
 
-        uint256 boldBalanceBeforeA = evroToken.balanceOf(A);
-        uint256 boldBalanceBeforeB = evroToken.balanceOf(B);
+        uint256 evroBalanceBeforeA = evroToken.balanceOf(A);
+        uint256 evroBalanceBeforeB = evroToken.balanceOf(B);
 
-        // Add a remove manager for the zapper, and send bold
+        // Add a remove manager for the zapper, and send evro
         vm.startPrank(A);
         wbtcZapper.setRemoveManagerWithReceiver(troveId, B, A);
-        evroToken.transfer(B, boldAmount2);
+        evroToken.transfer(B, evroAmount2);
         vm.stopPrank();
 
         // Approve and repay
         vm.startPrank(B);
-        evroToken.approve(address(wbtcZapper), boldAmount2);
-        wbtcZapper.repayBold(troveId, boldAmount2);
+        evroToken.approve(address(wbtcZapper), evroAmount2);
+        wbtcZapper.repayEvro(troveId, evroAmount2);
         vm.stopPrank();
 
         assertEq(troveManager.getTroveEntireColl(troveId), wwbtcAmount, "Trove coll mismatch");
         assertApproxEqAbs(
-            troveManager.getTroveEntireDebt(troveId), boldAmount1 - boldAmount2, 2e18, "Trove  debt mismatch"
+            troveManager.getTroveEntireDebt(troveId), evroAmount1 - evroAmount2, 2e18, "Trove  debt mismatch"
         );
-        assertEq(evroToken.balanceOf(A), boldBalanceBeforeA - boldAmount2, "A BOLD bal mismatch");
-        assertEq(evroToken.balanceOf(B), boldBalanceBeforeB, "B BOLD bal mismatch");
+        assertEq(evroToken.balanceOf(A), evroBalanceBeforeA - evroAmount2, "A BOLD bal mismatch");
+        assertEq(evroToken.balanceOf(B), evroBalanceBeforeB, "B BOLD bal mismatch");
     }
 
-    function testCanWithdrawBold() external {
+    function testCanWithdrawEvro() external {
         uint256 wwbtcAmount = 10 ether;
         uint256 wbtcAmount = wwbtcAmount / 1e10;
-        uint256 boldAmount1 = 10000e18;
-        uint256 boldAmount2 = 1000e18;
+        uint256 evroAmount1 = 10000e18;
+        uint256 evroAmount2 = 1000e18;
 
         IZapper.OpenTroveParams memory params = IZapper.OpenTroveParams({
             owner: A,
             ownerIndex: 0,
             collAmount: wwbtcAmount,
-            boldAmount: boldAmount1,
+            evroAmount: evroAmount1,
             upperHint: 0,
             lowerHint: 0,
             annualInterestRate: MIN_ANNUAL_INTEREST_RATE,
@@ -400,38 +400,38 @@ contract ZapperWBTCTest is DevTestSetup {
         uint256 troveId = wbtcZapper.openTroveWithWBTC{value: ETH_GAS_COMPENSATION}(params);
         vm.stopPrank();
 
-        uint256 boldBalanceBeforeA = evroToken.balanceOf(A);
-        uint256 boldBalanceBeforeB = evroToken.balanceOf(B);
+        uint256 evroBalanceBeforeA = evroToken.balanceOf(A);
+        uint256 evroBalanceBeforeB = evroToken.balanceOf(B);
 
         // Add a remove manager for the zapper
         vm.startPrank(A);
         wbtcZapper.setRemoveManagerWithReceiver(troveId, B, A);
         vm.stopPrank();
 
-        // Withdraw bold
+        // Withdraw evro
         vm.startPrank(B);
-        wbtcZapper.withdrawBold(troveId, boldAmount2, boldAmount2);
+        wbtcZapper.withdrawEvro(troveId, evroAmount2, evroAmount2);
         vm.stopPrank();
 
         assertEq(troveManager.getTroveEntireColl(troveId), wwbtcAmount, "Trove coll mismatch");
         assertApproxEqAbs(
-            troveManager.getTroveEntireDebt(troveId), boldAmount1 + boldAmount2, 2e18, "Trove  debt mismatch"
+            troveManager.getTroveEntireDebt(troveId), evroAmount1 + evroAmount2, 2e18, "Trove  debt mismatch"
         );
-        assertEq(evroToken.balanceOf(A), boldBalanceBeforeA + boldAmount2, "A BOLD bal mismatch");
-        assertEq(evroToken.balanceOf(B), boldBalanceBeforeB, "B BOLD bal mismatch");
+        assertEq(evroToken.balanceOf(A), evroBalanceBeforeA + evroAmount2, "A BOLD bal mismatch");
+        assertEq(evroToken.balanceOf(B), evroBalanceBeforeB, "B BOLD bal mismatch");
     }
 
-    function testCannotWithdrawBoldIfZapperIsNotReceiver() external {
+    function testCannotWithdrawEvroIfZapperIsNotReceiver() external {
         uint256 wwbtcAmount = 10 ether;
         uint256 wbtcAmount = wwbtcAmount / 1e10;
-        uint256 boldAmount1 = 10000e18;
-        uint256 boldAmount2 = 1000e18;
+        uint256 evroAmount1 = 10000e18;
+        uint256 evroAmount2 = 1000e18;
 
         IZapper.OpenTroveParams memory params = IZapper.OpenTroveParams({
             owner: A,
             ownerIndex: 0,
             collAmount: wwbtcAmount,
-            boldAmount: boldAmount1,
+            evroAmount: evroAmount1,
             upperHint: 0,
             lowerHint: 0,
             annualInterestRate: MIN_ANNUAL_INTEREST_RATE,
@@ -453,27 +453,27 @@ contract ZapperWBTCTest is DevTestSetup {
         borrowerOperations.setRemoveManagerWithReceiver(troveId, address(wbtcZapper), C);
         vm.stopPrank();
 
-        // Withdraw bold
+        // Withdraw evro
         vm.startPrank(B);
         vm.expectRevert("BZ: Zapper is not receiver for this trove");
-        wbtcZapper.withdrawBold(troveId, boldAmount2, boldAmount2);
+        wbtcZapper.withdrawEvro(troveId, evroAmount2, evroAmount2);
         vm.stopPrank();
     }
 
     // TODO: more adjustment combinations
-    function testCanAdjustTroveWithdrawCollAndBold() external {
+    function testCanAdjustTroveWithdrawCollAndEvro() external {
         uint256 wwbtcAmount1 = 10 ether;
         uint256 wbtcAmount1 = wwbtcAmount1 / 1e10;
         uint256 wwbtcAmount2 = 1 ether;
         uint256 wbtcAmount2 = wwbtcAmount2 / 1e10;
-        uint256 boldAmount1 = 10000e18;
-        uint256 boldAmount2 = 1000e18;
+        uint256 evroAmount1 = 10000e18;
+        uint256 evroAmount2 = 1000e18;
 
         IZapper.OpenTroveParams memory params = IZapper.OpenTroveParams({
             owner: A,
             ownerIndex: 0,
             collAmount: wwbtcAmount1,
-            boldAmount: boldAmount1,
+            evroAmount: evroAmount1,
             upperHint: 0,
             lowerHint: 0,
             annualInterestRate: MIN_ANNUAL_INTEREST_RATE,
@@ -488,9 +488,9 @@ contract ZapperWBTCTest is DevTestSetup {
         uint256 troveId = wbtcZapper.openTroveWithWBTC{value: ETH_GAS_COMPENSATION}(params);
         vm.stopPrank();
 
-        uint256 boldBalanceBeforeA = evroToken.balanceOf(A);
+        uint256 evroBalanceBeforeA = evroToken.balanceOf(A);
         uint256 wbtcBalanceBeforeA = wbtc.balanceOf(A);
-        uint256 boldBalanceBeforeB = evroToken.balanceOf(B);
+        uint256 evroBalanceBeforeB = evroToken.balanceOf(B);
         uint256 wbtcBalanceBeforeB = wbtc.balanceOf(B);
 
         // Add a remove manager for the zapper
@@ -498,33 +498,33 @@ contract ZapperWBTCTest is DevTestSetup {
         wbtcZapper.setRemoveManagerWithReceiver(troveId, B, A);
         vm.stopPrank();
 
-        // Adjust (withdraw coll and Bold)
+        // Adjust (withdraw coll and Evro)
         vm.startPrank(B);
-        wbtcZapper.adjustTroveWithWBTC(troveId, wwbtcAmount2, false, boldAmount2, true, boldAmount2);
+        wbtcZapper.adjustTroveWithWBTC(troveId, wwbtcAmount2, false, evroAmount2, true, evroAmount2);
         vm.stopPrank();
 
         assertEq(troveManager.getTroveEntireColl(troveId), wwbtcAmount1 - wwbtcAmount2, "Trove coll mismatch");
         assertApproxEqAbs(
-            troveManager.getTroveEntireDebt(troveId), boldAmount1 + boldAmount2, 2e18, "Trove  debt mismatch"
+            troveManager.getTroveEntireDebt(troveId), evroAmount1 + evroAmount2, 2e18, "Trove  debt mismatch"
         );
-        assertEq(evroToken.balanceOf(A), boldBalanceBeforeA + boldAmount2, "A BOLD bal mismatch");
+        assertEq(evroToken.balanceOf(A), evroBalanceBeforeA + evroAmount2, "A BOLD bal mismatch");
         assertEq(wbtc.balanceOf(A), wbtcBalanceBeforeA + wbtcAmount2, "A WBTC bal mismatch");
-        assertEq(evroToken.balanceOf(B), boldBalanceBeforeB, "B BOLD bal mismatch");
+        assertEq(evroToken.balanceOf(B), evroBalanceBeforeB, "B BOLD bal mismatch");
         assertEq(wbtc.balanceOf(B), wbtcBalanceBeforeB, "B WBTC bal mismatch");
     }
 
-    function testCannotAdjustTroveWithdrawCollAndBoldIfZapperIsNotReceiver() external {
+    function testCannotAdjustTroveWithdrawCollAndEvroIfZapperIsNotReceiver() external {
         uint256 wwbtcAmount1 = 10 ether;
         uint256 wbtcAmount1 = wwbtcAmount1 / 1e10;
         uint256 wwbtcAmount2 = 1 ether;
-        uint256 boldAmount1 = 10000e18;
-        uint256 boldAmount2 = 1000e18;
+        uint256 evroAmount1 = 10000e18;
+        uint256 evroAmount2 = 1000e18;
 
         IZapper.OpenTroveParams memory params = IZapper.OpenTroveParams({
             owner: A,
             ownerIndex: 0,
             collAmount: wwbtcAmount1,
-            boldAmount: boldAmount1,
+            evroAmount: evroAmount1,
             upperHint: 0,
             lowerHint: 0,
             annualInterestRate: MIN_ANNUAL_INTEREST_RATE,
@@ -546,26 +546,26 @@ contract ZapperWBTCTest is DevTestSetup {
         borrowerOperations.setRemoveManagerWithReceiver(troveId, address(wbtcZapper), C);
         vm.stopPrank();
 
-        // Adjust (withdraw coll and Bold)
+        // Adjust (withdraw coll and Evro)
         vm.startPrank(B);
         vm.expectRevert("BZ: Zapper is not receiver for this trove");
-        wbtcZapper.adjustTroveWithWBTC(troveId, wwbtcAmount2, false, boldAmount2, true, boldAmount2);
+        wbtcZapper.adjustTroveWithWBTC(troveId, wwbtcAmount2, false, evroAmount2, true, evroAmount2);
         vm.stopPrank();
     }
 
-    function testCanAdjustTroveAddCollAndBold() external {
+    function testCanAdjustTroveAddCollAndEvro() external {
         uint256 wwbtcAmount1 = 10 ether;
         uint256 wbtcAmount1 = wwbtcAmount1 / 1e10;
         uint256 wwbtcAmount2 = 1 ether;
         uint256 wbtcAmount2 = wwbtcAmount2 / 1e10;
-        uint256 boldAmount1 = 10000e18;
-        uint256 boldAmount2 = 1000e18;
+        uint256 evroAmount1 = 10000e18;
+        uint256 evroAmount2 = 1000e18;
 
         IZapper.OpenTroveParams memory params = IZapper.OpenTroveParams({
             owner: A,
             ownerIndex: 0,
             collAmount: wwbtcAmount1,
-            boldAmount: boldAmount1,
+            evroAmount: evroAmount1,
             upperHint: 0,
             lowerHint: 0,
             annualInterestRate: MIN_ANNUAL_INTEREST_RATE,
@@ -578,13 +578,13 @@ contract ZapperWBTCTest is DevTestSetup {
         vm.startPrank(A);
         wbtc.approve(address(wbtcZapper), wbtcAmount1);
         uint256 troveId = wbtcZapper.openTroveWithWBTC{value: ETH_GAS_COMPENSATION}(params);
-        // A sends Bold to B
-        evroToken.transfer(B, boldAmount2);
+        // A sends Evro to B
+        evroToken.transfer(B, evroAmount2);
         vm.stopPrank();
 
-        uint256 boldBalanceBeforeA = evroToken.balanceOf(A);
+        uint256 evroBalanceBeforeA = evroToken.balanceOf(A);
         uint256 wbtcBalanceBeforeA = wbtc.balanceOf(A);
-        uint256 boldBalanceBeforeB = evroToken.balanceOf(B);
+        uint256 evroBalanceBeforeB = evroToken.balanceOf(B);
         uint256 wbtcBalanceBeforeB = wbtc.balanceOf(B);
 
         // Add an add manager for the zapper
@@ -592,20 +592,20 @@ contract ZapperWBTCTest is DevTestSetup {
         wbtcZapper.setAddManager(troveId, B);
         vm.stopPrank();
 
-        // Adjust (add coll and Bold)
+        // Adjust (add coll and Evro)
         vm.startPrank(B);
         wbtc.approve(address(wbtcZapper), wbtcAmount2);
-        evroToken.approve(address(wbtcZapper), boldAmount2);
-        wbtcZapper.adjustTroveWithWBTC(troveId, wwbtcAmount2, true, boldAmount2, false, boldAmount2);
+        evroToken.approve(address(wbtcZapper), evroAmount2);
+        wbtcZapper.adjustTroveWithWBTC(troveId, wwbtcAmount2, true, evroAmount2, false, evroAmount2);
         vm.stopPrank();
 
         assertEq(troveManager.getTroveEntireColl(troveId), wwbtcAmount1 + wwbtcAmount2, "Trove coll mismatch");
         assertApproxEqAbs(
-            troveManager.getTroveEntireDebt(troveId), boldAmount1 - boldAmount2, 2e18, "Trove  debt mismatch"
+            troveManager.getTroveEntireDebt(troveId), evroAmount1 - evroAmount2, 2e18, "Trove  debt mismatch"
         );
-        assertEq(evroToken.balanceOf(A), boldBalanceBeforeA, "A BOLD bal mismatch");
+        assertEq(evroToken.balanceOf(A), evroBalanceBeforeA, "A BOLD bal mismatch");
         assertEq(wbtc.balanceOf(A), wbtcBalanceBeforeA, "A WBTC bal mismatch");
-        assertEq(evroToken.balanceOf(B), boldBalanceBeforeB - boldAmount2, "B BOLD bal mismatch");
+        assertEq(evroToken.balanceOf(B), evroBalanceBeforeB - evroAmount2, "B BOLD bal mismatch");
         assertEq(wbtc.balanceOf(B), wbtcBalanceBeforeB - wbtcAmount2, "B WBTC bal mismatch");
     }
     
@@ -614,21 +614,21 @@ contract ZapperWBTCTest is DevTestSetup {
         uint256 wbtcAmount1;
         uint256 wwbtcAmount2;
         uint256 wbtcAmount2;
-        uint256 boldAmount1;
-        uint256 boldAmount2;
+        uint256 evroAmount1;
+        uint256 evroAmount2;
         uint256 wbtcBalanceBeforeA;
         uint256 wbtcBalanceBeforeB;
-        uint256 boldBalanceBeforeA;
+        uint256 evroBalanceBeforeA;
         uint256 troveCollBefore;
     }
-    function testCanAdjustZombieTroveWithdrawCollAndBold() external {
+    function testCanAdjustZombieTroveWithdrawCollAndEvro() external {
         CollData memory collData;
         collData.wwbtcAmount1 = 10 ether;
         collData.wbtcAmount1 = collData.wwbtcAmount1 / 1e10;
         collData.wwbtcAmount2 = 1 ether;
         collData.wbtcAmount2 = collData.wwbtcAmount2 / 1e10;
-        collData.boldAmount1 = 10000e18;
-        collData.boldAmount2 = 1000e18;
+        collData.evroAmount1 = 10000e18;
+        collData.evroAmount2 = 1000e18;
         uint256 troveId;
 
         {
@@ -636,7 +636,7 @@ contract ZapperWBTCTest is DevTestSetup {
             owner: A,
             ownerIndex: 0,
             collAmount: collData.wwbtcAmount1,
-            boldAmount: collData.boldAmount1,
+            evroAmount: collData.evroAmount1,
             upperHint: 0,
             lowerHint: 0,
             annualInterestRate: MIN_ANNUAL_INTEREST_RATE,
@@ -671,39 +671,39 @@ contract ZapperWBTCTest is DevTestSetup {
         assertEq(uint256(troveManager.getTroveStatus(troveId)), uint256(ITroveManager.Status.zombie), "Trove should be zombie");
 
         collData.troveCollBefore = troveManager.getTroveEntireColl(troveId);
-        collData.boldBalanceBeforeA = evroToken.balanceOf(A);
+        collData.evroBalanceBeforeA = evroToken.balanceOf(A);
         collData.wbtcBalanceBeforeA = wbtc.balanceOf(A);
         collData.wbtcBalanceBeforeB = wbtc.balanceOf(B);
 
-        // Adjust (withdraw coll and Bold)
+        // Adjust (withdraw coll and Evro)
         vm.startPrank(B);
-        wbtcZapper.adjustZombieTroveWithWBTC(troveId, collData.wwbtcAmount2, false, collData.boldAmount2, true, 0, 0, collData.boldAmount2);
+        wbtcZapper.adjustZombieTroveWithWBTC(troveId, collData.wwbtcAmount2, false, collData.evroAmount2, true, 0, 0, collData.evroAmount2);
         vm.stopPrank();
 
         assertEq(troveManager.getTroveEntireColl(troveId), collData.troveCollBefore - collData.wwbtcAmount2, "Trove coll mismatch");
-        // After adjustment, debt should be MIN_DEBT/2 + collData.boldAmount2 (withdrawn)
-        uint256 expectedDebt = MIN_DEBT / 2 + collData.boldAmount2;
+        // After adjustment, debt should be MIN_DEBT/2 + collData.evroAmount2 (withdrawn)
+        uint256 expectedDebt = MIN_DEBT / 2 + collData.evroAmount2;
         assertApproxEqAbs(troveManager.getTroveEntireDebt(troveId), expectedDebt, 2e18, "Trove  debt mismatch");
-        assertEq(evroToken.balanceOf(A), collData.boldBalanceBeforeA + collData.boldAmount2, "A BOLD bal mismatch");
+        assertEq(evroToken.balanceOf(A), collData.evroBalanceBeforeA + collData.evroAmount2, "A BOLD bal mismatch");
         assertEq(wbtc.balanceOf(A), collData.wbtcBalanceBeforeA + collData.wbtcAmount2, "A WBTC bal mismatch");
         assertEq(evroToken.balanceOf(B), 0, "B BOLD bal mismatch");
         assertEq(wbtc.balanceOf(B), collData.wbtcBalanceBeforeB, "B WBTC bal mismatch");
     }
 
-    function testCannotAdjustZombieTroveWithdrawCollAndBoldIfZapperIsNotReceiver() external {
+    function testCannotAdjustZombieTroveWithdrawCollAndEvroIfZapperIsNotReceiver() external {
         CollData memory collData;   
         collData.wwbtcAmount1 = 10 ether;
         collData.wbtcAmount1 = collData.wwbtcAmount1 / 1e10;
         collData.wwbtcAmount2 = 1 ether;
         collData.wbtcAmount2 = collData.wwbtcAmount2 / 1e10;
-        collData.boldAmount1 = 10000e18;
-        collData.boldAmount2 = 1000e18;
+        collData.evroAmount1 = 10000e18;
+        collData.evroAmount2 = 1000e18;
 
         IZapper.OpenTroveParams memory params = IZapper.OpenTroveParams({
             owner: A,
             ownerIndex: 0,
             collAmount: collData.wwbtcAmount1,
-            boldAmount: collData.boldAmount1,
+            evroAmount: collData.evroAmount1,
             upperHint: 0,
             lowerHint: 0,
             annualInterestRate: MIN_ANNUAL_INTEREST_RATE,
@@ -735,27 +735,27 @@ contract ZapperWBTCTest is DevTestSetup {
         // Verify trove is zombie
         assertEq(uint256(troveManager.getTroveStatus(troveId)), uint256(ITroveManager.Status.zombie), "Trove should be zombie");
 
-        // Adjust (withdraw coll and Bold)
+        // Adjust (withdraw coll and Evro)
         vm.startPrank(B);
         vm.expectRevert("BZ: Zapper is not receiver for this trove");
-        wbtcZapper.adjustZombieTroveWithWBTC(troveId, collData.wwbtcAmount2, false, collData.boldAmount2, true, 0, 0, collData.boldAmount2);
+        wbtcZapper.adjustZombieTroveWithWBTC(troveId, collData.wwbtcAmount2, false, collData.evroAmount2, true, 0, 0, collData.evroAmount2);
         vm.stopPrank();
     }
 
-    function testCanAdjustZombieTroveAddCollAndWithdrawBold() external {
+    function testCanAdjustZombieTroveAddCollAndWithdrawEvro() external {
         CollData memory collData;
         collData.wwbtcAmount1 = 10 ether;
         collData.wbtcAmount1 = collData.wwbtcAmount1 / 1e10;
         collData.wwbtcAmount2 = 1 ether;
         collData.wbtcAmount2 = collData.wwbtcAmount2 / 1e10;
-        collData.boldAmount1 = 10000e18;
-        collData.boldAmount2 = 1000e18;
+        collData.evroAmount1 = 10000e18;
+        collData.evroAmount2 = 1000e18;
 
         IZapper.OpenTroveParams memory params = IZapper.OpenTroveParams({
             owner: A,
             ownerIndex: 0,
             collAmount: collData.wwbtcAmount1,
-            boldAmount: collData.boldAmount1,
+            evroAmount: collData.evroAmount1,
             upperHint: 0,
             lowerHint: 0,
             annualInterestRate: MIN_ANNUAL_INTEREST_RATE,
@@ -787,40 +787,40 @@ contract ZapperWBTCTest is DevTestSetup {
         assertEq(uint256(troveManager.getTroveStatus(troveId)), uint256(ITroveManager.Status.zombie), "Trove should be zombie");
 
         collData.troveCollBefore = troveManager.getTroveEntireColl(troveId);
-        collData.boldBalanceBeforeA = evroToken.balanceOf(A);
+        collData.evroBalanceBeforeA = evroToken.balanceOf(A);
         collData.wbtcBalanceBeforeA = wbtc.balanceOf(A);
         collData.wbtcBalanceBeforeB = wbtc.balanceOf(B);
 
-        // Adjust (add coll and withdraw Bold)
+        // Adjust (add coll and withdraw Evro)
         vm.startPrank(B);
         wbtc.approve(address(wbtcZapper), collData.wbtcAmount2);
         wbtcZapper.adjustZombieTroveWithWBTC(
-            troveId, collData.wwbtcAmount2, true, collData.boldAmount2, true, 0, 0, collData.boldAmount2
+            troveId, collData.wwbtcAmount2, true, collData.evroAmount2, true, 0, 0, collData.evroAmount2
         );
         vm.stopPrank();
 
         assertEq(troveManager.getTroveEntireColl(troveId), collData.troveCollBefore + collData.wwbtcAmount2, "Trove coll mismatch");
-        // After adjustment, debt should be MIN_DEBT/2 + boldAmount2 (withdrawn)
-        uint256 expectedDebt = MIN_DEBT / 2 + collData.boldAmount2;
+        // After adjustment, debt should be MIN_DEBT/2 + evroAmount2 (withdrawn)
+        uint256 expectedDebt = MIN_DEBT / 2 + collData.evroAmount2;
         assertApproxEqAbs(troveManager.getTroveEntireDebt(troveId), expectedDebt, 2e18, "Trove  debt mismatch");
-        assertEq(evroToken.balanceOf(A), collData.boldBalanceBeforeA + collData.boldAmount2, "A BOLD bal mismatch");
+        assertEq(evroToken.balanceOf(A), collData.evroBalanceBeforeA + collData.evroAmount2, "A BOLD bal mismatch");
         assertEq(wbtc.balanceOf(A), collData.wbtcBalanceBeforeA, "A WBTC bal mismatch");
         assertEq(evroToken.balanceOf(B), 0, "B BOLD bal mismatch");
         assertEq(wbtc.balanceOf(B), collData.wbtcBalanceBeforeB - collData.wbtcAmount2, "B WBTC bal mismatch");
     }
 
-    function testCannotAdjustZombieTroveAddCollAndWithdrawBoldIfZapperIsNotReceiver() external {
+    function testCannotAdjustZombieTroveAddCollAndWithdrawEvroIfZapperIsNotReceiver() external {
         uint256 wwbtcAmount1 = 10 ether;
         uint256 wbtcAmount1 = wwbtcAmount1 / 1e10;
         uint256 wwbtcAmount2 = 1 ether;
-        uint256 boldAmount1 = 10000e18;
-        uint256 boldAmount2 = 1000e18;
+        uint256 evroAmount1 = 10000e18;
+        uint256 evroAmount2 = 1000e18;
 
         IZapper.OpenTroveParams memory params = IZapper.OpenTroveParams({
             owner: A,
             ownerIndex: 0,
             collAmount: wwbtcAmount1,
-            boldAmount: boldAmount1,
+            evroAmount: evroAmount1,
             upperHint: 0,
             lowerHint: 0,
             annualInterestRate: MIN_ANNUAL_INTEREST_RATE,
@@ -852,11 +852,11 @@ contract ZapperWBTCTest is DevTestSetup {
         // Verify trove is zombie
         assertEq(uint256(troveManager.getTroveStatus(troveId)), uint256(ITroveManager.Status.zombie), "Trove should be zombie");
 
-        // Adjust (add coll and withdraw Bold)
+        // Adjust (add coll and withdraw Evro)
         vm.startPrank(B);
         vm.expectRevert("BZ: Zapper is not receiver for this trove");
         wbtcZapper.adjustZombieTroveWithWBTC(
-            troveId, wwbtcAmount2, true, boldAmount2, true, 0, 0, boldAmount2
+            troveId, wwbtcAmount2, true, evroAmount2, true, 0, 0, evroAmount2
         );
         vm.stopPrank();
     }
@@ -864,7 +864,7 @@ contract ZapperWBTCTest is DevTestSetup {
     function testCanCloseTrove() external {
         uint256 wwbtcAmount = 10 ether;
         uint256 wbtcAmount = wwbtcAmount / 1e10;
-        uint256 boldAmount = 10000e18;
+        uint256 evroAmount = 10000e18;
 
         uint256 wbtcBalanceBefore = wbtc.balanceOf(A);
 
@@ -872,7 +872,7 @@ contract ZapperWBTCTest is DevTestSetup {
             owner: A,
             ownerIndex: 0,
             collAmount: wwbtcAmount,
-            boldAmount: boldAmount,
+            evroAmount: evroAmount,
             upperHint: 0,
             lowerHint: 0,
             annualInterestRate: MIN_ANNUAL_INTEREST_RATE,
@@ -894,7 +894,7 @@ contract ZapperWBTCTest is DevTestSetup {
 
         wbtc.mint(B, wbtcAmount2);
 
-        // open a 2nd trove so we can close the 1st one, and send Bold to account for interest and fee
+        // open a 2nd trove so we can close the 1st one, and send Evro to account for interest and fee
         vm.startPrank(B);
         // Give B WETH for gas compensation
         deal(address(WETH), B, ETH_GAS_COMPENSATION);
@@ -906,7 +906,7 @@ contract ZapperWBTCTest is DevTestSetup {
             B,
             0, // index,
             wwbtcAmount2, // coll,
-            10000e18, //boldAmount,
+            10000e18, //evroAmount,
             0, // _upperHint
             0, // _lowerHint
             MIN_ANNUAL_INTEREST_RATE, // annualInterestRate,
@@ -915,7 +915,7 @@ contract ZapperWBTCTest is DevTestSetup {
             address(0),
             address(0)
         );
-        evroToken.transfer(A, troveManager.getTroveEntireDebt(troveId) - boldAmount);
+        evroToken.transfer(A, troveManager.getTroveEntireDebt(troveId) - evroAmount);
         vm.stopPrank();
 
         vm.startPrank(A);
@@ -932,13 +932,13 @@ contract ZapperWBTCTest is DevTestSetup {
     function testCannotCloseTroveIfZapperIsNotReceiver() external {
         uint256 wwbtcAmount = 10 ether;
         uint256 wbtcAmount = wwbtcAmount / 1e10;
-        uint256 boldAmount = 10000e18;
+        uint256 evroAmount = 10000e18;
 
         IZapper.OpenTroveParams memory params = IZapper.OpenTroveParams({
             owner: A,
             ownerIndex: 0,
             collAmount: wwbtcAmount,
-            boldAmount: boldAmount,
+            evroAmount: evroAmount,
             upperHint: 0,
             lowerHint: 0,
             annualInterestRate: MIN_ANNUAL_INTEREST_RATE,
@@ -953,7 +953,7 @@ contract ZapperWBTCTest is DevTestSetup {
         uint256 troveId = wbtcZapper.openTroveWithWBTC{value: ETH_GAS_COMPENSATION}(params);
         vm.stopPrank();
 
-        // open a 2nd trove so we can close the 1st one, and send Bold to account for interest and fee
+        // open a 2nd trove so we can close the 1st one, and send Evro to account for interest and fee
 
         uint256 wbtcAmount2 = 10 * 1e8;
         uint256 wwbtcAmount2 = wbtcAmount2 * 1e10;
@@ -969,7 +969,7 @@ contract ZapperWBTCTest is DevTestSetup {
             B,
             0, // index,
             wwbtcAmount2, // coll,
-            10000e18, //boldAmount,
+            10000e18, //evroAmount,
             0, // _upperHint
             0, // _lowerHint
             MIN_ANNUAL_INTEREST_RATE, // annualInterestRate,
@@ -978,7 +978,7 @@ contract ZapperWBTCTest is DevTestSetup {
             address(0),
             address(0)
         );
-        evroToken.transfer(A, troveManager.getTroveEntireDebt(troveId) - boldAmount);
+        evroToken.transfer(A, troveManager.getTroveEntireDebt(troveId) - evroAmount);
         vm.stopPrank();
 
         vm.startPrank(A);
@@ -994,13 +994,13 @@ contract ZapperWBTCTest is DevTestSetup {
     function testExcessRepaymentByAdjustGoesBackToUser() external {
         uint256 wwbtcAmount = 10 ether;
         uint256 wbtcAmount = wwbtcAmount / 1e10;
-        uint256 boldAmount = 10000e18;
+        uint256 evroAmount = 10000e18;
 
         IZapper.OpenTroveParams memory params = IZapper.OpenTroveParams({
             owner: A,
             ownerIndex: 0,
             collAmount: wwbtcAmount,
-            boldAmount: boldAmount,
+            evroAmount: evroAmount,
             upperHint: 0,
             lowerHint: 0,
             annualInterestRate: MIN_ANNUAL_INTEREST_RATE,
@@ -1017,7 +1017,7 @@ contract ZapperWBTCTest is DevTestSetup {
 
         uint256 wbtcBalanceBefore = wbtc.balanceOf(A);
         uint256 collBalanceBefore = WETH.balanceOf(A);
-        uint256 boldDebtBefore = troveManager.getTroveEntireDebt(troveId);
+        uint256 evroDebtBefore = troveManager.getTroveEntireDebt(troveId);
 
         // Adjust trove: remove 1 wWBTC and try to repay 9k (only will repay ~8k, up to MIN_DEBT)
         vm.startPrank(A);
@@ -1025,7 +1025,7 @@ contract ZapperWBTCTest is DevTestSetup {
         wbtcZapper.adjustTroveWithWBTC(troveId, 1 ether, false, 9000e18, false, 0);
         vm.stopPrank();
 
-        assertEq(evroToken.balanceOf(A), boldAmount + MIN_DEBT - boldDebtBefore, "BOLD bal mismatch");
+        assertEq(evroToken.balanceOf(A), evroAmount + MIN_DEBT - evroDebtBefore, "BOLD bal mismatch");
         assertEq(evroToken.balanceOf(address(wbtcZapper)), 0, "Zapper BOLD bal should be zero");
         assertEq(wbtc.balanceOf(A), wbtcBalanceBefore + (1 ether / 1e10), "WBTC bal mismatch");
         assertEq(address(wbtcZapper).balance, 0, "Zapper ETH bal should be zero");
@@ -1036,13 +1036,13 @@ contract ZapperWBTCTest is DevTestSetup {
     function testExcessRepaymentByRepayGoesBackToUser() external {
         uint256 wwbtcAmount = 10 ether;
         uint256 wbtcAmount = wwbtcAmount / 1e10;
-        uint256 boldAmount = 10000e18;
+        uint256 evroAmount = 10000e18;
 
         IZapper.OpenTroveParams memory params = IZapper.OpenTroveParams({
             owner: A,
             ownerIndex: 0,
             collAmount: wwbtcAmount,
-            boldAmount: boldAmount,
+            evroAmount: evroAmount,
             upperHint: 0,
             lowerHint: 0,
             annualInterestRate: MIN_ANNUAL_INTEREST_RATE,
@@ -1057,16 +1057,16 @@ contract ZapperWBTCTest is DevTestSetup {
         uint256 troveId = wbtcZapper.openTroveWithWBTC{value: ETH_GAS_COMPENSATION}(params);
         vm.stopPrank();
 
-        uint256 boldDebtBefore = troveManager.getTroveEntireDebt(troveId);
+        uint256 evroDebtBefore = troveManager.getTroveEntireDebt(troveId);
         uint256 collBalanceBefore = WETH.balanceOf(A);
 
         // Adjust trove: try to repay 9k (only will repay ~8k, up to MIN_DEBT)
         vm.startPrank(A);
         evroToken.approve(address(wbtcZapper), type(uint256).max);
-        wbtcZapper.repayBold(troveId, 9000e18);
+        wbtcZapper.repayEvro(troveId, 9000e18);
         vm.stopPrank();
 
-        assertEq(evroToken.balanceOf(A), boldAmount + MIN_DEBT - boldDebtBefore, "BOLD bal mismatch");
+        assertEq(evroToken.balanceOf(A), evroAmount + MIN_DEBT - evroDebtBefore, "BOLD bal mismatch");
         assertEq(evroToken.balanceOf(address(wbtcZapper)), 0, "Zapper BOLD bal should be zero");
         assertEq(address(wbtcZapper).balance, 0, "Zapper ETH bal should be zero");
         assertEq(WETH.balanceOf(A), collBalanceBefore, "Coll bal mismatch");

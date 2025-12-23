@@ -37,14 +37,14 @@ contract MetadataDeployment is Script /* , StdAssertions */ {
 
         uint256 offset = 0;
 
-        //read bold file
+        //read evro file
 
-        bytes memory boldFile = bytes(vm.readFile(string.concat(root, "bold_logo.txt")));
-        File memory bold = File(boldFile, offset, offset + boldFile.length);
+        bytes memory evroFile = bytes(vm.readFile(string.concat(root, "evro_logo.txt")));
+        File memory evro = File(evroFile, offset, offset + evroFile.length);
 
-        offset += boldFile.length;
+        offset += evroFile.length;
 
-        files[bytes4(keccak256("BOLD"))] = bold;
+        files[bytes4(keccak256("BOLD"))] = evro;
 
         //read eth file
         bytes memory ethFile = bytes(vm.readFile(string.concat(root, "weth_logo.txt")));

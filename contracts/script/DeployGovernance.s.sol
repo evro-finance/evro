@@ -47,7 +47,7 @@ contract DeployGovernance is Script {
         // address stakingV1;
         // address lqty;
         // address lusd;
-        address bold;
+        address evro;
     }
 
     address constant LUSD = 0x5f98805A4E8be255a32880FDeC7F6728C6568bA0;
@@ -73,52 +73,52 @@ contract DeployGovernance is Script {
     Governance private governance;
     address[] private initialInitiatives;
 
-    ICurveStableSwapNG private curveUsdcBoldPool;
-    ILiquidityGaugeV6 private curveUsdcBoldGauge;
-    CurveV2GaugeRewards private curveUsdcBoldInitiative;
+    ICurveStableSwapNG private curveUsdcEvroPool;
+    ILiquidityGaugeV6 private curveUsdcEvroGauge;
+    CurveV2GaugeRewards private curveUsdcEvroInitiative;
 
-    ICurveStableSwapNG private curveLusdBoldPool;
-    ILiquidityGaugeV6 private curveLusdBoldGauge;
-    CurveV2GaugeRewards private curveLusdBoldInitiative;
+    ICurveStableSwapNG private curveLusdEvroPool;
+    ILiquidityGaugeV6 private curveLusdEvroGauge;
+    CurveV2GaugeRewards private curveLusdEvroInitiative;
 
     address private defiCollectiveInitiative;
 
     function deployGovernance(
         DeployGovernanceParams memory p,
         address _curveFactoryAddress,
-        address _curveUsdcBoldPoolAddress,
-        address _curveLusdBoldPoolAddress
+        address _curveUsdcEvroPoolAddress,
+        address _curveLusdEvroPoolAddress
     ) internal returns (address, string memory) {
         // (address governanceAddress, IGovernance.Configuration memory governanceConfiguration) =
         //     computeGovernanceAddressAndConfig(p);
 
         // governance = new Governance{salt: p.salt}(
-        //     p.lqty, p.lusd, p.stakingV1, p.bold, governanceConfiguration, p.deployer, initialInitiatives
+        //     p.lqty, p.lusd, p.stakingV1, p.evro, governanceConfiguration, p.deployer, initialInitiatives
         // );
 
         // assert(governanceAddress == address(governance));
 
-        // curveUsdcBoldPool = ICurveStableSwapNG(_curveUsdcBoldPoolAddress);
-        // curveLusdBoldPool = ICurveStableSwapNG(_curveLusdBoldPoolAddress);
+        // curveUsdcEvroPool = ICurveStableSwapNG(_curveUsdcEvroPoolAddress);
+        // curveLusdEvroPool = ICurveStableSwapNG(_curveLusdEvroPoolAddress);
 
         // if (block.chainid == 1) {
         //     // mainnet
-        //     (curveUsdcBoldGauge, curveUsdcBoldInitiative) = deployCurveV2GaugeRewards({
+        //     (curveUsdcEvroGauge, curveUsdcEvroInitiative) = deployCurveV2GaugeRewards({
         //         _governance: governance,
-        //         _bold: p.bold,
+        //         _evro: p.evro,
         //         _curveFactoryAddress: _curveFactoryAddress,
-        //         _curvePool: curveUsdcBoldPool
+        //         _curvePool: curveUsdcEvroPool
         //     });
 
-        //     (curveLusdBoldGauge, curveLusdBoldInitiative) = deployCurveV2GaugeRewards({
+        //     (curveLusdEvroGauge, curveLusdEvroInitiative) = deployCurveV2GaugeRewards({
         //         _governance: governance,
-        //         _bold: p.bold,
+        //         _evro: p.evro,
         //         _curveFactoryAddress: _curveFactoryAddress,
-        //         _curvePool: curveLusdBoldPool
+        //         _curvePool: curveLusdEvroPool
         //     });
 
-        //     initialInitiatives.push(address(curveUsdcBoldInitiative));
-        //     initialInitiatives.push(address(curveLusdBoldInitiative));
+        //     initialInitiatives.push(address(curveUsdcEvroInitiative));
+        //     initialInitiatives.push(address(curveLusdEvroInitiative));
         //     initialInitiatives.push(defiCollectiveInitiative = DEFI_COLLECTIVE_GRANTS_ADDRESS);
         // } else {
         //     initialInitiatives.push(makeAddr("initiative1"));
@@ -156,7 +156,7 @@ contract DeployGovernance is Script {
 
         // bytes memory bytecode = abi.encodePacked(
         //     type(Governance).creationCode,
-        //     abi.encode(p.lqty, p.lusd, p.stakingV1, p.bold, governanceConfiguration, p.deployer, new address[](0))
+        //     abi.encode(p.lqty, p.lusd, p.stakingV1, p.evro, governanceConfiguration, p.deployer, new address[](0))
         // );
 
         // address governanceAddress = vm.computeCreate2Address(p.salt, keccak256(bytecode));
@@ -165,16 +165,16 @@ contract DeployGovernance is Script {
 
     function deployCurveV2GaugeRewards(
         IGovernance _governance,
-        address _bold,
+        address _evro,
         address _curveFactoryAddress,
         ICurveStableSwapNG _curvePool
     ) private returns (ILiquidityGaugeV6 gauge, CurveV2GaugeRewards curveV2GaugeRewards) {
         ICurveStableSwapFactoryNG curveFactory = ICurveStableSwapFactoryNG(_curveFactoryAddress);
         gauge = ILiquidityGaugeV6(curveFactory.deploy_gauge(address(_curvePool)));
-        curveV2GaugeRewards = new CurveV2GaugeRewards(address(_governance), _bold, CRV, address(gauge), DURATION);
+        curveV2GaugeRewards = new CurveV2GaugeRewards(address(_governance), _evro, CRV, address(gauge), DURATION);
 
         // add BOLD as reward token
-        gauge.add_reward(_bold, address(curveV2GaugeRewards));
+        gauge.add_reward(_evro, address(curveV2GaugeRewards));
 
         // add LUSD as reward token to be distributed by the Funds Safe
         gauge.add_reward(LUSD, FUNDS_SAFE);
@@ -211,12 +211,12 @@ contract DeployGovernance is Script {
             string.concat(
                 string.concat('"constants":', _getGovernanceDeploymentConstants(p), ","),
                 string.concat('"governance":"', address(governance).toHexString(), '",'),
-                string.concat('"curveUsdcBoldPool":"', address(curveUsdcBoldPool).toHexString(), '",'),
-                string.concat('"curveUsdcBoldGauge":"', address(curveUsdcBoldGauge).toHexString(), '",'),
-                string.concat('"curveUsdcBoldInitiative":"', address(curveUsdcBoldInitiative).toHexString(), '",'),
-                string.concat('"curveLusdBoldPool":"', address(curveLusdBoldPool).toHexString(), '",'),
-                string.concat('"curveLusdBoldGauge":"', address(curveLusdBoldGauge).toHexString(), '",'),
-                string.concat('"curveLusdBoldInitiative":"', address(curveLusdBoldInitiative).toHexString(), '",')
+                string.concat('"curveUsdcEvroPool":"', address(curveUsdcEvroPool).toHexString(), '",'),
+                string.concat('"curveUsdcEvroGauge":"', address(curveUsdcEvroGauge).toHexString(), '",'),
+                string.concat('"curveUsdcEvroInitiative":"', address(curveUsdcEvroInitiative).toHexString(), '",'),
+                string.concat('"curveLusdEvroPool":"', address(curveLusdEvroPool).toHexString(), '",'),
+                string.concat('"curveLusdEvroGauge":"', address(curveLusdEvroGauge).toHexString(), '",'),
+                string.concat('"curveLusdEvroInitiative":"', address(curveLusdEvroInitiative).toHexString(), '",')
             ),
             string.concat(
                 string.concat('"defiCollectiveInitiative":"', defiCollectiveInitiative.toHexString(), '",'),

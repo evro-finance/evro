@@ -47,7 +47,7 @@ contract GasCompZapper is BaseZapper {
                 _params.owner,
                 index,
                 _params.collAmount,
-                _params.boldAmount,
+                _params.evroAmount,
                 _params.upperHint,
                 _params.lowerHint,
                 _params.annualInterestRate,
@@ -65,7 +65,7 @@ contract GasCompZapper is BaseZapper {
                     owner: _params.owner,
                     ownerIndex: index,
                     collAmount: _params.collAmount,
-                    boldAmount: _params.boldAmount,
+                    evroAmount: _params.evroAmount,
                     upperHint: _params.upperHint,
                     lowerHint: _params.lowerHint,
                     interestBatchManager: _params.batchManager,
@@ -80,7 +80,7 @@ contract GasCompZapper is BaseZapper {
                 borrowerOperations.openTroveAndJoinInterestBatchManager(openTroveAndJoinInterestBatchManagerParams);
         }
 
-        evroToken.transfer(msg.sender, _params.boldAmount);
+        evroToken.transfer(msg.sender, _params.evroAmount);
 
         // Set add/remove managers
         _setAddManager(troveId, _params.addManager);
@@ -112,18 +112,18 @@ contract GasCompZapper is BaseZapper {
         collToken.safeTransfer(receiver, _amount);
     }
 
-    function withdrawBold(uint256 _troveId, uint256 _boldAmount, uint256 _maxUpfrontFee) external {
+    function withdrawEvro(uint256 _troveId, uint256 _evroAmount, uint256 _maxUpfrontFee) external {
         address owner = troveNFT.ownerOf(_troveId);
         address receiver = _requireSenderIsOwnerOrRemoveManagerAndGetReceiver(_troveId, owner);
         _requireZapperIsReceiver(_troveId);
 
-        borrowerOperations.withdrawBold(_troveId, _boldAmount, _maxUpfrontFee);
+        borrowerOperations.withdrawEvro(_troveId, _evroAmount, _maxUpfrontFee);
 
-        // Send Bold
-        evroToken.transfer(receiver, _boldAmount);
+        // Send Evro
+        evroToken.transfer(receiver, _evroAmount);
     }
 
-    function repayBold(uint256 _troveId, uint256 _boldAmount) external {
+    function repayEvro(uint256 _troveId, uint256 _evroAmount) external {
         address owner = troveNFT.ownerOf(_troveId);
         _requireSenderIsOwnerOrAddManager(_troveId, owner);
 
@@ -131,10 +131,10 @@ contract GasCompZapper is BaseZapper {
         InitialBalances memory initialBalances;
         _setInitialTokensAndBalances(collToken, evroToken, initialBalances);
 
-        // Pull Bold
-        evroToken.transferFrom(msg.sender, address(this), _boldAmount);
+        // Pull Evro
+        evroToken.transferFrom(msg.sender, address(this), _evroAmount);
 
-        borrowerOperations.repayBold(_troveId, _boldAmount);
+        borrowerOperations.repayEvro(_troveId, _evroAmount);
 
         // return leftovers to user
         _returnLeftovers(initialBalances);
@@ -144,24 +144,24 @@ contract GasCompZapper is BaseZapper {
         uint256 _troveId,
         uint256 _collChange,
         bool _isCollIncrease,
-        uint256 _boldChange,
+        uint256 _evroChange,
         bool _isDebtIncrease,
         uint256 _maxUpfrontFee
     ) external {
         InitialBalances memory initialBalances;
         address receiver =
-            _adjustTrovePre(_troveId, _collChange, _isCollIncrease, _boldChange, _isDebtIncrease, initialBalances);
+            _adjustTrovePre(_troveId, _collChange, _isCollIncrease, _evroChange, _isDebtIncrease, initialBalances);
         borrowerOperations.adjustTrove(
-            _troveId, _collChange, _isCollIncrease, _boldChange, _isDebtIncrease, _maxUpfrontFee
+            _troveId, _collChange, _isCollIncrease, _evroChange, _isDebtIncrease, _maxUpfrontFee
         );
-        _adjustTrovePost(_collChange, _isCollIncrease, _boldChange, _isDebtIncrease, receiver, initialBalances);
+        _adjustTrovePost(_collChange, _isCollIncrease, _evroChange, _isDebtIncrease, receiver, initialBalances);
     }
 
     function adjustZombieTrove(
         uint256 _troveId,
         uint256 _collChange,
         bool _isCollIncrease,
-        uint256 _boldChange,
+        uint256 _evroChange,
         bool _isDebtIncrease,
         uint256 _upperHint,
         uint256 _lowerHint,
@@ -169,18 +169,18 @@ contract GasCompZapper is BaseZapper {
     ) external {
         InitialBalances memory initialBalances;
         address receiver =
-            _adjustTrovePre(_troveId, _collChange, _isCollIncrease, _boldChange, _isDebtIncrease, initialBalances);
+            _adjustTrovePre(_troveId, _collChange, _isCollIncrease, _evroChange, _isDebtIncrease, initialBalances);
         borrowerOperations.adjustZombieTrove(
-            _troveId, _collChange, _isCollIncrease, _boldChange, _isDebtIncrease, _upperHint, _lowerHint, _maxUpfrontFee
+            _troveId, _collChange, _isCollIncrease, _evroChange, _isDebtIncrease, _upperHint, _lowerHint, _maxUpfrontFee
         );
-        _adjustTrovePost(_collChange, _isCollIncrease, _boldChange, _isDebtIncrease, receiver, initialBalances);
+        _adjustTrovePost(_collChange, _isCollIncrease, _evroChange, _isDebtIncrease, receiver, initialBalances);
     }
 
     function _adjustTrovePre(
         uint256 _troveId,
         uint256 _collChange,
         bool _isCollIncrease,
-        uint256 _boldChange,
+        uint256 _evroChange,
         bool _isDebtIncrease,
         InitialBalances memory _initialBalances
     ) internal returns (address) {
@@ -194,9 +194,9 @@ contract GasCompZapper is BaseZapper {
             collToken.safeTransferFrom(msg.sender, address(this), _collChange);
         }
 
-        // Pull Bold
+        // Pull Evro
         if (!_isDebtIncrease) {
-            evroToken.transferFrom(msg.sender, address(this), _boldChange);
+            evroToken.transferFrom(msg.sender, address(this), _evroChange);
         }
 
         return receiver;
@@ -205,7 +205,7 @@ contract GasCompZapper is BaseZapper {
     function _adjustTrovePost(
         uint256 _collChange,
         bool _isCollIncrease,
-        uint256 _boldChange,
+        uint256 _evroChange,
         bool _isDebtIncrease,
         address _receiver,
         InitialBalances memory _initialBalances
@@ -215,9 +215,9 @@ contract GasCompZapper is BaseZapper {
             collToken.safeTransfer(_receiver, _collChange);
         }
 
-        // Send Bold
+        // Send Evro
         if (_isDebtIncrease) {
-            evroToken.transfer(_receiver, _boldChange);
+            evroToken.transfer(_receiver, _evroChange);
         }
 
         // return leftovers to user
@@ -229,7 +229,7 @@ contract GasCompZapper is BaseZapper {
         address payable receiver = payable(_requireSenderIsOwnerOrRemoveManagerAndGetReceiver(_troveId, owner));
         _requireZapperIsReceiver(_troveId);
 
-        // pull Bold for repayment
+        // pull Evro for repayment
         LatestTroveData memory trove = troveManager.getLatestTroveData(_troveId);
         evroToken.transferFrom(msg.sender, address(this), trove.entireDebt);
 
@@ -284,13 +284,13 @@ contract GasCompZapper is BaseZapper {
         uint256 collLeft = trove.entireColl - _params.flashLoanAmount;
         require(collLeft >= _params.minExpectedCollateral, "GCZ: Not enough collateral received");
 
-        // Swap Coll from flash loan to Bold, so we can repay and close trove
+        // Swap Coll from flash loan to Evro, so we can repay and close trove
         // We swap the flash loan minus the flash loan fee
-        exchange.swapToBold(_effectiveFlashLoanAmount, trove.entireDebt);
+        exchange.swapToEvro(_effectiveFlashLoanAmount, trove.entireDebt);
 
-        // We asked for a min of entireDebt in swapToBold call above, so we don’t check again here:
-        //uint256 receivedBoldAmount = exchange.swapToBold(_effectiveFlashLoanAmount, trove.entireDebt);
-        //require(receivedBoldAmount >= trove.entireDebt, "GCZ: Not enough BOLD obtained to repay");
+        // We asked for a min of entireDebt in swapToEvro call above, so we don’t check again here:
+        //uint256 receivedEvroAmount = exchange.swapToEvro(_effectiveFlashLoanAmount, trove.entireDebt);
+        //require(receivedEvroAmount >= trove.entireDebt, "GCZ: Not enough BOLD obtained to repay");
 
         borrowerOperations.closeTrove(_params.troveId);
 

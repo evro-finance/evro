@@ -42,7 +42,7 @@ contract HybridCurveUniV3Exchange is LeftoversSweep, IExchange {
         // Curve
         ICurveStableswapNGPool _curvePool,
         uint128 _usdcIndex,
-        uint128 _boldIndex,
+        uint128 _evroIndex,
         // UniV3
         uint24 _feeUsdcWeth,
         uint24 _feeWethColl,
@@ -56,7 +56,7 @@ contract HybridCurveUniV3Exchange is LeftoversSweep, IExchange {
         // Curve
         curvePool = _curvePool;
         USDC_INDEX = _usdcIndex;
-        BOLD_TOKEN_INDEX = _boldIndex;
+        BOLD_TOKEN_INDEX = _evroIndex;
 
         // Uniswap
         feeUsdcWeth = _feeUsdcWeth;
@@ -64,16 +64,16 @@ contract HybridCurveUniV3Exchange is LeftoversSweep, IExchange {
         uniV3Router = _uniV3Router;
     }
 
-    // Bold -> USDC on Curve; then USDC -> WETH, and optionally WETH -> Coll, on UniV3
-    function swapFromBold(uint256 _boldAmount, uint256 _minCollAmount) external {
+    // Evro -> USDC on Curve; then USDC -> WETH, and optionally WETH -> Coll, on UniV3
+    function swapFromEvro(uint256 _evroAmount, uint256 _minCollAmount) external {
         InitialBalances memory initialBalances;
         _setHybridExchangeInitialBalances(initialBalances);
 
         // Curve
-        evroToken.transferFrom(msg.sender, address(this), _boldAmount);
-        evroToken.approve(address(curvePool), _boldAmount);
+        evroToken.transferFrom(msg.sender, address(this), _evroAmount);
+        evroToken.approve(address(curvePool), _evroAmount);
 
-        uint256 curveUsdcAmount = curvePool.exchange(int128(BOLD_TOKEN_INDEX), int128(USDC_INDEX), _boldAmount, 0);
+        uint256 curveUsdcAmount = curvePool.exchange(int128(BOLD_TOKEN_INDEX), int128(USDC_INDEX), _evroAmount, 0);
 
         // Uniswap
         USDC.approve(address(uniV3Router), curveUsdcAmount);
@@ -101,8 +101,8 @@ contract HybridCurveUniV3Exchange is LeftoversSweep, IExchange {
         _returnLeftovers(initialBalances);
     }
 
-    // Optionally Coll -> WETH, and WETH -> USDC on UniV3; then USDC -> Bold on Curve
-    function swapToBold(uint256 _collAmount, uint256 _minBoldAmount) external returns (uint256) {
+    // Optionally Coll -> WETH, and WETH -> USDC on UniV3; then USDC -> Evro on Curve
+    function swapToEvro(uint256 _collAmount, uint256 _minEvroAmount) external returns (uint256) {
         InitialBalances memory initialBalances;
         _setHybridExchangeInitialBalances(initialBalances);
 
@@ -132,14 +132,14 @@ contract HybridCurveUniV3Exchange is LeftoversSweep, IExchange {
         // Curve
         USDC.approve(address(curvePool), uniV3UsdcAmount);
 
-        uint256 boldAmount =
-            curvePool.exchange(int128(USDC_INDEX), int128(BOLD_TOKEN_INDEX), uniV3UsdcAmount, _minBoldAmount);
-        evroToken.transfer(msg.sender, boldAmount);
+        uint256 evroAmount =
+            curvePool.exchange(int128(USDC_INDEX), int128(BOLD_TOKEN_INDEX), uniV3UsdcAmount, _minEvroAmount);
+        evroToken.transfer(msg.sender, evroAmount);
 
         // return leftovers to user
         _returnLeftovers(initialBalances);
 
-        return boldAmount;
+        return evroAmount;
     }
 
     function _setHybridExchangeInitialBalances(InitialBalances memory initialBalances) internal view {

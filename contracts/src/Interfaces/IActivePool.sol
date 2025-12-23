@@ -3,7 +3,7 @@
 pragma solidity ^0.8.0;
 
 import "./IInterestRouter.sol";
-import "./IBoldRewardsReceiver.sol";
+import "./IEvroRewardsReceiver.sol";
 import "../Types/TroveChange.sol";
 
 interface IActivePool {
@@ -12,10 +12,10 @@ interface IActivePool {
     function troveManagerAddress() external view returns (address);
     function interestRouter() external view returns (IInterestRouter);
     // We avoid IStabilityPool here in order to prevent creating a dependency cycle that would break flattening
-    function stabilityPool() external view returns (IBoldRewardsReceiver);
+    function stabilityPool() external view returns (IEvroRewardsReceiver);
 
     function getCollBalance() external view returns (uint256);
-    function getBoldDebt() external view returns (uint256);
+    function getEvroDebt() external view returns (uint256);
     function lastAggUpdateTime() external view returns (uint256);
     function aggRecordedDebt() external view returns (uint256);
     function aggWeightedDebtSum() external view returns (uint256);

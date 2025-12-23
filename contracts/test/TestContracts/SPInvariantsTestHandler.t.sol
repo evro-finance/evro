@@ -63,8 +63,8 @@ contract SPInvariantsTestHandler is BaseHandler, TroveId {
     mapping(address owner => uint256) troveIndexOf;
 
     // Ghost variables
-    uint256 myBold = 0;
-    uint256 spBold = 0;
+    uint256 myEvro = 0;
+    uint256 spEvro = 0;
     uint256 spColl = 0;
 
     // Fixtures
@@ -120,7 +120,7 @@ contract SPInvariantsTestHandler is BaseHandler, TroveId {
         vm.prank(msg.sender);
         evroToken.transfer(address(this), borrowed);
         assertEqDecimal(evroToken.balanceOf(msg.sender), 0, 18, "Incomplete BOLD sweep");
-        myBold += borrowed;
+        myEvro += borrowed;
 
         // Use these interesting values as SP deposit amounts later
         fixtureDeposited.push(debt);
@@ -128,11 +128,11 @@ contract SPInvariantsTestHandler is BaseHandler, TroveId {
     }
 
     function provideToSp(uint256 deposited, bool useFixture) external {
-        vm.assume(myBold > 0);
+        vm.assume(myEvro > 0);
 
         uint256 collBefore = collateralToken.balanceOf(msg.sender);
         uint256 collGain = stabilityPool.getDepositorCollGain(msg.sender);
-        uint256 boldGain = stabilityPool.getDepositorYieldGainWithPending(msg.sender);
+        uint256 evroGain = stabilityPool.getDepositorYieldGainWithPending(msg.sender);
 
         // Poor man's fixturing, because Foundry's fixtures don't seem to work under invariant testing
         if (useFixture && fixtureDeposited.length > 0) {
@@ -140,7 +140,7 @@ contract SPInvariantsTestHandler is BaseHandler, TroveId {
             deposited = fixtureDeposited[_bound(deposited, 0, fixtureDeposited.length - 1)];
         }
 
-        deposited = _bound(deposited, 1, myBold);
+        deposited = _bound(deposited, 1, myEvro);
 
         logCall("provideToSp", deposited.decimal(), "false");
 
@@ -149,7 +149,7 @@ contract SPInvariantsTestHandler is BaseHandler, TroveId {
         // Provide to SP and claim Coll and BOLD gains
         stabilityPool.provideToSP(deposited, true);
 
-        info("totalBoldDeposits = ", stabilityPool.getTotalBoldDeposits().decimal());
+        info("totalEvroDeposits = ", stabilityPool.getTotalEvroDeposits().decimal());
         _log();
 
         uint256 collAfter = collateralToken.balanceOf(msg.sender);
@@ -157,15 +157,15 @@ contract SPInvariantsTestHandler is BaseHandler, TroveId {
 
         // Sweep BOLD gain
         vm.prank(msg.sender);
-        evroToken.transfer(address(this), boldGain);
+        evroToken.transfer(address(this), evroGain);
         assertEqDecimal(evroToken.balanceOf(msg.sender), 0, 18, "Incomplete BOLD sweep");
-        myBold += boldGain;
+        myEvro += evroGain;
 
-        myBold -= deposited;
-        spBold += deposited;
+        myEvro -= deposited;
+        spEvro += deposited;
         spColl -= collGain;
 
-        assertEqDecimal(spBold, stabilityPool.getTotalBoldDeposits(), 18, "Wrong SP BOLD balance");
+        assertEqDecimal(spEvro, stabilityPool.getTotalEvroDeposits(), 18, "Wrong SP BOLD balance");
         assertEqDecimal(spColl, stabilityPool.getCollBalance(), 18, "Wrong SP Coll balance");
     }
 
@@ -175,7 +175,7 @@ contract SPInvariantsTestHandler is BaseHandler, TroveId {
         vm.assume(troveManager.getTroveStatus(troveId) == ITroveManager.Status.active);
 
         (uint256 debt, uint256 coll,,,) = troveManager.getEntireDebtAndColl(troveId);
-        vm.assume(debt <= (spBold > MIN_BOLD_IN_SP ? spBold - MIN_BOLD_IN_SP : 0)); // only interested in SP offset, no redistribution
+        vm.assume(debt <= (spEvro > MIN_BOLD_IN_SP ? spEvro - MIN_BOLD_IN_SP : 0)); // only interested in SP offset, no redistribution
 
         logCall("liquidateMe");
 
@@ -183,9 +183,9 @@ contract SPInvariantsTestHandler is BaseHandler, TroveId {
 
         uint256 collBefore = collateralToken.balanceOf(address(this));
         uint256 accountSurplusBefore = collSurplusPool.getCollateral(msg.sender);
-        uint256 totalBoldDeposits = stabilityPool.getTotalBoldDeposits();
-        uint256 boldInSPForOffsets = totalBoldDeposits - LiquityMath._min(MIN_BOLD_IN_SP, totalBoldDeposits);
-        uint256 collCompensation = troveManager.getCollGasCompensation(coll, debt, boldInSPForOffsets);
+        uint256 totalEvroDeposits = stabilityPool.getTotalEvroDeposits();
+        uint256 evroInSPForOffsets = totalEvroDeposits - LiquityMath._min(MIN_BOLD_IN_SP, totalEvroDeposits);
+        uint256 collCompensation = troveManager.getCollGasCompensation(coll, debt, evroInSPForOffsets);
         // Calc claimable coll based on the remaining coll to liquidate, less the liq. penalty that goes to the SP depositors
         uint256 seizedColl = debt * (_100pct + troveManager.get_LIQUIDATION_PENALTY_SP()) / priceFeed.getPrice();
         // The Trove owner bears the gas compensation costs
@@ -195,7 +195,7 @@ contract SPInvariantsTestHandler is BaseHandler, TroveId {
 
         priceFeed.setPrice(initialPrice);
 
-        info("totalBoldDeposits = ", stabilityPool.getTotalBoldDeposits().decimal());
+        info("totalEvroDeposits = ", stabilityPool.getTotalEvroDeposits().decimal());
         info("P = ", stabilityPool.P().decimal());
         _log();
 
@@ -210,10 +210,10 @@ contract SPInvariantsTestHandler is BaseHandler, TroveId {
 
         ++troveIndexOf[msg.sender];
 
-        spBold -= debt;
+        spEvro -= debt;
         spColl += coll - claimableColl - collCompensation;
 
-        assertEqDecimal(spBold, stabilityPool.getTotalBoldDeposits(), 18, "Wrong SP BOLD balance");
+        assertEqDecimal(spEvro, stabilityPool.getTotalEvroDeposits(), 18, "Wrong SP BOLD balance");
         assertEqDecimal(spColl, stabilityPool.getCollBalance(), 18, "Wrong SP Coll balance");
     }
 }

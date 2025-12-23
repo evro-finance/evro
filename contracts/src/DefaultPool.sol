@@ -9,10 +9,10 @@ import "./Interfaces/IAddressesRegistry.sol";
 import "./Interfaces/IActivePool.sol";
 
 /*
- * The Default Pool holds the Coll and Bold debt (but not Bold tokens) from liquidations that have been redistributed
+ * The Default Pool holds the Coll and Evro debt (but not Evro tokens) from liquidations that have been redistributed
  * to active troves but not yet "applied", i.e. not yet recorded on a recipient active trove's struct.
  *
- * When a trove makes an operation that applies its pending Coll and Bold debt, its pending Coll and Bold debt is moved
+ * When a trove makes an operation that applies its pending Coll and Evro debt, its pending Coll and Evro debt is moved
  * from the Default Pool to the Active Pool.
  */
 contract DefaultPool is IDefaultPool {
@@ -24,12 +24,12 @@ contract DefaultPool is IDefaultPool {
     address public immutable troveManagerAddress;
     address public immutable activePoolAddress;
     uint256 internal collBalance; // deposited Coll tracker
-    uint256 internal BoldDebt; // debt
+    uint256 internal EvroDebt; // debt
 
     event CollTokenAddressChanged(address _newCollTokenAddress);
     event ActivePoolAddressChanged(address _newActivePoolAddress);
     event TroveManagerAddressChanged(address _newTroveManagerAddress);
-    event DefaultPoolBoldDebtUpdated(uint256 _boldDebt);
+    event DefaultPoolEvroDebtUpdated(uint256 _evroDebt);
     event DefaultPoolCollBalanceUpdated(uint256 _collBalance);
 
     constructor(IAddressesRegistry _addressesRegistry) {
@@ -56,8 +56,8 @@ contract DefaultPool is IDefaultPool {
         return collBalance;
     }
 
-    function getBoldDebt() external view override returns (uint256) {
-        return BoldDebt;
+    function getEvroDebt() external view override returns (uint256) {
+        return EvroDebt;
     }
 
     // --- Pool functionality ---
@@ -84,16 +84,16 @@ contract DefaultPool is IDefaultPool {
         emit DefaultPoolCollBalanceUpdated(newCollBalance);
     }
 
-    function increaseBoldDebt(uint256 _amount) external override {
+    function increaseEvroDebt(uint256 _amount) external override {
         _requireCallerIsTroveManager();
-        BoldDebt = BoldDebt + _amount;
-        emit DefaultPoolBoldDebtUpdated(BoldDebt);
+        EvroDebt = EvroDebt + _amount;
+        emit DefaultPoolEvroDebtUpdated(EvroDebt);
     }
 
-    function decreaseBoldDebt(uint256 _amount) external override {
+    function decreaseEvroDebt(uint256 _amount) external override {
         _requireCallerIsTroveManager();
-        BoldDebt = BoldDebt - _amount;
-        emit DefaultPoolBoldDebtUpdated(BoldDebt);
+        EvroDebt = EvroDebt - _amount;
+        emit DefaultPoolEvroDebtUpdated(EvroDebt);
     }
 
     // --- 'require' functions ---

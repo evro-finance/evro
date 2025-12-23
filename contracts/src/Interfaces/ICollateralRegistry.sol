@@ -10,7 +10,7 @@ interface ICollateralRegistry {
     function baseRate() external view returns (uint256);
     function lastFeeOperationTime() external view returns (uint256);
 
-    function redeemCollateral(uint256 _boldamount, uint256 _maxIterations, uint256 _maxFeePercentage) external;
+    function redeemCollateral(uint256 _evroamount, uint256 _maxIterations, uint256 _maxFeePercentage) external;
     // getters
     function totalCollaterals() external view returns (uint256);
     function getToken(uint256 _index) external view returns (IERC20Metadata);
@@ -22,5 +22,5 @@ interface ICollateralRegistry {
     function getRedemptionRateForRedeemedAmount(uint256 _redeemAmount) external view returns (uint256);
 
     function getRedemptionFeeWithDecay(uint256 _ETHDrawn) external view returns (uint256);
-    function getEffectiveRedemptionFeeInBold(uint256 _redeemAmount) external view returns (uint256);
+    function getEffectiveRedemptionFeeInEvro(uint256 _redeemAmount) external view returns (uint256);
 }

@@ -41,7 +41,7 @@ contract CollateralRegistry is ICollateralRegistry {
 
     uint256 public baseRate;
 
-    // The timestamp of the latest fee operation (redemption or new Bold issuance)
+    // The timestamp of the latest fee operation (redemption or new Evro issuance)
     uint256 public lastFeeOperationTime = block.timestamp;
 
     event BaseRateUpdated(uint256 _baseRate);
@@ -84,16 +84,16 @@ contract CollateralRegistry is ICollateralRegistry {
 
     struct RedemptionTotals {
         uint256 numCollaterals;
-        uint256 boldSupplyAtStart;
+        uint256 evroSupplyAtStart;
         uint256 unbacked;
         uint256 redeemedAmount;
     }
 
-    function redeemCollateral(uint256 _boldAmount, uint256 _maxIterationsPerCollateral, uint256 _maxFeePercentage)
+    function redeemCollateral(uint256 _evroAmount, uint256 _maxIterationsPerCollateral, uint256 _maxFeePercentage)
         external
     {
         _requireValidMaxFeePercentage(_maxFeePercentage);
-        _requireAmountGreaterThanZero(_boldAmount);
+        _requireAmountGreaterThanZero(_evroAmount);
 
         RedemptionTotals memory totals;
 
@@ -130,19 +130,19 @@ contract CollateralRegistry is ICollateralRegistry {
             // Don't allow redeeming more than the total unbacked in one go, as that would result in a disproportionate
             // redemption (see CS-BOLD-013). Instead, truncate the redemption to total unbacked. If this happens, the
             // redeemer can call `redeemCollateral()` a second time to redeem the remainder of their BOLD.
-            if (_boldAmount > totals.unbacked) {
-                _boldAmount = totals.unbacked;
+            if (_evroAmount > totals.unbacked) {
+                _evroAmount = totals.unbacked;
             }
         }
 
-        totals.boldSupplyAtStart = evroToken.totalSupply();
+        totals.evroSupplyAtStart = evroToken.totalSupply();
         // Decay the baseRate due to time passed, and then increase it according to the size of this redemption.
-        // Use the saved total Bold supply value, from before it was reduced by the redemption.
+        // Use the saved total Evro supply value, from before it was reduced by the redemption.
         // We only compute it here, and update it at the end,
         // because the final redeemed amount may be less than the requested amount
         // Redeemers should take this into account in order to request the optimal amount to not overpay
         uint256 redemptionRate =
-            _calcRedemptionRate(_getUpdatedBaseRateFromRedemption(_boldAmount, totals.boldSupplyAtStart));
+            _calcRedemptionRate(_getUpdatedBaseRateFromRedemption(_evroAmount, totals.evroSupplyAtStart));
         require(redemptionRate <= _maxFeePercentage, "CR: Fee exceeded provided maximum");
         // Implicit by the above and the _requireValidMaxFeePercentage checks
         //require(newBaseRate < DECIMAL_PRECISION, "CR: Fee would eat up all collateral");
@@ -151,7 +151,7 @@ contract CollateralRegistry is ICollateralRegistry {
         for (uint256 index = 0; index < totals.numCollaterals; index++) {
             //uint256 unbackedPortion = unbackedPortions[index];
             if (unbackedPortions[index] > 0) {
-                uint256 redeemAmount = _boldAmount * unbackedPortions[index] / totals.unbacked;
+                uint256 redeemAmount = _evroAmount * unbackedPortions[index] / totals.unbacked;
                 if (redeemAmount > 0) {
                     ITroveManager troveManager = getTroveManager(index);
                     uint256 redeemedAmount = troveManager.redeemCollateral(
@@ -160,15 +160,15 @@ contract CollateralRegistry is ICollateralRegistry {
                     totals.redeemedAmount += redeemedAmount;
                 }
 
-                // Ensure that per-branch redeems add up to `_boldAmount` exactly
-                _boldAmount -= redeemAmount;
+                // Ensure that per-branch redeems add up to `_evroAmount` exactly
+                _evroAmount -= redeemAmount;
                 totals.unbacked -= unbackedPortions[index];
             }
         }
 
-        _updateBaseRateAndGetRedemptionRate(totals.redeemedAmount, totals.boldSupplyAtStart);
+        _updateBaseRateAndGetRedemptionRate(totals.redeemedAmount, totals.evroSupplyAtStart);
 
-        // Burn the total Bold that is cancelled with debt
+        // Burn the total Evro that is cancelled with debt
         if (totals.redeemedAmount > 0) {
             evroToken.burn(msg.sender, totals.redeemedAmount);
         }
@@ -191,8 +191,8 @@ contract CollateralRegistry is ICollateralRegistry {
     }
 
     // Updates the `baseRate` state with math from `_getUpdatedBaseRateFromRedemption`
-    function _updateBaseRateAndGetRedemptionRate(uint256 _boldAmount, uint256 _totalBoldSupplyAtStart) internal {
-        uint256 newBaseRate = _getUpdatedBaseRateFromRedemption(_boldAmount, _totalBoldSupplyAtStart);
+    function _updateBaseRateAndGetRedemptionRate(uint256 _evroAmount, uint256 _totalEvroSupplyAtStart) internal {
+        uint256 newBaseRate = _getUpdatedBaseRateFromRedemption(_evroAmount, _totalEvroSupplyAtStart);
 
         //assert(newBaseRate <= DECIMAL_PRECISION); // This is already enforced in `_getUpdatedBaseRateFromRedemption`
 
@@ -205,11 +205,11 @@ contract CollateralRegistry is ICollateralRegistry {
 
     /*
      * This function calculates the new baseRate in the following way:
-     * 1) decays the baseRate based on time passed since last redemption or Bold borrowing operation.
+     * 1) decays the baseRate based on time passed since last redemption or Evro borrowing operation.
      * then,
      * 2) increases the baseRate based on the amount redeemed, as a proportion of total supply
      */
-    function _getUpdatedBaseRateFromRedemption(uint256 _redeemAmount, uint256 _totalBoldSupply)
+    function _getUpdatedBaseRateFromRedemption(uint256 _redeemAmount, uint256 _totalEvroSupply)
         internal
         view
         returns (uint256)
@@ -218,9 +218,9 @@ contract CollateralRegistry is ICollateralRegistry {
         uint256 decayedBaseRate = _calcDecayedBaseRate();
 
         // get the fraction of total supply that was redeemed
-        uint256 redeemedBoldFraction = _redeemAmount * DECIMAL_PRECISION / _totalBoldSupply;
+        uint256 redeemedEvroFraction = _redeemAmount * DECIMAL_PRECISION / _totalEvroSupply;
 
-        uint256 newBaseRate = decayedBaseRate + redeemedBoldFraction / REDEMPTION_BETA;
+        uint256 newBaseRate = decayedBaseRate + redeemedEvroFraction / REDEMPTION_BETA;
         newBaseRate = LiquityMath._min(newBaseRate, DECIMAL_PRECISION); // cap baseRate at a maximum of 100%
 
         return newBaseRate;
@@ -256,8 +256,8 @@ contract CollateralRegistry is ICollateralRegistry {
     }
 
     function getRedemptionRateForRedeemedAmount(uint256 _redeemAmount) external view returns (uint256) {
-        uint256 totalBoldSupply = evroToken.totalSupply();
-        uint256 newBaseRate = _getUpdatedBaseRateFromRedemption(_redeemAmount, totalBoldSupply);
+        uint256 totalEvroSupply = evroToken.totalSupply();
+        uint256 newBaseRate = _getUpdatedBaseRateFromRedemption(_redeemAmount, totalEvroSupply);
         return _calcRedemptionRate(newBaseRate);
     }
 
@@ -265,9 +265,9 @@ contract CollateralRegistry is ICollateralRegistry {
         return _calcRedemptionFee(getRedemptionRateWithDecay(), _ETHDrawn);
     }
 
-    function getEffectiveRedemptionFeeInBold(uint256 _redeemAmount) external view override returns (uint256) {
-        uint256 totalBoldSupply = evroToken.totalSupply();
-        uint256 newBaseRate = _getUpdatedBaseRateFromRedemption(_redeemAmount, totalBoldSupply);
+    function getEffectiveRedemptionFeeInEvro(uint256 _redeemAmount) external view override returns (uint256) {
+        uint256 totalEvroSupply = evroToken.totalSupply();
+        uint256 newBaseRate = _getUpdatedBaseRateFromRedemption(_redeemAmount, totalEvroSupply);
         return _calcRedemptionFee(_calcRedemptionRate(newBaseRate), _redeemAmount);
     }
 

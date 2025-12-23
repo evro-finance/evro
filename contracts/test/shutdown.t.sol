@@ -83,11 +83,11 @@ contract ShutdownTest is DevTestSetup {
         address _account,
         uint256 _index,
         uint256 _coll,
-        uint256 _boldAmount,
+        uint256 _evroAmount,
         uint256 _annualInterestRate
     ) public returns (uint256 troveId) {
         TroveChange memory troveChange;
-        troveChange.debtIncrease = _boldAmount;
+        troveChange.debtIncrease = _evroAmount;
         troveChange.newWeightedRecordedDebt = troveChange.debtIncrease * _annualInterestRate;
         uint256 avgInterestRate =
             contractsArray[_collIndex].activePool.getNewApproxAvgInterestRateFromTroveChange(troveChange);
@@ -99,7 +99,7 @@ contract ShutdownTest is DevTestSetup {
             _account,
             _index,
             _coll,
-            _boldAmount,
+            _evroAmount,
             0, // _upperHint
             0, // _lowerHint
             _annualInterestRate,
@@ -201,21 +201,21 @@ contract ShutdownTest is DevTestSetup {
         vm.stopPrank();
     }
 
-    function testCannotWithdrawBoldAfterShutdown() public {
+    function testCannotWithdrawEvroAfterShutdown() public {
         uint256 troveId = prepareAndShutdownFirstBranch();
 
         vm.startPrank(A);
         vm.expectRevert(BorrowerOperations.IsShutDown.selector);
-        borrowerOperations.withdrawBold(troveId, 1, 10000e18);
+        borrowerOperations.withdrawEvro(troveId, 1, 10000e18);
         vm.stopPrank();
     }
 
-    function testCannotRepayBoldAfterShutdown() public {
+    function testCannotRepayEvroAfterShutdown() public {
         uint256 troveId = prepareAndShutdownFirstBranch();
 
         vm.startPrank(A);
         vm.expectRevert(BorrowerOperations.IsShutDown.selector);
-        borrowerOperations.repayBold(troveId, 1000e18);
+        borrowerOperations.repayEvro(troveId, 1000e18);
         vm.stopPrank();
     }
 
@@ -404,14 +404,14 @@ contract ShutdownTest is DevTestSetup {
     function testCannotUrgentRedeemWithoutEnoughBalance() public {
         uint256 troveId = prepareAndShutdownFirstBranch();
 
-        // A sends 900 Bold to B
+        // A sends 900 Evro to B
         vm.startPrank(A);
         evroToken.transfer(B, 900e18);
         vm.stopPrank();
 
-        // B tries to redeem 1000 Bold
+        // B tries to redeem 1000 Evro
         vm.startPrank(B);
-        vm.expectRevert(TroveManager.NotEnoughBoldBalance.selector);
+        vm.expectRevert(TroveManager.NotEnoughEvroBalance.selector);
         troveManager.urgentRedemption(1000e18, uintToArray(troveId), 0);
         vm.stopPrank();
     }
@@ -444,14 +444,14 @@ contract ShutdownTest is DevTestSetup {
         uint256 icr = troveManager.getCurrentICR(troveId, price);
         assertLt(icr, 1e18, "Trove CR should be below 100%");
 
-        uint256 boldBalanceBefore = evroToken.balanceOf(A);
+        uint256 evroBalanceBefore = evroToken.balanceOf(A);
         uint256 collBalanceBefore = contractsArray[0].collToken.balanceOf(A);
         uint256 redemptionAmount = 100e18;
         vm.startPrank(A);
         troveManager.urgentRedemption(redemptionAmount, uintToArray(troveId), 0);
         vm.stopPrank();
 
-        assertEq(evroToken.balanceOf(A), boldBalanceBefore - redemptionAmount, "Bold balance mismatch");
+        assertEq(evroToken.balanceOf(A), evroBalanceBefore - redemptionAmount, "Evro balance mismatch");
         assertEq(
             contractsArray[0].collToken.balanceOf(A),
             collBalanceBefore
@@ -474,7 +474,7 @@ contract ShutdownTest is DevTestSetup {
         uint256 icr = troveManager.getCurrentICR(troveId, price);
         assertLt(icr, 1e18, "Trove CR should be below 100%");
 
-        uint256 boldBalanceBefore = evroToken.balanceOf(A);
+        uint256 evroBalanceBefore = evroToken.balanceOf(A);
         uint256 collBalanceBefore = contractsArray[0].collToken.balanceOf(A);
         uint256 redemptionAmount = troveManager.getTroveEntireDebt(troveId);
         vm.startPrank(A);
@@ -483,9 +483,9 @@ contract ShutdownTest is DevTestSetup {
 
         assertEq(
             evroToken.balanceOf(A),
-            boldBalanceBefore
+            evroBalanceBefore
                 - 11e18 * price / DECIMAL_PRECISION * DECIMAL_PRECISION / (DECIMAL_PRECISION + URGENT_REDEMPTION_BONUS),
-            "Bold balance mismatch"
+            "Evro balance mismatch"
         );
         assertEq(contractsArray[0].collToken.balanceOf(A), collBalanceBefore + 11e18, "Coll balance mismatch");
     }
@@ -504,14 +504,14 @@ contract ShutdownTest is DevTestSetup {
         assertGt(icr, 1e18, "Trove CR should be above 100%");
         assertLt(icr, MCR, "Trove CR should be below MCR");
 
-        uint256 boldBalanceBefore = evroToken.balanceOf(A);
+        uint256 evroBalanceBefore = evroToken.balanceOf(A);
         uint256 collBalanceBefore = contractsArray[0].collToken.balanceOf(A);
         uint256 redemptionAmount = 100e18;
         vm.startPrank(A);
         troveManager.urgentRedemption(redemptionAmount, uintToArray(troveId), 0);
         vm.stopPrank();
 
-        assertEq(evroToken.balanceOf(A), boldBalanceBefore - redemptionAmount, "Bold balance mismatch");
+        assertEq(evroToken.balanceOf(A), evroBalanceBefore - redemptionAmount, "Evro balance mismatch");
         assertEq(
             contractsArray[0].collToken.balanceOf(A),
             collBalanceBefore
@@ -535,14 +535,14 @@ contract ShutdownTest is DevTestSetup {
         assertGt(icr, 1e18, "Trove CR should be above 100%");
         assertLt(icr, MCR, "Trove CR should be below MCR");
 
-        uint256 boldBalanceBefore = evroToken.balanceOf(A);
+        uint256 evroBalanceBefore = evroToken.balanceOf(A);
         uint256 collBalanceBefore = contractsArray[0].collToken.balanceOf(A);
         uint256 redemptionAmount = troveManager.getTroveEntireDebt(troveId);
         vm.startPrank(A);
         troveManager.urgentRedemption(redemptionAmount, uintToArray(troveId), 0);
         vm.stopPrank();
 
-        assertEq(evroToken.balanceOf(A), boldBalanceBefore - redemptionAmount, "Bold balance mismatch");
+        assertEq(evroToken.balanceOf(A), evroBalanceBefore - redemptionAmount, "Evro balance mismatch");
         // TODO: determine why this is off by 1 wei - it should be exact
         assertApproximatelyEqual(
             contractsArray[0].collToken.balanceOf(A),
@@ -567,14 +567,14 @@ contract ShutdownTest is DevTestSetup {
         uint256 icr = troveManager.getCurrentICR(troveId, price);
         assertGt(icr, MCR, "Trove CR should be above MCR");
 
-        uint256 boldBalanceBefore = evroToken.balanceOf(A);
+        uint256 evroBalanceBefore = evroToken.balanceOf(A);
         uint256 collBalanceBefore = contractsArray[0].collToken.balanceOf(A);
         uint256 redemptionAmount = 100e18;
         vm.startPrank(A);
         troveManager.urgentRedemption(redemptionAmount, uintToArray(troveId), 0);
         vm.stopPrank();
 
-        assertEq(evroToken.balanceOf(A), boldBalanceBefore - redemptionAmount, "Bold balance mismatch");
+        assertEq(evroToken.balanceOf(A), evroBalanceBefore - redemptionAmount, "Evro balance mismatch");
         assertEq(
             contractsArray[0].collToken.balanceOf(A),
             collBalanceBefore
@@ -597,14 +597,14 @@ contract ShutdownTest is DevTestSetup {
         uint256 icr = troveManager.getCurrentICR(troveId, price);
         assertGt(icr, MCR, "Trove CR should be above MCR");
 
-        uint256 boldBalanceBefore = evroToken.balanceOf(A);
+        uint256 evroBalanceBefore = evroToken.balanceOf(A);
         uint256 collBalanceBefore = contractsArray[0].collToken.balanceOf(A);
         uint256 redemptionAmount = troveManager.getTroveEntireDebt(troveId);
         vm.startPrank(A);
         troveManager.urgentRedemption(redemptionAmount, uintToArray(troveId), 0);
         vm.stopPrank();
 
-        assertEq(evroToken.balanceOf(A), boldBalanceBefore - redemptionAmount, "Bold balance mismatch");
+        assertEq(evroToken.balanceOf(A), evroBalanceBefore - redemptionAmount, "Evro balance mismatch");
         // TODO: determine why this is off by 1 wei - it should be exact
         assertApproximatelyEqual(
             contractsArray[0].collToken.balanceOf(A),
@@ -1030,17 +1030,17 @@ contract ShutdownTest is DevTestSetup {
         contractsArray[0].borrowerOperations.shutdown();
         assertTrue(borrowerOperations.hasBeenShutDown());
 
-        uint256 spBoldBal_t0 = evroToken.balanceOf(address(contractsArray[0].stabilityPool));
+        uint256 spEvroBal_t0 = evroToken.balanceOf(address(contractsArray[0].stabilityPool));
 
         uint256 redemptionAmount = 100e18;
         vm.startPrank(A);
         troveManager.urgentRedemption(redemptionAmount, uintToArray(troveId3), 0);
         vm.stopPrank();
 
-        uint256 spBoldBal_t1 = evroToken.balanceOf(address(contractsArray[0].stabilityPool));
+        uint256 spEvroBal_t1 = evroToken.balanceOf(address(contractsArray[0].stabilityPool));
 
-        // Check SP bold bal didnt change from urgent redemption
-        assertEq(spBoldBal_t1, spBoldBal_t0);
+        // Check SP evro bal didnt change from urgent redemption
+        assertEq(spEvroBal_t1, spEvroBal_t0);
     }
 
     function testUrgentRedemptionReducesAggWeightedDebtSumByNetWeightedAmountRemoved() public {

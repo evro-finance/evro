@@ -12,17 +12,17 @@ import "./Interfaces/IEvroToken.sol";
 import "./Dependencies/LiquityBase.sol";
 
 /*
- * The Stability Pool holds Bold tokens deposited by Stability Pool depositors.
+ * The Stability Pool holds Evro tokens deposited by Stability Pool depositors.
  *
- * When a trove is liquidated, then depending on system conditions, some of its Bold debt gets offset with
- * Bold in the Stability Pool:  that is, the offset debt evaporates, and an equal amount of Bold tokens in the Stability Pool is burned.
+ * When a trove is liquidated, then depending on system conditions, some of its Evro debt gets offset with
+ * Evro in the Stability Pool:  that is, the offset debt evaporates, and an equal amount of Evro tokens in the Stability Pool is burned.
  *
- * Thus, a liquidation causes each depositor to receive a Bold loss, in proportion to their deposit as a share of total deposits.
+ * Thus, a liquidation causes each depositor to receive a Evro loss, in proportion to their deposit as a share of total deposits.
  * They also receive an Coll gain, as the collateral of the liquidated trove is distributed among Stability depositors,
  * in the same proportion.
  *
  * When a liquidation occurs, it depletes every deposit by the same fraction: for example, a liquidation that depletes 40%
- * of the total Bold in the Stability Pool, depletes 40% of each deposit.
+ * of the total Evro in the Stability Pool, depletes 40% of each deposit.
  *
  * A deposit that has experienced a series of liquidations is termed a "compounded deposit": each liquidation depletes the deposit,
  * multiplying it by some factor in range ]0,1[
@@ -72,7 +72,7 @@ import "./Dependencies/LiquityBase.sol";
  *
  * --- MIN BOLD IN SP ---
  *
- * Once totalBoldDeposits has become >= MIN_BOLD_IN_SP, a liquidation may never fully empty the Pool - a minimum of 1 BOLD remains in the SP at all times thereafter.
+ * Once totalEvroDeposits has become >= MIN_BOLD_IN_SP, a liquidation may never fully empty the Pool - a minimum of 1 BOLD remains in the SP at all times thereafter.
  * This is enforced for liquidations in TroveManager.batchLiquidateTroves, and for withdrawals in StabilityPool.withdrawFromSP.
  * As such, it is impossible to empty the Stability Pool via liquidations, and P can never become 0.
  *
@@ -126,13 +126,13 @@ contract StabilityPool is LiquityBase, IStabilityPool, IStabilityPoolEvents {
 
     uint256 internal collBalance; // deposited coll tracker
 
-    // Tracker for Bold held in the pool. Changes when users deposit/withdraw, and when Trove debt is offset.
-    uint256 internal totalBoldDeposits;
+    // Tracker for Evro held in the pool. Changes when users deposit/withdraw, and when Trove debt is offset.
+    uint256 internal totalEvroDeposits;
 
-    // Total remaining Bold yield gains (from Trove interest mints) held by SP, and not yet paid out to depositors
+    // Total remaining Evro yield gains (from Trove interest mints) held by SP, and not yet paid out to depositors
     // From the contract's perspective, this is a write-only variable.
     uint256 internal yieldGainsOwed;
-    // Total remaining Bold yield gains (from Trove interest mints) held by SP, not yet paid out to depositors,
+    // Total remaining Evro yield gains (from Trove interest mints) held by SP, not yet paid out to depositors,
     // and not accounted for because they were received when the total deposits were too small
     uint256 internal yieldGainsPending;
 
@@ -145,7 +145,7 @@ contract StabilityPool is LiquityBase, IStabilityPool, IStabilityPoolEvents {
     struct Snapshots {
         uint256 S; // Coll reward sum liqs
         uint256 P;
-        uint256 B; // Bold reward sum from minted interest
+        uint256 B; // Evro reward sum from minted interest
         uint256 scale;
     }
 
@@ -154,7 +154,7 @@ contract StabilityPool is LiquityBase, IStabilityPool, IStabilityPoolEvents {
     mapping(address => uint256) public stashedColl;
 
     /*  Product 'P': Running product by which to multiply an initial deposit, in order to find the current compounded deposit,
-    * after a series of liquidations have occurred, each of which cancel some Bold debt with the deposit.
+    * after a series of liquidations have occurred, each of which cancel some Evro debt with the deposit.
     *
     * During its lifetime, a deposit's value evolves from d_t to d_t * P / P_t , where P_t
     * is the snapshot of P taken at the instant the deposit was made. 18-digit decimal.
@@ -204,8 +204,8 @@ contract StabilityPool is LiquityBase, IStabilityPool, IStabilityPoolEvents {
         return collBalance;
     }
 
-    function getTotalBoldDeposits() external view override returns (uint256) {
-        return totalBoldDeposits;
+    function getTotalEvroDeposits() external view override returns (uint256) {
+        return totalEvroDeposits;
     }
 
     function getYieldGainsOwed() external view override returns (uint256) {
@@ -233,16 +233,16 @@ contract StabilityPool is LiquityBase, IStabilityPool, IStabilityPoolEvents {
 
         uint256 currentCollGain = getDepositorCollGain(msg.sender);
         uint256 currentYieldGain = getDepositorYieldGain(msg.sender);
-        uint256 compoundedBoldDeposit = getCompoundedBoldDeposit(msg.sender);
+        uint256 compoundedEvroDeposit = getCompoundedEvroDeposit(msg.sender);
         (uint256 keptYieldGain, uint256 yieldGainToSend) = _getYieldToKeepOrSend(currentYieldGain, _doClaim);
-        uint256 newDeposit = compoundedBoldDeposit + _topUp + keptYieldGain;
+        uint256 newDeposit = compoundedEvroDeposit + _topUp + keptYieldGain;
         (uint256 newStashedColl, uint256 collToSend) =
             _getNewStashedCollAndCollToSend(msg.sender, currentCollGain, _doClaim);
 
         emit DepositOperation(
             msg.sender,
             Operation.provideToSP,
-            initialDeposit - compoundedBoldDeposit,
+            initialDeposit - compoundedEvroDeposit,
             int256(_topUp),
             currentYieldGain,
             yieldGainToSend,
@@ -252,9 +252,9 @@ contract StabilityPool is LiquityBase, IStabilityPool, IStabilityPoolEvents {
 
         _updateDepositAndSnapshots(msg.sender, newDeposit, newStashedColl);
         evroToken.sendToPool(msg.sender, address(this), _topUp);
-        _updateTotalBoldDeposits(_topUp + keptYieldGain, 0);
+        _updateTotalEvroDeposits(_topUp + keptYieldGain, 0);
         _decreaseYieldGainsOwed(currentYieldGain);
-        _sendBoldtoDepositor(msg.sender, yieldGainToSend);
+        _sendEvrotoDepositor(msg.sender, yieldGainToSend);
         _sendCollGainToDepositor(collToSend);
 
         // If there were pending yields and with the new deposit we are reaching the threshold, let’s move the yield to owed
@@ -291,18 +291,18 @@ contract StabilityPool is LiquityBase, IStabilityPool, IStabilityPoolEvents {
 
         uint256 currentCollGain = getDepositorCollGain(msg.sender);
         uint256 currentYieldGain = getDepositorYieldGain(msg.sender);
-        uint256 compoundedBoldDeposit = getCompoundedBoldDeposit(msg.sender);
-        uint256 boldToWithdraw = LiquityMath._min(_amount, compoundedBoldDeposit);
+        uint256 compoundedEvroDeposit = getCompoundedEvroDeposit(msg.sender);
+        uint256 evroToWithdraw = LiquityMath._min(_amount, compoundedEvroDeposit);
         (uint256 keptYieldGain, uint256 yieldGainToSend) = _getYieldToKeepOrSend(currentYieldGain, _doClaim);
-        uint256 newDeposit = compoundedBoldDeposit - boldToWithdraw + keptYieldGain;
+        uint256 newDeposit = compoundedEvroDeposit - evroToWithdraw + keptYieldGain;
         (uint256 newStashedColl, uint256 collToSend) =
             _getNewStashedCollAndCollToSend(msg.sender, currentCollGain, _doClaim);
 
         emit DepositOperation(
             msg.sender,
             Operation.withdrawFromSP,
-            initialDeposit - compoundedBoldDeposit,
-            -int256(boldToWithdraw),
+            initialDeposit - compoundedEvroDeposit,
+            -int256(evroToWithdraw),
             currentYieldGain,
             yieldGainToSend,
             currentCollGain,
@@ -311,11 +311,11 @@ contract StabilityPool is LiquityBase, IStabilityPool, IStabilityPoolEvents {
 
         _updateDepositAndSnapshots(msg.sender, newDeposit, newStashedColl);
         _decreaseYieldGainsOwed(currentYieldGain);
-        uint256 newTotalBoldDeposits = _updateTotalBoldDeposits(keptYieldGain, boldToWithdraw);
-        _sendBoldtoDepositor(msg.sender, boldToWithdraw + yieldGainToSend);
+        uint256 newTotalEvroDeposits = _updateTotalEvroDeposits(keptYieldGain, evroToWithdraw);
+        _sendEvrotoDepositor(msg.sender, evroToWithdraw + yieldGainToSend);
         _sendCollGainToDepositor(collToSend);
 
-        require(newTotalBoldDeposits >= MIN_BOLD_IN_SP, "Withdrawal must leave totalBoldDeposits >= MIN_BOLD_IN_SP");
+        require(newTotalEvroDeposits >= MIN_BOLD_IN_SP, "Withdrawal must leave totalEvroDeposits >= MIN_BOLD_IN_SP");
     }
 
     function _getNewStashedCollAndCollToSend(address _depositor, uint256 _currentCollGain, bool _doClaim)
@@ -350,9 +350,9 @@ contract StabilityPool is LiquityBase, IStabilityPool, IStabilityPoolEvents {
 
     // --- BOLD reward functions ---
 
-    function triggerBoldRewards(uint256 _boldYield) external {
+    function triggerEvroRewards(uint256 _evroYield) external {
         _requireCallerIsActivePool();
-        _updateYieldRewardsSum(_boldYield);
+        _updateYieldRewardsSum(_evroYield);
     }
 
     function _updateYieldRewardsSum(uint256 _newYield) internal {
@@ -361,7 +361,7 @@ contract StabilityPool is LiquityBase, IStabilityPool, IStabilityPoolEvents {
 
         // When total deposits is very small, B is not updated. In this case, the BOLD issued is held
         // until the total deposits reach 1 BOLD (remains in the balance of the SP).
-        if (totalBoldDeposits < MIN_BOLD_IN_SP) {
+        if (totalEvroDeposits < MIN_BOLD_IN_SP) {
             yieldGainsPending = accumulatedYieldGains;
             return;
         }
@@ -369,43 +369,43 @@ contract StabilityPool is LiquityBase, IStabilityPool, IStabilityPoolEvents {
         yieldGainsOwed += accumulatedYieldGains;
         yieldGainsPending = 0;
 
-        scaleToB[currentScale] += P * accumulatedYieldGains / totalBoldDeposits;
+        scaleToB[currentScale] += P * accumulatedYieldGains / totalEvroDeposits;
         emit B_Updated(scaleToB[currentScale], currentScale);
     }
 
     // --- Liquidation functions ---
 
     /*
-    * Cancels out the specified debt against the Bold contained in the Stability Pool (as far as possible)
+    * Cancels out the specified debt against the Evro contained in the Stability Pool (as far as possible)
     * and transfers the Trove's Coll collateral from ActivePool to StabilityPool.
     * Only called by liquidation functions in the TroveManager.
     */
     function offset(uint256 _debtToOffset, uint256 _collToAdd) external override {
         _requireCallerIsTroveManager();
 
-        scaleToS[currentScale] += P * _collToAdd / totalBoldDeposits;
+        scaleToS[currentScale] += P * _collToAdd / totalEvroDeposits;
         emit S_Updated(scaleToS[currentScale], currentScale);
 
-        uint256 numerator = P * (totalBoldDeposits - _debtToOffset);
-        uint256 newP = numerator / totalBoldDeposits;
+        uint256 numerator = P * (totalEvroDeposits - _debtToOffset);
+        uint256 newP = numerator / totalEvroDeposits;
 
-        // For `P` to turn zero, `totalBoldDeposits` has to be greater than `P * (totalBoldDeposits - _debtToOffset)`.
+        // For `P` to turn zero, `totalEvroDeposits` has to be greater than `P * (totalEvroDeposits - _debtToOffset)`.
         // - As the offset must leave at least 1 BOLD in the SP (MIN_BOLD_IN_SP),
-        //   the minimum value of `totalBoldDeposits - _debtToOffset` is `1e18`
+        //   the minimum value of `totalEvroDeposits - _debtToOffset` is `1e18`
         // - It can be shown that `P` is always in range [1e27, 1e36].
-        // Thus, to turn `P` zero, `totalBoldDeposits` has to be greater than `1e27 * 1e18`,
+        // Thus, to turn `P` zero, `totalEvroDeposits` has to be greater than `1e27 * 1e18`,
         // and the offset has to be (near) maximal.
         // In other words, there needs to be octillions of BOLD in the SP, which is unlikely to happen in practice.
         require(newP > 0, "P must never decrease to 0");
 
         // Overflow analyisis of scaling up P:
-        // We know that the resulting P is <= 1e36, and it's the result of dividing numerator by totalBoldDeposits.
-        // Thus, numerator <= 1e36 * totalBoldDeposits, so unless totalBoldDeposits is septillions of BOLD, it won’t overflow.
+        // We know that the resulting P is <= 1e36, and it's the result of dividing numerator by totalEvroDeposits.
+        // Thus, numerator <= 1e36 * totalEvroDeposits, so unless totalEvroDeposits is septillions of BOLD, it won’t overflow.
         // That holds on every iteration as an upper bound. We multiply numerator by SCALE_FACTOR,
-        // but numerator is by definition smaller than 1e36 * totalBoldDeposits / SCALE_FACTOR.
+        // but numerator is by definition smaller than 1e36 * totalEvroDeposits / SCALE_FACTOR.
         while (newP < P_PRECISION / SCALE_FACTOR) {
             numerator *= SCALE_FACTOR;
-            newP = numerator / totalBoldDeposits;
+            newP = numerator / totalEvroDeposits;
             currentScale += 1;
             emit ScaleUpdated(currentScale);
         }
@@ -417,8 +417,8 @@ contract StabilityPool is LiquityBase, IStabilityPool, IStabilityPoolEvents {
     }
 
     function _moveOffsetCollAndDebt(uint256 _collToAdd, uint256 _debtToOffset) internal {
-        // Cancel the liquidated Bold debt with the Bold in the stability pool
-        _updateTotalBoldDeposits(0, _debtToOffset);
+        // Cancel the liquidated Evro debt with the Evro in the stability pool
+        _updateTotalEvroDeposits(0, _debtToOffset);
 
         // Burn the debt that was successfully offset
         evroToken.burn(address(this), _debtToOffset);
@@ -433,13 +433,13 @@ contract StabilityPool is LiquityBase, IStabilityPool, IStabilityPoolEvents {
         emit StabilityPoolCollBalanceUpdated(newCollBalance);
     }
 
-    function _updateTotalBoldDeposits(uint256 _depositIncrease, uint256 _depositDecrease) internal returns (uint256) {
-        if (_depositIncrease == 0 && _depositDecrease == 0) return totalBoldDeposits;
-        uint256 newTotalBoldDeposits = totalBoldDeposits + _depositIncrease - _depositDecrease;
-        totalBoldDeposits = newTotalBoldDeposits;
+    function _updateTotalEvroDeposits(uint256 _depositIncrease, uint256 _depositDecrease) internal returns (uint256) {
+        if (_depositIncrease == 0 && _depositDecrease == 0) return totalEvroDeposits;
+        uint256 newTotalEvroDeposits = totalEvroDeposits + _depositIncrease - _depositDecrease;
+        totalEvroDeposits = newTotalEvroDeposits;
 
-        emit StabilityPoolBoldBalanceUpdated(newTotalBoldDeposits);
-        return newTotalBoldDeposits;
+        emit StabilityPoolEvroBalanceUpdated(newTotalEvroDeposits);
+        return newTotalEvroDeposits;
     }
 
     function _decreaseYieldGainsOwed(uint256 _amount) internal {
@@ -485,7 +485,7 @@ contract StabilityPool is LiquityBase, IStabilityPool, IStabilityPoolEvents {
     }
 
     function getDepositorYieldGainWithPending(address _depositor) external view override returns (uint256) {
-        if (totalBoldDeposits < MIN_BOLD_IN_SP) return 0;
+        if (totalEvroDeposits < MIN_BOLD_IN_SP) return 0;
 
         uint256 initialDeposit = deposits[_depositor].initialValue;
         if (initialDeposit == 0) return 0;
@@ -506,7 +506,7 @@ contract StabilityPool is LiquityBase, IStabilityPool, IStabilityPoolEvents {
         newYieldGainsOwed += pendingSPYield;
 
         if (currentScale <= snapshots.scale + SCALE_SPAN) {
-            normalizedGains += P * pendingSPYield / totalBoldDeposits / SCALE_FACTOR ** (currentScale - snapshots.scale);
+            normalizedGains += P * pendingSPYield / totalEvroDeposits / SCALE_FACTOR ** (currentScale - snapshots.scale);
         }
 
         return LiquityMath._min(initialDeposit * normalizedGains / snapshots.P, newYieldGainsOwed);
@@ -514,7 +514,7 @@ contract StabilityPool is LiquityBase, IStabilityPool, IStabilityPoolEvents {
 
     // --- Compounded deposit ---
 
-    function getCompoundedBoldDeposit(address _depositor) public view override returns (uint256 compoundedDeposit) {
+    function getCompoundedEvroDeposit(address _depositor) public view override returns (uint256 compoundedDeposit) {
         uint256 initialDeposit = deposits[_depositor].initialValue;
         if (initialDeposit == 0) return 0;
 
@@ -533,7 +533,7 @@ contract StabilityPool is LiquityBase, IStabilityPool, IStabilityPoolEvents {
         }
     }
 
-    // --- Sender functions for Bold deposit and Coll gains ---
+    // --- Sender functions for Evro deposit and Coll gains ---
 
     function _sendCollGainToDepositor(uint256 _collAmount) internal {
         if (_collAmount == 0) return;
@@ -544,10 +544,10 @@ contract StabilityPool is LiquityBase, IStabilityPool, IStabilityPoolEvents {
         collToken.safeTransfer(msg.sender, _collAmount);
     }
 
-    // Send Bold to user and decrease Bold in Pool
-    function _sendBoldtoDepositor(address _depositor, uint256 _boldToSend) internal {
-        if (_boldToSend == 0) return;
-        evroToken.returnFromPool(address(this), _depositor, _boldToSend);
+    // Send Evro to user and decrease Evro in Pool
+    function _sendEvrotoDepositor(address _depositor, uint256 _evroToSend) internal {
+        if (_evroToSend == 0) return;
+        evroToken.returnFromPool(address(this), _depositor, _evroToSend);
     }
 
     // --- Stability Pool Deposit Functionality ---

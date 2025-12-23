@@ -311,7 +311,7 @@ contract TestDeployer is MetadataDeployment {
         vars.numCollaterals = troveManagerParamsArray.length;
         require(vars.numCollaterals >= 2, "Need at least 2 branches for WBTC");
         
-        // Deploy Bold
+        // Deploy Evro
         vars.bytecode = abi.encodePacked(type(EvroToken).creationCode, abi.encode(address(this)));
         vars.evroTokenAddress = getAddress(address(this), vars.bytecode, SALT);
         evroToken = new EvroToken{salt: SALT}(address(this));
@@ -395,7 +395,7 @@ contract TestDeployer is MetadataDeployment {
     {
         DeploymentVarsDev memory vars;
         vars.numCollaterals = troveManagerParamsArray.length;
-        // Deploy Bold
+        // Deploy Evro
         vars.bytecode = abi.encodePacked(type(EvroToken).creationCode, abi.encode(address(this)));
         vars.evroTokenAddress = getAddress(address(this), vars.bytecode, SALT);
         evroToken = new EvroToken{salt: SALT}(address(this));
@@ -628,7 +628,7 @@ contract TestDeployer is MetadataDeployment {
         vars.troveManagers = new ITroveManager[](vars.numCollaterals);
         address troveManagerAddress;
 
-        // Deploy Bold
+        // Deploy Evro
         vars.bytecode = abi.encodePacked(type(EvroToken).creationCode, abi.encode(address(this)));
         vars.evroTokenAddress = getAddress(address(this), vars.bytecode, SALT);
         result.evroToken = new EvroToken{salt: SALT}(address(this));
@@ -659,7 +659,7 @@ contract TestDeployer is MetadataDeployment {
         result.hintHelpers = new HintHelpers(result.collateralRegistry);
         result.multiTroveGetter = new MultiTroveGetter(result.collateralRegistry);
 
-        ICurveStableswapNGPool usdcCurvePool = _deployCurveBoldUsdcPool(result.evroToken, true);
+        ICurveStableswapNGPool usdcCurvePool = _deployCurveEvroUsdcPool(result.evroToken, true);
 
         // Deploy each set of core contracts
         for (vars.i = 0; vars.i < vars.numCollaterals; vars.i++) {
@@ -921,7 +921,7 @@ contract TestDeployer is MetadataDeployment {
         coins[BOLD_TOKEN_INDEX] = address(_evroToken);
         coins[COLL_TOKEN_INDEX] = address(_collToken);
         ICurvePool curvePool = curveFactory.deploy_pool(
-            "LST-Bold pool",
+            "LST-Evro pool",
             "LBLD",
             coins,
             0, // implementation id
@@ -1052,7 +1052,7 @@ contract TestDeployer is MetadataDeployment {
         return leverageZapperHybrid;
     }
 
-    function _deployCurveBoldUsdcPool(IEvroToken _evroToken, bool _mainnet) internal returns (ICurveStableswapNGPool) {
+    function _deployCurveEvroUsdcPool(IEvroToken _evroToken, bool _mainnet) internal returns (ICurveStableswapNGPool) {
         if (!_mainnet) return ICurveStableswapNGPool(address(0));
 
         // deploy Curve Stableswap pool
@@ -1061,7 +1061,7 @@ contract TestDeployer is MetadataDeployment {
         coins[BOLD_TOKEN_INDEX] = address(_evroToken);
         coins[USDC_INDEX] = address(USDC);
         ICurvePool curvePool = curveStableswapFactory.deploy_plain_pool(
-            "USDC-Bold pool",
+            "USDC-Evro pool",
             "USDCBOLD",
             coins,
             4000, // A

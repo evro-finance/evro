@@ -146,7 +146,7 @@ contract E2ETest is E2EHelpers {
             );
         }
 
-        ILiquidityGaugeV6[2] memory gauges = [curveUsdcBoldGauge, curveLusdBoldGauge];
+        ILiquidityGaugeV6[2] memory gauges = [curveUsdcEvroGauge, curveLusdEvroGauge];
 
         for (uint256 i = 0; i < gauges.length; ++i) {
             if (address(gauges[i]) == address(0)) continue;
@@ -201,7 +201,7 @@ contract E2ETest is E2EHelpers {
     function test_E2E() external {
         // Test assumes that all Stability Pools are empty in the beginning
         for (uint256 i = 0; i < branches.length; ++i) {
-            vm.skip(branches[i].stabilityPool.getTotalBoldDeposits() != 0);
+            vm.skip(branches[i].stabilityPool.getTotalEvroDeposits() != 0);
         }
 
         uint256 repaid;
@@ -213,11 +213,11 @@ contract E2ETest is E2EHelpers {
 
         if (block.chainid == 1) {
             assertEqDecimal(borrowed, 0, 18, "Mainnet deployment script should not have borrowed anything");
-            assertNotEq(address(curveUsdcBoldGauge), address(0), "Mainnet should have USDC-BOLD gauge");
-            assertNotEq(address(curveUsdcBoldInitiative), address(0), "Mainnet should have USDC-BOLD initiative");
-            assertNotEq(address(curveLusdBold), address(0), "Mainnet should have LUSD-BOLD pool");
-            assertNotEq(address(curveLusdBoldGauge), address(0), "Mainnet should have LUSD-BOLD gauge");
-            assertNotEq(address(curveLusdBoldInitiative), address(0), "Mainnet should have LUSD-BOLD initiative");
+            assertNotEq(address(curveUsdcEvroGauge), address(0), "Mainnet should have USDC-BOLD gauge");
+            assertNotEq(address(curveUsdcEvroInitiative), address(0), "Mainnet should have USDC-BOLD initiative");
+            assertNotEq(address(curveLusdEvro), address(0), "Mainnet should have LUSD-BOLD pool");
+            assertNotEq(address(curveLusdEvroGauge), address(0), "Mainnet should have LUSD-BOLD gauge");
+            assertNotEq(address(curveLusdEvroInitiative), address(0), "Mainnet should have LUSD-BOLD initiative");
             assertNotEq(address(defiCollectiveInitiative), address(0), "Mainnet should have DeFi Collective initiative");
         }
 
@@ -234,25 +234,25 @@ contract E2ETest is E2EHelpers {
         {
             skip(5 minutes);
 
-            uint256 boldAmount = evroToken.balanceOf(borrower) * 2 / 5;
-            uint256 usdcAmount = boldAmount * 10 ** usdc.decimals() / 10 ** evroToken.decimals();
-            uint256 lusdAmount = boldAmount;
+            uint256 evroAmount = evroToken.balanceOf(borrower) * 2 / 5;
+            uint256 usdcAmount = evroAmount * 10 ** usdc.decimals() / 10 ** evroToken.decimals();
+            uint256 lusdAmount = evroAmount;
 
-            _addCurveLiquidity(liquidityProvider, curveUsdcBold, boldAmount, BOLD, usdcAmount, USDC);
+            _addCurveLiquidity(liquidityProvider, curveUsdcEvro, evroAmount, BOLD, usdcAmount, USDC);
 
-            if (address(curveLusdBold) != address(0)) {
-                _addCurveLiquidity(liquidityProvider, curveLusdBold, boldAmount, BOLD, lusdAmount, LUSD);
+            if (address(curveLusdEvro) != address(0)) {
+                _addCurveLiquidity(liquidityProvider, curveLusdEvro, evroAmount, BOLD, lusdAmount, LUSD);
             }
 
-            if (address(curveUsdcBoldGauge) != address(0)) {
+            if (address(curveUsdcEvroGauge) != address(0)) {
                 _depositIntoCurveGauge(
-                    liquidityProvider, curveUsdcBoldGauge, curveUsdcBold.balanceOf(liquidityProvider)
+                    liquidityProvider, curveUsdcEvroGauge, curveUsdcEvro.balanceOf(liquidityProvider)
                 );
             }
 
-            if (address(curveLusdBoldGauge) != address(0)) {
+            if (address(curveLusdEvroGauge) != address(0)) {
                 _depositIntoCurveGauge(
-                    liquidityProvider, curveLusdBoldGauge, curveLusdBold.balanceOf(liquidityProvider)
+                    liquidityProvider, curveLusdEvroGauge, curveLusdEvro.balanceOf(liquidityProvider)
                 );
             }
         }
@@ -296,8 +296,8 @@ contract E2ETest is E2EHelpers {
         Initiative[] memory initiatives = new Initiative[](initialInitiatives.length);
         for (uint256 i = 0; i < initiatives.length; ++i) {
             initiatives[i].addr = initialInitiatives[i];
-            if (initialInitiatives[i] == address(curveUsdcBoldInitiative)) initiatives[i].gauge = curveUsdcBoldGauge;
-            if (initialInitiatives[i] == address(curveLusdBoldInitiative)) initiatives[i].gauge = curveLusdBoldGauge;
+            if (initialInitiatives[i] == address(curveUsdcEvroInitiative)) initiatives[i].gauge = curveUsdcEvroGauge;
+            if (initialInitiatives[i] == address(curveLusdEvroInitiative)) initiatives[i].gauge = curveLusdEvroGauge;
         }
 
         address staker = makeAddr("staker");
@@ -442,9 +442,9 @@ contract E2ETest is E2EHelpers {
     }
 
     function test_ManagerOfCurveGauge_UnlessRenounced_CanReassignRewardDistributor() external {
-        vm.skip(address(curveUsdcBoldGauge) == address(0));
+        vm.skip(address(curveUsdcEvroGauge) == address(0));
 
-        address manager = curveUsdcBoldGauge.manager();
+        address manager = curveUsdcEvroGauge.manager();
         vm.skip(manager == address(0));
         vm.label(manager, "manager");
 
@@ -453,16 +453,16 @@ contract E2ETest is E2EHelpers {
         _openTrove(0, newRewardDistributor, 0, rewardAmount);
 
         vm.startPrank(newRewardDistributor);
-        evroToken.approve(address(curveUsdcBoldGauge), rewardAmount);
+        evroToken.approve(address(curveUsdcEvroGauge), rewardAmount);
         vm.expectRevert();
-        curveUsdcBoldGauge.deposit_reward_token(BOLD, rewardAmount, 7 days);
+        curveUsdcEvroGauge.deposit_reward_token(BOLD, rewardAmount, 7 days);
         vm.stopPrank();
 
         vm.prank(manager);
-        curveUsdcBoldGauge.set_reward_distributor(BOLD, newRewardDistributor);
+        curveUsdcEvroGauge.set_reward_distributor(BOLD, newRewardDistributor);
 
         vm.startPrank(newRewardDistributor);
-        curveUsdcBoldGauge.deposit_reward_token(BOLD, rewardAmount, 7 days);
+        curveUsdcEvroGauge.deposit_reward_token(BOLD, rewardAmount, 7 days);
         vm.stopPrank();
     }
 }

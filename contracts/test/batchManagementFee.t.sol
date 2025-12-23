@@ -64,7 +64,7 @@ contract BatchManagementFeeTest is DevTestSetup {
         uint256 troveId = openTroveAndJoinBatchManager(A, 100e18, 5000e18, B, 5e16);
         openTroveAndJoinBatchManager(C, 200e18, 5000e18, B, 5e16);
         // C sends to A so A can repay and close
-        transferBold(C, A, 5000e18);
+        transferEvro(C, A, 5000e18);
 
         vm.warp(block.timestamp + 10 days);
 
@@ -82,7 +82,7 @@ contract BatchManagementFeeTest is DevTestSetup {
         uint256 troveId = openTroveAndJoinBatchManager(A, 100e18, 5000e18, B, 5e16);
         openTroveAndJoinBatchManager(C, 200e18, 5000e18, B, 5e16);
         // C sends to A so A can repay and close
-        transferBold(C, A, 5000e18);
+        transferEvro(C, A, 5000e18);
 
         vm.warp(block.timestamp + 10 days);
 
@@ -104,7 +104,7 @@ contract BatchManagementFeeTest is DevTestSetup {
         uint256 ATroveId = openTroveAndJoinBatchManager(A, 100e18, 5000e18, B, 5e16);
         uint256 BTroveId = openTroveAndJoinBatchManager(C, 200e18, 5000e18, B, 5e16);
         // C sends to A so A can repay and close
-        transferBold(C, A, 5000e18);
+        transferEvro(C, A, 5000e18);
 
         vm.warp(block.timestamp + 10 days);
 
@@ -563,7 +563,7 @@ contract BatchManagementFeeTest is DevTestSetup {
         uint256 CTroveId = openTroveAndJoinBatchManager(C, 100e18, 4000e18, B, 5e16);
 
         // Second trove closes
-        transferBold(A, C, 4000e18);
+        transferEvro(A, C, 4000e18);
         closeTrove(C, CTroveId);
 
         vm.warp(block.timestamp + 15 days);
