@@ -6,8 +6,6 @@ import "./CompositePriceFeed.sol";
 import "../Interfaces/IRETHToken.sol";
 import "../Interfaces/IRETHPriceFeed.sol";
 
-// import "forge-std/console2.sol";
-
 contract RETHPriceFeed is CompositePriceFeed, IRETHPriceFeed {
     constructor(
         address _ethUsdOracleAddress,

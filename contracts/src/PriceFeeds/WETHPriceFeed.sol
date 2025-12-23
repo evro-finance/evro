@@ -4,7 +4,6 @@ pragma solidity 0.8.24;
 
 import "./MainnetPriceFeedBase.sol";
 import {FixedPointMathLib} from "solady/utils/FixedPointMathLib.sol";
-// import "forge-std/console2.sol";
 
 contract WETHPriceFeed is MainnetPriceFeedBase {
     Oracle public eurUsdOracle;
