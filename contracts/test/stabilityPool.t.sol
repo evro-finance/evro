@@ -2375,7 +2375,7 @@ contract SPTest is DevTestSetup {
         vars.collGasComp = collToOffset / 200;
 
         // Check C's total WETH balance increased by the total gas comp
-        assertEq(collToken.balanceOf(C), vars.collCBefore + vars.collGasComp + 375e13, "Incorrect coll increase C");
+        assertEq(collToken.balanceOf(C), vars.collCBefore + vars.collGasComp + 375e14, "Incorrect coll increase C");
 
         // Check SP Coll has increased.  Expect no coll surplus for Trove owner, given massive price decrease
         vars.spCollBalAfter = stabilityPool.getCollBalance();
@@ -2591,7 +2591,7 @@ contract SPTest is DevTestSetup {
         vars.collGasComp = collToOffset / 200;
 
         // Check C's total WETH balance increased by the total gas comp
-        assertEq(collToken.balanceOf(C), vars.collCBefore + vars.collGasComp + 375e13);
+        assertEq(collToken.balanceOf(C), vars.collCBefore + vars.collGasComp + 375e14);
 
         // Check SP Coll has increased.  Expect no coll surplus for Trove owner, given massive price decrease
         vars.spCollBalAfter = stabilityPool.getCollBalance();

@@ -54,9 +54,9 @@ contract ZapperWETHGnosisTest is Test {
         borrowerOperations = wethZapper.borrowerOperations();
         troveManager = wethZapper.troveManager();
         troveNFT = troveManager.troveNFT();
-        // Deployed contract has evroToken(), local code has evroToken() - use low-level call
-        (bool success, bytes memory data) = WETH_ZAPPER.staticcall(abi.encodeWithSignature("evroToken()"));
-        require(success, "Failed to get evroToken");
+        // Deployed contract has boldToken(), local code has evroToken() - use low-level call
+        (bool success, bytes memory data) = WETH_ZAPPER.staticcall(abi.encodeWithSignature("boldToken()"));
+        require(success, "Failed to get boldToken");
         evroToken = IERC20(abi.decode(data, (address)));
         weth = IWETH(wethZapper.WETH());
         
