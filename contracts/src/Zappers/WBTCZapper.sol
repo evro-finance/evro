@@ -25,8 +25,8 @@ contract WBTCZapper is BaseZapper {
        
         // Approve coll to BorrowerOperations
         wBTCWrapper.approve(address(borrowerOperations), type(uint256).max);
-        // Approve Coll to exchange module (for closeTroveFromCollateral)
-        wBTCWrapper.approve(address(_exchange), type(uint256).max);
+        // Approve wBTC to exchange module (for closeTroveFromCollateral)
+        wBTC.approve(address(_exchange), type(uint256).max);
         // Approve WETH to BorrowerOperations for gas compensation
         WETH.approve(address(borrowerOperations), type(uint256).max);
     }
@@ -183,7 +183,7 @@ contract WBTCZapper is BaseZapper {
         uint256 _evroChange,
         bool _isDebtIncrease,
         uint256 _maxUpfrontFee
-    ) external payable {
+    ) external  {
         InitialBalances memory initialBalances;
         address payable receiver =
             _adjustTrovePre(_troveId, _collChange, _isCollIncrease, _evroChange, _isDebtIncrease, initialBalances);
@@ -202,7 +202,7 @@ contract WBTCZapper is BaseZapper {
         uint256 _upperHint,
         uint256 _lowerHint,
         uint256 _maxUpfrontFee
-    ) external payable {
+    ) external {
         InitialBalances memory initialBalances;
         address payable receiver =
             _adjustTrovePre(_troveId, _collChange, _isCollIncrease, _evroChange, _isDebtIncrease, initialBalances);
@@ -304,65 +304,68 @@ contract WBTCZapper is BaseZapper {
         external
         override
     {
-        address owner = troveNFT.ownerOf(_troveId);
-        address payable receiver = payable(_requireSenderIsOwnerOrRemoveManagerAndGetReceiver(_troveId, owner));
-        _requireZapperIsReceiver(_troveId);
+        // not enough wbtc liquidity on gnosis for flash loans
+        revert("WBTCZapper: Not enough WBTC liquidity on gnosis for flash loans");      
+        // address owner = troveNFT.ownerOf(_troveId);
+        // address payable receiver = payable(_requireSenderIsOwnerOrRemoveManagerAndGetReceiver(_troveId, owner));
+        // _requireZapperIsReceiver(_troveId);
 
-        CloseTroveParams memory params = CloseTroveParams({
-            troveId: _troveId,
-            flashLoanAmount: _flashLoanAmount,
-            minExpectedCollateral: _minExpectedCollateral,
-            receiver: receiver
-        });
+        // CloseTroveParams memory params = CloseTroveParams({
+        //     troveId: _troveId,
+        //     flashLoanAmount: _flashLoanAmount,
+        //     minExpectedCollateral: _minExpectedCollateral,
+        //     receiver: receiver
+        // });
 
-        // Set initial balances to make sure there are not lefovers
-        InitialBalances memory initialBalances;
-        initialBalances.tokens[0] = wBTC;
-        initialBalances.tokens[1] = evroToken;
-        _setInitialBalancesAndReceiver(initialBalances, receiver);
+        // // Set initial balances to make sure there are not lefovers
+        // InitialBalances memory initialBalances;
+        // initialBalances.tokens[0] = wBTC;
+        // initialBalances.tokens[1] = evroToken;
+        // _setInitialBalancesAndReceiver(initialBalances, receiver);
 
-        // Flash loan coll
-        flashLoanProvider.makeFlashLoan(
-            wBTC, _flashLoanAmount, IFlashLoanProvider.Operation.CloseTrove, abi.encode(params)
-        );
+        // // Flash loan coll
+        // flashLoanProvider.makeFlashLoan(
+        //     wBTC, _flashLoanAmount, IFlashLoanProvider.Operation.CloseTrove, abi.encode(params)
+        // );
 
-        // return leftovers to user
-        _returnLeftovers(initialBalances);
+        // // return leftovers to user
+        // _returnLeftovers(initialBalances);
     }
 
     function receiveFlashLoanOnCloseTroveFromCollateral(
         CloseTroveParams calldata _params,
         uint256 _effectiveFlashLoanAmount
     ) external {
-        require(msg.sender == address(flashLoanProvider), "WZ: Caller not FlashLoan provider");
+        // not enough wbtc liquidity on gnosis for flash loans
+        revert("WBTCZapper: Not enough WBTC liquidity on gnosis for flash loans");  
+        // require(msg.sender == address(flashLoanProvider), "WZ: Caller not FlashLoan provider");
+        // // Convert flash loan amount from WBTC (8 decimals) to wWBTC (18 decimals)
+        // uint256 flashLoanAmountWrapped = _params.flashLoanAmount * 1e10;
 
-        LatestTroveData memory trove = troveManager.getLatestTroveData(_params.troveId);
-        uint256 collLeft = trove.entireColl - _params.flashLoanAmount;
-        require(collLeft >= _params.minExpectedCollateral, "WZ: Not enough collateral received");
+        // LatestTroveData memory trove = troveManager.getLatestTroveData(_params.troveId);
+        // uint256 collLeft = trove.entireColl - flashLoanAmountWrapped;
+        // require(collLeft >= _params.minExpectedCollateral, "WZ: Not enough collateral received");
 
-        // Swap Coll from flash loan to Evro, so we can repay and close trove
-        // We swap the flash loan minus the flash loan fee
-        exchange.swapToEvro(_effectiveFlashLoanAmount, trove.entireDebt);
+        // // Swap Coll from flash loan to Evro, so we can repay and close trove
+        // // We swap the flash loan minus the flash loan fee
+        // exchange.swapToEvro(_effectiveFlashLoanAmount, trove.entireDebt);
 
-        // We asked for a min of entireDebt in swapToEvro call above, so we don't check again here:
-        // uint256 receivedEvroAmount = exchange.swapToEvro(_effectiveFlashLoanAmount, trove.entireDebt);
-        //require(receivedEvroAmount >= trove.entireDebt, "WZ: Not enough BOLD obtained to repay");
+        // // We asked for a min of entireDebt in swapToEvro call above, so we don't check again here:
+        // // uint256 receivedEvroAmount = exchange.swapToEvro(_effectiveFlashLoanAmount, trove.entireDebt);
+        // //require(receivedEvroAmount >= trove.entireDebt, "WZ: Not enough BOLD obtained to repay");
 
-        borrowerOperations.closeTrove(_params.troveId);
-
-        // Convert flash loan amount from WBTC (8 decimals) to wWBTC (18 decimals)
-        uint256 flashLoanAmountWrapped = _params.flashLoanAmount * 1e10;
+        // borrowerOperations.closeTrove(_params.troveId);
         
-        // Send coll back to return flash loan (unwrap wWBTC to WBTC)
-        wBTCWrapper.withdrawTo(address(flashLoanProvider), flashLoanAmountWrapped);
+        // // Send coll back to return flash loan (unwrap wWBTC to WBTC)
+        // wBTCWrapper.withdrawTo(address(flashLoanProvider), flashLoanAmountWrapped);
         
-        // Return remaining collateral to user (unwrap wWBTC to WBTC)
-        wBTCWrapper.withdrawTo(_params.receiver, collLeft);
+        // // Return remaining collateral to user (unwrap wWBTC to WBTC)
+        // wBTCWrapper.withdrawTo(_params.receiver, collLeft);
         
-        // Return gas compensation to user (BorrowerOperations already sent it to this zapper as WETH)
-        WETH.withdraw(ETH_GAS_COMPENSATION);
-        (bool success,) = _params.receiver.call{value: ETH_GAS_COMPENSATION}("");
-        require(success, "WBTCZapper: Sending ETH failed");
+        // // Return gas compensation to user (BorrowerOperations already sent it to this zapper as WETH)
+        // WETH.withdraw(ETH_GAS_COMPENSATION);
+        // (bool success,) = _params.receiver.call{value: ETH_GAS_COMPENSATION}("");
+        // require(success, "WBTCZapper: Sending ETH failed");
     }
 
     // Unimplemented flash loan receive functions for leverage
