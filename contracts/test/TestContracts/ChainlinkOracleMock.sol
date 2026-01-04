@@ -12,7 +12,8 @@ contract ChainlinkOracleMock is AggregatorV3Interface {
     int256 price;
 
     uint256 lastUpdateTime;
-
+    int192 internal _minAnswer = 1e6;
+    int192 internal _maxAnswer = 1e11;
     // We use 8 decimals unless set to 18
     function decimals() external view returns (uint8) {
         return decimal;
@@ -27,6 +28,22 @@ contract ChainlinkOracleMock is AggregatorV3Interface {
         // console2.log(block.timestamp, "block.timestamp");
         // console2.log(price, "price returned by oracle");
         return (0, price, 0, lastUpdateTime, 0);
+    }
+
+    function minAnswer() external view returns (int192) {
+        return _minAnswer;
+    }
+
+    function maxAnswer() external view returns (int192) {
+        return _maxAnswer;
+    }
+
+    function setMinAnswer(int192 minAnswer) external {
+        _minAnswer = minAnswer;
+    }
+
+    function setMaxAnswer(int192 maxAnswer) external {
+        _maxAnswer = maxAnswer;
     }
 
     function setDecimals(uint8 _decimals) external {
