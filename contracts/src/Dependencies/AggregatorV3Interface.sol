@@ -9,4 +9,6 @@ interface AggregatorV3Interface {
         external
         view
         returns (uint80 roundId, int256 answer, uint256 startedAt, uint256 updatedAt, uint80 answeredInRound);
+        function minAnswer() external view returns (int192);
+        function maxAnswer() external view returns (int192);
 }
