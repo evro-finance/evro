@@ -4,6 +4,7 @@ pragma solidity 0.8.24;
 
 import "../Dependencies/LiquityMath.sol";
 import "./MainnetPriceFeedBase.sol";
+import {FixedPointMathLib} from "solady/utils/FixedPointMathLib.sol";
 
 // The CompositePriceFeed is used for feeds that incorporate both a market price oracle (e.g. STETH-USD, or RETH-ETH)
 // and an LST canonical rate (e.g. WSTETH:STETH, or RETH:ETH).
@@ -79,17 +80,21 @@ abstract contract CompositePriceFeed is MainnetPriceFeedBase {
         assert(priceSource == PriceSource.ETHUSDxCanonical);
         // Get the underlying_per_LST canonical rate directly from the LST contract
         (uint256 lstRate, bool exchangeRateIsDown) = _getCanonicalRate();
+        (uint256 eurUsdPrice, bool eurUsdOracleDown) = _getOracleAnswer(eurUsdOracle);
 
         // If the exchange rate contract is down, switch to (and return) lastGoodPrice.
-        if (exchangeRateIsDown) {
+        if (exchangeRateIsDown || eurUsdOracleDown) {
             priceSource = PriceSource.lastGoodPrice;
             return lastGoodPrice;
         }
 
         // Calculate the canonical LST-USD price: USD_per_LST = USD_per_ETH * underlying_per_LST
         uint256 lstUsdCanonicalPrice = _ethUsdPrice * lstRate / 1e18;
+        
+        // Convert USD to EUR
+        uint256 lstEurCanonicalPrice = FixedPointMathLib.divWad(lstUsdCanonicalPrice, eurUsdPrice);
 
-        uint256 bestPrice = LiquityMath._min(lstUsdCanonicalPrice, lastGoodPrice);
+        uint256 bestPrice = LiquityMath._min(lstEurCanonicalPrice, lastGoodPrice);
 
         lastGoodPrice = bestPrice;
 
