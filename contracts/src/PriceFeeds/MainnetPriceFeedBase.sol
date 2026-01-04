@@ -34,14 +34,19 @@ abstract contract MainnetPriceFeedBase is IMainnetPriceFeed {
     event ShutDownFromOracleFailure(address _failedOracleAddr);
 
     Oracle public ethUsdOracle;
+    Oracle public eurUsdOracle;
 
     IBorrowerOperations borrowerOperations;
 
-    constructor(address _ethUsdOracleAddress, uint256 _ethUsdStalenessThreshold, address _borrowOperationsAddress) {
+    constructor(address _ethUsdOracleAddress, uint256 _ethUsdStalenessThreshold, address _borrowOperationsAddress, address _eurUsdOracleAddress, uint256 _eurUsdStalenessThreshold) {
         // Store ETH-USD oracle
         ethUsdOracle.aggregator = AggregatorV3Interface(_ethUsdOracleAddress);
         ethUsdOracle.stalenessThreshold = _ethUsdStalenessThreshold;
         ethUsdOracle.decimals = ethUsdOracle.aggregator.decimals();
+
+        eurUsdOracle.aggregator = AggregatorV3Interface(_eurUsdOracleAddress);
+        eurUsdOracle.stalenessThreshold = _eurUsdStalenessThreshold;
+        eurUsdOracle.decimals = eurUsdOracle.aggregator.decimals();
 
         borrowerOperations = IBorrowerOperations(_borrowOperationsAddress);
 

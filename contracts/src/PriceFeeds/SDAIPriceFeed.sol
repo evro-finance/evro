@@ -8,15 +8,10 @@ import {FixedPointMathLib} from "solady/utils/FixedPointMathLib.sol";
 
 contract SDAIPriceFeed is MainnetPriceFeedBase {
     IERC4626 public immutable sdai;
-    Oracle public eurUsdOracle;
 
     constructor(address _daiUsdOracleAddress, address _eurUsdOracleAddress, uint256 _daiUsdStalenessThreshold, uint256 _usdEurStalenessThreshold, address _borrowerOperationsAddress, address _sdaiAddress)
-        MainnetPriceFeedBase(_daiUsdOracleAddress, _daiUsdStalenessThreshold, _borrowerOperationsAddress)
+        MainnetPriceFeedBase(_daiUsdOracleAddress, _daiUsdStalenessThreshold, _borrowerOperationsAddress, _eurUsdOracleAddress, _usdEurStalenessThreshold)
     {
-        eurUsdOracle.aggregator = AggregatorV3Interface(_eurUsdOracleAddress);
-        eurUsdOracle.stalenessThreshold = _usdEurStalenessThreshold;
-        eurUsdOracle.decimals = eurUsdOracle.aggregator.decimals();
-
         sdai = IERC4626(_sdaiAddress);
     }
 

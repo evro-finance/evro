@@ -8,7 +8,6 @@ import {FixedPointMathLib} from "solady/utils/FixedPointMathLib.sol";
 contract WBTCPriceFeed is CompositePriceFeed {
     Oracle public btcUsdOracle;
     Oracle public wBTCUsdOracle;
-    Oracle public eurUsdOracle;
 
     uint256 public constant BTC_WBTC_DEVIATION_THRESHOLD = 2e16; // 2%
 
@@ -20,13 +19,8 @@ contract WBTCPriceFeed is CompositePriceFeed {
         uint256 _btcUsdStalenessThreshold,
         uint256 _usdEurStalenessThreshold,
         address _borrowerOperationsAddress
-    ) CompositePriceFeed(_wBTCUsdOracleAddress, _btcUsdOracleAddress, _wBTCUsdStalenessThreshold, _borrowerOperationsAddress)
+    ) CompositePriceFeed(_wBTCUsdOracleAddress, _btcUsdOracleAddress, _wBTCUsdStalenessThreshold, _eurUsdOracleAddress, _usdEurStalenessThreshold, _borrowerOperationsAddress)
     {
-        // Store EUR-USD oracle
-        eurUsdOracle.aggregator = AggregatorV3Interface(_eurUsdOracleAddress);
-        eurUsdOracle.stalenessThreshold = _usdEurStalenessThreshold;
-        eurUsdOracle.decimals = eurUsdOracle.aggregator.decimals();
-
         // Store BTC-USD oracle
         btcUsdOracle.aggregator = AggregatorV3Interface(_btcUsdOracleAddress);
         btcUsdOracle.stalenessThreshold = _btcUsdStalenessThreshold;

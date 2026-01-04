@@ -6,14 +6,9 @@ import "./MainnetPriceFeedBase.sol";
 import {FixedPointMathLib} from "solady/utils/FixedPointMathLib.sol";
 
 contract WETHPriceFeed is MainnetPriceFeedBase {
-    Oracle public eurUsdOracle;
     constructor(address _ethUsdOracleAddress, address _eurUsdOracleAddress, uint256 _ethUsdStalenessThreshold, uint256 _usdEurStalenessThreshold, address _borrowerOperationsAddress)
-        MainnetPriceFeedBase(_ethUsdOracleAddress, _ethUsdStalenessThreshold, _borrowerOperationsAddress)
+        MainnetPriceFeedBase(_ethUsdOracleAddress, _ethUsdStalenessThreshold, _borrowerOperationsAddress, _eurUsdOracleAddress, _usdEurStalenessThreshold)
     {
-        eurUsdOracle.aggregator = AggregatorV3Interface(_eurUsdOracleAddress);
-        eurUsdOracle.stalenessThreshold = _usdEurStalenessThreshold;
-        eurUsdOracle.decimals = eurUsdOracle.aggregator.decimals();
-        assert(eurUsdOracle.decimals != 0);
         _fetchPricePrimary();
 
         // Check the oracle didn't already fail
