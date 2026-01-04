@@ -13,6 +13,10 @@ contract SDAIPriceFeed is MainnetPriceFeedBase {
         MainnetPriceFeedBase(_daiUsdOracleAddress, _daiUsdStalenessThreshold, _borrowerOperationsAddress, _eurUsdOracleAddress, _usdEurStalenessThreshold)
     {
         sdai = IERC4626(_sdaiAddress);
+        
+        // Fetch the price
+        _fetchPricePrimary();
+        assert(priceSource == PriceSource.primary);
     }
 
     function fetchPrice() public returns (uint256, bool) {
