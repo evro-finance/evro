@@ -118,14 +118,15 @@ abstract contract MainnetPriceFeedBase is IMainnetPriceFeed {
         returns (bool)
     {
         if (!chainlinkResponse.success) return false;
-        if(block.timestamp < chainlinkResponse.timestamp) return true; // since api3 allows timeStamps up to 1 hour in the future we return true here to avoid an underflow in the next line
-        if (block.timestamp - chainlinkResponse.timestamp >= _stalenessThreshold) return false;
         if (chainlinkResponse.answer <= 0) return false;
-        if (_isEurUsd) {
+                if (_isEurUsd) {
             int192 minAnswer = eurUsdOracle.aggregator.minAnswer();
             int192 maxAnswer = eurUsdOracle.aggregator.maxAnswer();
             if (int192(chainlinkResponse.answer) <= minAnswer || int192(chainlinkResponse.answer) >= maxAnswer) return false;
         }
+        if(block.timestamp < chainlinkResponse.timestamp) return true; // since api3 allows timeStamps up to 1 hour in the future we return true here to avoid an underflow in the next line
+        if (block.timestamp - chainlinkResponse.timestamp >= _stalenessThreshold) return false;
+
         return true;
     }
 
