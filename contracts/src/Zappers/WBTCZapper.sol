@@ -43,6 +43,8 @@ contract WBTCZapper is BaseZapper {
             "WBTCZapper: Cannot choose interest if joining a batch"
         );
         uint256 wbtcAmount = _params.collAmount / 1e10;
+        uint256 actualWrappedAmount = wbtcAmount * 1e10;
+        
         require(wbtcAmount > 0, "WBTCZapper: Amount too small");
         
         // Convert ETH to WETH for gas compensation
@@ -64,7 +66,7 @@ contract WBTCZapper is BaseZapper {
             troveId = borrowerOperations.openTrove(
                 _params.owner,
                 index,
-                _params.collAmount,
+                actualWrappedAmount,
                 _params.evroAmount,
                 _params.upperHint,
                 _params.lowerHint,
@@ -82,7 +84,7 @@ contract WBTCZapper is BaseZapper {
                     .OpenTroveAndJoinInterestBatchManagerParams({
                     owner: _params.owner,
                     ownerIndex: index,
-                    collAmount: _params.collAmount,
+                    collAmount: actualWrappedAmount,
                     evroAmount: _params.evroAmount,
                     upperHint: _params.upperHint,
                     lowerHint: _params.lowerHint,
@@ -119,6 +121,8 @@ contract WBTCZapper is BaseZapper {
         // _amount is in 18 decimals (wrapped token units)
         uint256 wbtcAmount = _amount / 1e10;
         require(wbtcAmount > 0, "WBTCZapper: Amount too small");
+        // Actual collateral after truncation (prevents precision loss issues)
+        uint256 actualCollAmount = wbtcAmount * 1e10;
         
         // Pull WBTC from user (8 decimals)
         SafeTransferLib.safeTransferFrom(address(wBTC), msg.sender, address(this), wbtcAmount);
@@ -129,8 +133,8 @@ contract WBTCZapper is BaseZapper {
         // Deposit WBTC (8 decimals) and receive wrapped tokens (18 decimals)
         wBTCWrapper.depositFor(address(this), wbtcAmount);
 
-        // _amount is in 18 decimals (wrapped token units)
-        borrowerOperations.addColl(_troveId, _amount);
+        // Use actualCollAmount to match what was actually wrapped
+        borrowerOperations.addColl(_troveId, actualCollAmount);
     }
 
     // @audit-info name is an artifact of the IZapper interface should be withdrawCollToRawWBTC but we have to call it this to use the BaseZapper
@@ -185,12 +189,12 @@ contract WBTCZapper is BaseZapper {
         uint256 _maxUpfrontFee
     ) external  {
         InitialBalances memory initialBalances;
-        address payable receiver =
+        (address payable receiver, uint256 actualCollChange) =
             _adjustTrovePre(_troveId, _collChange, _isCollIncrease, _evroChange, _isDebtIncrease, initialBalances);
         borrowerOperations.adjustTrove(
-            _troveId, _collChange, _isCollIncrease, _evroChange, _isDebtIncrease, _maxUpfrontFee
+            _troveId, actualCollChange, _isCollIncrease, _evroChange, _isDebtIncrease, _maxUpfrontFee
         );
-        _adjustTrovePost(_collChange, _isCollIncrease, _evroChange, _isDebtIncrease, receiver, initialBalances);
+        _adjustTrovePost(actualCollChange, _isCollIncrease, _evroChange, _isDebtIncrease, receiver, initialBalances);
     }
 
     function adjustZombieTroveWithWBTC(
@@ -204,12 +208,12 @@ contract WBTCZapper is BaseZapper {
         uint256 _maxUpfrontFee
     ) external {
         InitialBalances memory initialBalances;
-        address payable receiver =
+        (address payable receiver, uint256 actualCollChange) =
             _adjustTrovePre(_troveId, _collChange, _isCollIncrease, _evroChange, _isDebtIncrease, initialBalances);
         borrowerOperations.adjustZombieTrove(
-            _troveId, _collChange, _isCollIncrease, _evroChange, _isDebtIncrease, _upperHint, _lowerHint, _maxUpfrontFee
+            _troveId, actualCollChange, _isCollIncrease, _evroChange, _isDebtIncrease, _upperHint, _lowerHint, _maxUpfrontFee
         );
-        _adjustTrovePost(_collChange, _isCollIncrease, _evroChange, _isDebtIncrease, receiver, initialBalances);
+        _adjustTrovePost(actualCollChange, _isCollIncrease, _evroChange, _isDebtIncrease, receiver, initialBalances);
     }
 
     function _adjustTrovePre(
@@ -219,16 +223,19 @@ contract WBTCZapper is BaseZapper {
         uint256 _evroChange,
         bool _isDebtIncrease,
         InitialBalances memory _initialBalances
-    ) internal returns (address payable) {
+    ) internal returns (address payable, uint256) {
+        uint256 actualCollChange = _collChange;
         if (_isCollIncrease) {
             // _collChange is in 18 decimals (wrapped token units)
             uint256 wbtcAmount = _collChange / 1e10;
             require(wbtcAmount > 0, "WBTCZapper: Amount too small");
             require(wbtcAmount <= wBTC.balanceOf(msg.sender), "WBTCZapper: Wrong coll amount");
+            // Actual collateral after truncation (prevents precision loss issues)
+            actualCollChange = wbtcAmount * 1e10;
         }
     
         address payable receiver =
-            payable(_checkAdjustTroveManagers(_troveId, _collChange, _isCollIncrease, _isDebtIncrease));
+            payable(_checkAdjustTroveManagers(_troveId, actualCollChange, _isCollIncrease, _isDebtIncrease));
 
         // Set initial balances to make sure there are not lefovers
         _setInitialTokensAndBalances(wBTCWrapper, evroToken, _initialBalances);
@@ -250,7 +257,7 @@ contract WBTCZapper is BaseZapper {
             evroToken.transferFrom(msg.sender, address(this), _evroChange);
         }
 
-        return receiver;
+        return (receiver, actualCollChange);
     }
 
     function _adjustTrovePost(
