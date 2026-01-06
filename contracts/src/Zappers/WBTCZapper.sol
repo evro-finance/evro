@@ -26,7 +26,8 @@ contract WBTCZapper is BaseZapper {
         // Approve coll to BorrowerOperations
         wBTCWrapper.approve(address(borrowerOperations), type(uint256).max);
         // Approve wBTC to exchange module (for closeTroveFromCollateral)
-        wBTC.approve(address(_exchange), type(uint256).max);
+        // removed because we all flash loan functionality has been disabled due to lack of liquidity on gnosis
+        // wBTC.approve(address(_exchange), type(uint256).max);
         // Approve WETH to BorrowerOperations for gas compensation
         WETH.approve(address(borrowerOperations), type(uint256).max);
     }
