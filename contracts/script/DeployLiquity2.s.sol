@@ -120,11 +120,13 @@ contract DeployLiquity2Script is DeployGovernance, UniPriceConverter, StdCheats,
     address GNO_WBTC_USD_ORACLE_ADDRESS = 0xf7DE3005c55ED9762F7B36D6272A9cCE3Bfbf7Ee; // api3 integrated
     address GNO_ETH_USD_ORACLE_ADDRESS = 0x81037986FeE5CD75d064521262C325F5b0D2Af06; // api3 integrated
     address GNO_STETH_USD_ORACLE_ADDRESS = 0x686E7f54a42172Da59d616C26727d4B2a2bAa177; // api3 integrated
+    address GNO_SDAI_DAI_ORACLE_ADDRESS = 0x88274E698105C0eeEae2F9f3bCb17dA934EEa525; // api3 integrated
 
     uint256 GNO_GNO_USD_STALENESS_THRESHOLD = 25 hours;
     uint256 GNO_OSGNO_GNO_STALENESS_THRESHOLD = 25 hours;
     uint256 GNO_EUR_USD_STALENESS_THRESHOLD = 25 hours;
     uint256 GNO_DAI_USD_STALENESS_THRESHOLD = 25 hours;
+    uint256 GNO_SDAI_DAI_STALENESS_THRESHOLD = 25 hours;
     uint256 GNO_BTC_USD_STALENESS_THRESHOLD = 25 hours;
     uint256 GNO_WBTC_USD_STALENESS_THRESHOLD = 25 hours;
     uint256 GNO_ETH_USD_STALENESS_THRESHOLD = 25 hours;
@@ -993,6 +995,8 @@ contract DeployLiquity2Script is DeployGovernance, UniPriceConverter, StdCheats,
             }
             if(_collTokenAddress == GNO_SDAI_ADDRESS){
                 return new SDAIPriceFeed(
+                    GNO_SDAI_DAI_ORACLE_ADDRESS,
+                    GNO_SDAI_DAI_STALENESS_THRESHOLD,
                     GNO_DAI_USD_ORACLE_ADDRESS,
                     GNO_EUR_USD_ORACLE_ADDRESS,
                     GNO_DAI_USD_STALENESS_THRESHOLD,
