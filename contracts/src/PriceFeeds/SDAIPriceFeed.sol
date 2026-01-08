@@ -22,7 +22,12 @@ contract SDAIPriceFeed is MainnetPriceFeedBase {
         sdaiDaiOracle.stalenessThreshold = _sdaiDaiStalenessThreshold;
         sdaiDaiOracle.decimals = sdaiDaiOracle.aggregator.decimals();
 
+
         sdai = IERC4626(_sdaiAddress);
+        
+        // Fetch the price
+        _fetchPricePrimary();
+        assert(priceSource == PriceSource.primary);
     }
 
     function fetchPrice() public returns (uint256, bool) {
