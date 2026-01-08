@@ -8,20 +8,14 @@ import {FixedPointMathLib} from "solady/utils/FixedPointMathLib.sol";
 
 contract SDAIPriceFeed is MainnetPriceFeedBase {
     IERC4626 public immutable sdai;
-    Oracle public eurUsdOracle;
     Oracle public sdaiDaiOracle;
 
-    constructor(address _sdaiDaiOracleAddress, uint256 _sdaiDaiStalenessThreshold, address _daiUsdOracleAddress, address _eurUsdOracleAddress, uint256 _daiUsdStalenessThreshold, uint256 _usdEurStalenessThreshold, address _borrowerOperationsAddress, address _sdaiAddress)
-        MainnetPriceFeedBase(_daiUsdOracleAddress, _daiUsdStalenessThreshold, _borrowerOperationsAddress)
+    constructor(address _sdaiDaiOracleAddress, uint256 _sdaiDaiStalenessThreshold, address _daiUsdOracleAddress, address _eurUsdOracleAddress, uint256 _daiUsdStalenessThreshold, uint256 _eurUsdStalenessThreshold, address _borrowerOperationsAddress, address _sdaiAddress)
+        MainnetPriceFeedBase(_daiUsdOracleAddress, _daiUsdStalenessThreshold, _borrowerOperationsAddress, _eurUsdOracleAddress, _eurUsdStalenessThreshold)
     {
-        eurUsdOracle.aggregator = AggregatorV3Interface(_eurUsdOracleAddress);
-        eurUsdOracle.stalenessThreshold = _usdEurStalenessThreshold;
-        eurUsdOracle.decimals = eurUsdOracle.aggregator.decimals();
-
         sdaiDaiOracle.aggregator = AggregatorV3Interface(_sdaiDaiOracleAddress);
         sdaiDaiOracle.stalenessThreshold = _sdaiDaiStalenessThreshold;
         sdaiDaiOracle.decimals = sdaiDaiOracle.aggregator.decimals();
-
 
         sdai = IERC4626(_sdaiAddress);
         
