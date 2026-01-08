@@ -6,14 +6,9 @@ import "./MainnetPriceFeedBase.sol";
 import {FixedPointMathLib} from "solady/utils/FixedPointMathLib.sol";
 
 contract GNOPriceFeed is MainnetPriceFeedBase {
-    Oracle public eurUsdOracle;
     constructor(address _gnoUsdOracleAddress, address _eurUsdOracleAddress, uint256 _gnoUsdStalenessThreshold, uint256 _usdEurStalenessThreshold, address _borrowerOperationsAddress)
-        MainnetPriceFeedBase(_gnoUsdOracleAddress, _gnoUsdStalenessThreshold, _borrowerOperationsAddress)
+        MainnetPriceFeedBase(_gnoUsdOracleAddress, _gnoUsdStalenessThreshold, _borrowerOperationsAddress, _eurUsdOracleAddress, _usdEurStalenessThreshold)
     {
-        eurUsdOracle.aggregator = AggregatorV3Interface(_eurUsdOracleAddress);
-        eurUsdOracle.stalenessThreshold = _usdEurStalenessThreshold;
-        eurUsdOracle.decimals = eurUsdOracle.aggregator.decimals();
-
         _fetchPricePrimary();
 
         // Check the oracle didn't already fail

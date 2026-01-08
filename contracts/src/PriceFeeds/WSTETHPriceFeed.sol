@@ -10,7 +10,6 @@ import {FixedPointMathLib} from "solady/utils/FixedPointMathLib.sol";
 
 contract WSTETHPriceFeed is CompositePriceFeed, IWSTETHPriceFeed {
     Oracle public stEthUsdOracle;
-    Oracle public eurUsdOracle;
     Oracle public rateProviderOracle;
     uint256 public constant STETH_USD_DEVIATION_THRESHOLD = 1e16; // 1%
 
@@ -26,15 +25,11 @@ contract WSTETHPriceFeed is CompositePriceFeed, IWSTETHPriceFeed {
         address _rateProviderOracleAddress,
         address _borrowerOperationsAddress
     )
-        CompositePriceFeed(_ethUsdOracleAddress, _wstEthTokenAddress, _ethUsdStalenessThreshold, _borrowerOperationsAddress)
+        CompositePriceFeed(_ethUsdOracleAddress, _wstEthTokenAddress, _ethUsdStalenessThreshold, _eurUsdOracleAddress, _eurUsdStalenessThreshold, _borrowerOperationsAddress)
     {
         stEthUsdOracle.aggregator = AggregatorV3Interface(_stEthUsdOracleAddress);
         stEthUsdOracle.stalenessThreshold = _stEthUsdStalenessThreshold;
         stEthUsdOracle.decimals = stEthUsdOracle.aggregator.decimals();
-
-        eurUsdOracle.aggregator = AggregatorV3Interface(_eurUsdOracleAddress);
-        eurUsdOracle.stalenessThreshold = _eurUsdStalenessThreshold;
-        eurUsdOracle.decimals = eurUsdOracle.aggregator.decimals();
 
         rateProviderOracle.aggregator = AggregatorV3Interface(_rateProviderOracleAddress);
         rateProviderOracle.stalenessThreshold = _rateProviderStalenessThreshold;

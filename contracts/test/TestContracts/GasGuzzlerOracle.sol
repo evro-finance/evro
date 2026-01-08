@@ -13,6 +13,9 @@ contract GasGuzzlerOracle is AggregatorV3Interface {
 
     uint256 lastUpdateTime;
 
+    int192 internal _minAnswer = 1e6;
+    int192 internal _maxAnswer = 1e11;
+
     uint256 pointlessStorageVar = 42;
 
     // We use 8 decimals unless set to 18
@@ -20,6 +23,20 @@ contract GasGuzzlerOracle is AggregatorV3Interface {
         return decimal;
     }
 
+    function setMinAnswer(int192 minAnswer) external {
+        _minAnswer = minAnswer;
+    }
+
+    function setMaxAnswer(int192 maxAnswer) external {
+        _maxAnswer = maxAnswer;
+    }
+    function minAnswer() external view returns (int192) {
+        return _minAnswer;
+    }
+
+    function maxAnswer() external view returns (int192) {
+        return _maxAnswer;
+    }
     function latestRoundData()
         external
         view

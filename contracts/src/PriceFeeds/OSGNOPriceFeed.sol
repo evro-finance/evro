@@ -8,18 +8,13 @@ import {FixedPointMathLib} from "solady/utils/FixedPointMathLib.sol";
 //  OSGNO/GNO price feed on gnosis 0x9B1b13afA6a57e54C03AD0428a4766C39707D272
 contract OSGNOPriceFeed is MainnetPriceFeedBase {
     Oracle public gnoUsdOracle;
-    Oracle public eurUsdOracle;
     
     constructor(address _osgnoGnoOracleAddress, address _gnoUSDOracleAddress, address _eurUsdOracleAddress, uint256 _osgnoGnoStalenessThreshold, uint256 _gnoUSDStalenessThreshold, uint256 _usdEurStalenessThreshold, address _borrowerOperationsAddress)
-        MainnetPriceFeedBase(_osgnoGnoOracleAddress, _osgnoGnoStalenessThreshold, _borrowerOperationsAddress)
+        MainnetPriceFeedBase(_osgnoGnoOracleAddress, _osgnoGnoStalenessThreshold, _borrowerOperationsAddress, _eurUsdOracleAddress, _usdEurStalenessThreshold)
     {
         gnoUsdOracle.aggregator = AggregatorV3Interface(_gnoUSDOracleAddress);
         gnoUsdOracle.stalenessThreshold = _gnoUSDStalenessThreshold;
         gnoUsdOracle.decimals = gnoUsdOracle.aggregator.decimals();
-
-        eurUsdOracle.aggregator = AggregatorV3Interface(_eurUsdOracleAddress);
-        eurUsdOracle.stalenessThreshold = _usdEurStalenessThreshold;
-        eurUsdOracle.decimals = eurUsdOracle.aggregator.decimals();
 
         _fetchPricePrimary();
 

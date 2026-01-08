@@ -34,14 +34,19 @@ abstract contract MainnetPriceFeedBase is IMainnetPriceFeed {
     event ShutDownFromOracleFailure(address _failedOracleAddr);
 
     Oracle public ethUsdOracle;
+    Oracle public eurUsdOracle;
 
     IBorrowerOperations borrowerOperations;
 
-    constructor(address _ethUsdOracleAddress, uint256 _ethUsdStalenessThreshold, address _borrowOperationsAddress) {
+    constructor(address _ethUsdOracleAddress, uint256 _ethUsdStalenessThreshold, address _borrowOperationsAddress, address _eurUsdOracleAddress, uint256 _eurUsdStalenessThreshold) {
         // Store ETH-USD oracle
         ethUsdOracle.aggregator = AggregatorV3Interface(_ethUsdOracleAddress);
         ethUsdOracle.stalenessThreshold = _ethUsdStalenessThreshold;
         ethUsdOracle.decimals = ethUsdOracle.aggregator.decimals();
+
+        eurUsdOracle.aggregator = AggregatorV3Interface(_eurUsdOracleAddress);
+        eurUsdOracle.stalenessThreshold = _eurUsdStalenessThreshold;
+        eurUsdOracle.decimals = eurUsdOracle.aggregator.decimals();
 
         borrowerOperations = IBorrowerOperations(_borrowOperationsAddress);
 
@@ -53,8 +58,9 @@ abstract contract MainnetPriceFeedBase is IMainnetPriceFeed {
 
         uint256 scaledPrice;
         bool oracleIsDown;
+        bool isEurUsd = _oracle.aggregator == eurUsdOracle.aggregator;
         // Check oracle is serving an up-to-date and sensible price. If not, shut down this collateral branch.
-        if (!_isValidChainlinkPrice(chainlinkResponse, _oracle.stalenessThreshold)) {
+        if (!_isValidChainlinkPrice(chainlinkResponse, _oracle.stalenessThreshold, isEurUsd)) {
             oracleIsDown = true;
         } else {
             scaledPrice = _scaleChainlinkPriceTo18decimals(chainlinkResponse.answer, _oracle.decimals);
@@ -106,13 +112,22 @@ abstract contract MainnetPriceFeedBase is IMainnetPriceFeed {
     // - Call to Chainlink aggregator reverts
     // - price is too stale, i.e. older than the oracle's staleness threshold
     // - Price answer is 0 or negative
-    function _isValidChainlinkPrice(ChainlinkResponse memory chainlinkResponse, uint256 _stalenessThreshold)
+    function _isValidChainlinkPrice(ChainlinkResponse memory chainlinkResponse, uint256 _stalenessThreshold, bool _isEurUsd)
         internal
         view
         returns (bool)
     {
-        return chainlinkResponse.success && block.timestamp - chainlinkResponse.timestamp < _stalenessThreshold
-            && chainlinkResponse.answer > 0;
+        if (!chainlinkResponse.success) return false;
+        if (chainlinkResponse.answer <= 0) return false;
+                if (_isEurUsd) {
+            int192 minAnswer = eurUsdOracle.aggregator.minAnswer();
+            int192 maxAnswer = eurUsdOracle.aggregator.maxAnswer();
+            if (int192(chainlinkResponse.answer) <= minAnswer || int192(chainlinkResponse.answer) >= maxAnswer) return false;
+        }
+        if(block.timestamp < chainlinkResponse.timestamp) return true; // since api3 allows timeStamps up to 1 hour in the future we return true here to avoid an underflow in the next line
+        if (block.timestamp - chainlinkResponse.timestamp >= _stalenessThreshold) return false;
+
+        return true;
     }
 
     // Trust assumption: Chainlink won't change the decimal precision on any feed used in v2 after deployment

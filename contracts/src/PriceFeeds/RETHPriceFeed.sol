@@ -15,7 +15,8 @@ contract RETHPriceFeed is CompositePriceFeed, IRETHPriceFeed {
         uint256 _rEthEthStalenessThreshold,
         address _borrowerOperationsAddress
     )
-        CompositePriceFeed(_ethUsdOracleAddress, _rEthTokenAddress, _ethUsdStalenessThreshold, _borrowerOperationsAddress)
+    
+        CompositePriceFeed(_ethUsdOracleAddress, _rEthTokenAddress, _ethUsdStalenessThreshold, address(0), 0, _borrowerOperationsAddress) // just pass in dummy data to satisfy the CompositePriceFeed constructor
     {
         // Store RETH-ETH oracle
         rEthEthOracle.aggregator = AggregatorV3Interface(_rEthEthOracleAddress);
