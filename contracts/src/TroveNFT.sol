@@ -20,10 +20,6 @@ contract TroveNFT is ERC721Enumerable, ITroveNFT {
 
     IMetadataNFT public immutable metadataNFT;
 
-    //mapping of owners to their trove ids
-    mapping(address => uint256[]) internal _ownerToTroveIds;
-    //mapping from troveId to its index in the owner's array (for O(1) removal)
-    mapping(uint256 => uint256) internal _troveIdToIndex;
     address public externalNFTUriAddress = address(0);
 
     address public governor;
@@ -67,70 +63,23 @@ contract TroveNFT is ERC721Enumerable, ITroveNFT {
 
     function mint(address _owner, uint256 _troveId) external override {
         _requireCallerIsTroveManager();
-        _beforeTokenTransfer(address(0), _owner, _troveId);
         _mint(_owner, _troveId);
     }
 
     function burn(uint256 _troveId) external override {
         _requireCallerIsTroveManager();
-        _beforeTokenTransfer(ownerOf(_troveId), address(0), _troveId);
         _burn(_troveId);
     }
 
-    function transferFrom(address from, address to, uint256 tokenId) public override(ERC721, IERC721) {
-        _beforeTokenTransfer(from, to, tokenId);
-        super.transferFrom(from, to, tokenId);
-    }
-
-    function safeTransferFrom(address from, address to, uint256 tokenId, bytes memory data) public override(ERC721, IERC721) {
-        _beforeTokenTransfer(from, to, tokenId);
-        super.safeTransferFrom(from, to, tokenId, data);
-    }
-
+    /// @notice Returns all trove IDs owned by an address
+    /// @dev Uses ERC721Enumerable's built-in tracking
     function ownerToTroveIds(address owner) external view returns (uint256[] memory) {
-        return _ownerToTroveIds[owner];
-    }
-
-    function _beforeTokenTransfer(address from, address to, uint256 tokenId)
-        internal
-        virtual
-
-    {
-        // Only handle single token transfers
-        if (from == address(0)) {
-            // Minting: add to new owner's list
-            _ownerToTroveIds[to].push(tokenId);
-            _troveIdToIndex[tokenId] = _ownerToTroveIds[to].length - 1;
-        } else if (to == address(0)) {
-            // Burning: remove from owner's list
-            _removeTroveFromOwner(from, tokenId);
-            delete _troveIdToIndex[tokenId];
-        } else {
-            // Transferring: remove from old owner, add to new owner
-            _removeTroveFromOwner(from, tokenId);
-            _ownerToTroveIds[to].push(tokenId);
-            _troveIdToIndex[tokenId] = _ownerToTroveIds[to].length - 1;
+        uint256 count = balanceOf(owner);
+        uint256[] memory troveIds = new uint256[](count);
+        for (uint256 i = 0; i < count; i++) {
+            troveIds[i] = tokenOfOwnerByIndex(owner, i);
         }
-    }
-
-    function _removeTroveFromOwner(address owner, uint256 troveId) internal {
-        uint256[] storage troveIds = _ownerToTroveIds[owner];
-        uint256 length = troveIds.length;
-        // Find the troveId in the array
-        if (length == 0) return;
-        
-        uint256 index = _troveIdToIndex[troveId];
-        // Validate the index points to the correct troveId
-        if (index >= length || troveIds[index] != troveId) return;
-        // If not found, nothing to remove
-        uint256 lastIndex = length - 1;
-        // Swap with last element and pop (O(1) removal)
-        if (index != lastIndex) {
-            uint256 lastTroveId = troveIds[lastIndex];
-            troveIds[index] = lastTroveId;
-            _troveIdToIndex[lastTroveId] = index;
-        }
-        troveIds.pop();
+        return troveIds;
     }
 
     function _requireCallerIsTroveManager() internal view {
