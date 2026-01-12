@@ -31,8 +31,8 @@ abstract contract MainnetPriceFeedBase is IMainnetPriceFeed {
 
     error InsufficientGasForExternalCall();
 
-    int192 public constant MIN_EUR_USD_PRICE = 0.01 ether;
-    int192 public constant MAX_EUR_USD_PRICE = 1000 ether;
+    int192 public constant MIN_EUR_USD_PRICE = 1000000;
+    int192 public constant MAX_EUR_USD_PRICE = 100000000000;
 
     event ShutDownFromOracleFailure(address _failedOracleAddr);
 
@@ -62,6 +62,7 @@ abstract contract MainnetPriceFeedBase is IMainnetPriceFeed {
         uint256 scaledPrice;
         bool oracleIsDown;
         bool isEurUsd = _oracle.aggregator == eurUsdOracle.aggregator;
+
         // Check oracle is serving an up-to-date and sensible price. If not, shut down this collateral branch.
         if (!_isValidChainlinkPrice(chainlinkResponse, _oracle.stalenessThreshold, isEurUsd)) {
             oracleIsDown = true;
@@ -121,7 +122,7 @@ abstract contract MainnetPriceFeedBase is IMainnetPriceFeed {
         returns (bool)
     {
         int192 price = int192(chainlinkResponse.answer);
-        
+
         if (!chainlinkResponse.success) return false;
         if (price <= 0) return false;
         if (_isEurUsd) {
