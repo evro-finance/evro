@@ -120,10 +120,12 @@ abstract contract MainnetPriceFeedBase is IMainnetPriceFeed {
         view
         returns (bool)
     {
+        int192 price = int192(chainlinkResponse.answer);
+        
         if (!chainlinkResponse.success) return false;
-        if (chainlinkResponse.answer <= 0) return false;
-            if (_isEurUsd) {
-            if (int192(chainlinkResponse.answer) <= MIN_EUR_USD_PRICE || int192(chainlinkResponse.answer) >= MAX_EUR_USD_PRICE) return false;
+        if (price <= 0) return false;
+        if (_isEurUsd) {
+            if (price <= MIN_EUR_USD_PRICE || price >= MAX_EUR_USD_PRICE) return false;
         }
         if(block.timestamp < chainlinkResponse.timestamp) return true; // since api3 allows timeStamps up to 1 hour in the future we return true here to avoid an underflow in the next line
         if (block.timestamp - chainlinkResponse.timestamp >= _stalenessThreshold) return false;
