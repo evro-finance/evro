@@ -77,7 +77,7 @@ export const colors = {
 	"black:200": "#1A1A1A",
 	"black:300": "#141414",
 	"black:400": "#0F0F0F",
-	"black:500": "#0A0A0A",
+	"black:500": "#2C1F2B",
 	"black:600": "#050505",
 	"black:700": "#000000",
 
