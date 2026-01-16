@@ -12,7 +12,7 @@ const contentActions = content.home.actions;
 const actions = {
 	borrow: {
 		colors: {
-			background: token.var("colors.evroBorrowBackground"),
+			background: "#EFA960",
 			foreground: token.var("colors.evroBorrowBackgroundContent"),
 			foregroundAlt: token.var("colors.evroBorrowBackgroundContentAlt"),
 		},
@@ -22,7 +22,7 @@ const actions = {
 	},
 	earn: {
 		colors: {
-			background: token.var("colors.brandBlue"),
+			background: "#8F61F1",
 			foreground: token.var("colors.brandBlueContent"),
 			foregroundAlt: token.var("colors.brandBlueContentAlt"),
 		},

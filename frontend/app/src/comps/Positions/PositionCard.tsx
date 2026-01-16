@@ -23,6 +23,7 @@ export function PositionCard({
 	main,
 	ref,
 	secondary,
+	borderColor,
 	...anchorProps
 }:
 	& HTMLAttributes<HTMLAnchorElement>
@@ -33,6 +34,7 @@ export function PositionCard({
 			main?: Cell;
 			ref?: RefObject<HTMLAnchorElement>;
 			secondary?: ReactNode;
+			borderColor?: string;
 		}
 		& (
 			| { href: string; loading?: boolean }
@@ -76,22 +78,25 @@ export function PositionCard({
 				"group",
 				anchorProps.className,
 				css({
-					backgroundColor: "black",
+					backgroundColor: "#2B243E",
 					position: "relative",
 					overflow: "hidden",
 					display: "flex",
 					flexDirection: "column",
-					padding: "6px 8px",
-					borderRadius: 0,
+					padding: "10px 16px",
+					borderRadius: 8,
 					outline: "none",
 					_focusVisible: {
 						outline: "2px solid token(colors.focused)",
 					},
 				}),
 			)}
-			style={loading ? {} : {
-				transform: hoverSpring.transform,
-				boxShadow: hoverSpring.boxShadow
+			style={{
+				...(loading ? {} : {
+					transform: hoverSpring.transform,
+					boxShadow: hoverSpring.boxShadow
+				}),
+				...(borderColor ? { borderLeft: `8px solid ${borderColor}` } : {})
 			}}
 		>
 			{loading && <LoadingSurface />}
