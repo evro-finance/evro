@@ -23,6 +23,7 @@ export function PositionCardEarn({
 	return (
 		<PositionCard
 			borderColor="#8F61F1"
+			backgroundColor="#2B243E"
 			className="position-card position-card-earn"
 			href={token ? `/earn/${token.symbol.toLowerCase()}` : ""}
 			heading={[

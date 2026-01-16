@@ -62,6 +62,7 @@ export function PositionCardBorrow({
 	return (
 		<PositionCard
 			borderColor="#EFA960"
+			backgroundColor="#2C1F2B"
 			className="position-card position-card-loan position-card-borrow"
 			href={`/loan?id=${branchId}:${troveId}`}
 			title={title.join("\n")}

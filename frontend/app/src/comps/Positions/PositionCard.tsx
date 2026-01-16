@@ -24,6 +24,7 @@ export function PositionCard({
 	ref,
 	secondary,
 	borderColor,
+	backgroundColor,
 	...anchorProps
 }:
 	& HTMLAttributes<HTMLAnchorElement>
@@ -35,6 +36,7 @@ export function PositionCard({
 			ref?: RefObject<HTMLAnchorElement>;
 			secondary?: ReactNode;
 			borderColor?: string;
+			backgroundColor?: string;
 		}
 		& (
 			| { href: string; loading?: boolean }
@@ -78,7 +80,7 @@ export function PositionCard({
 				"group",
 				anchorProps.className,
 				css({
-					backgroundColor: "#2B243E",
+					backgroundColor: backgroundColor ?? "#2B243E",
 					position: "relative",
 					overflow: "hidden",
 					display: "flex",
