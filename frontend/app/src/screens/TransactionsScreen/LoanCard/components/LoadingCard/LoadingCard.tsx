@@ -74,7 +74,7 @@ export const LoadingCard: FC<LoadingCardProps> = ({
 					overflow: "hidden",
 					width: "100%",
 					padding: "16px 16px 0",
-					borderRadius: 0,
+					borderRadius: 20,
 					userSelect: "none",
 				})}
 				style={{

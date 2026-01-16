@@ -77,7 +77,7 @@ export const colors = {
 	"black:200": "#1A1A1A",
 	"black:300": "#141414",
 	"black:400": "#0F0F0F",
-	"black:500": "#0A0A0A",
+	"black:500": "#2C1F2B",
 	"black:600": "#050505",
 	"black:700": "#000000",
 
@@ -110,7 +110,7 @@ export const colors = {
 	"evro:greenWhite": "#f6f9f4", // Light green background
 	"evro:greenWhiteAlt": "#ECF2E8BF", // Alternative green-white
 	"evro:background": "#A082F5", // Light purple background (HSBA: 256, 47%, 96%, 1)
-	"evro:pageBackground": "#F7FAF5", // Page background (HSBA: 96, 2%, 98%, 1)
+	"evro:pageBackground": "#F5F3FF", // Page background (HSBA: 96, 2%, 98%, 1)
 	"evro:footer": "#757BA3", // Purple-gray footer
 
 	// Brand colors

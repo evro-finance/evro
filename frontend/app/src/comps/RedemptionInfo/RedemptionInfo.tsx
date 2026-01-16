@@ -176,13 +176,13 @@ export const RedemptionInfo = memo(function RedemptionInfo() {
 function BoldIcon() {
 	return (
 		<svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-			<rect width="24" height="24" rx="12" fill="url(#paint0_linear_513_2396)"/>
-			<path d="M6.5994 17.9559L6 5.2793L8.4532 6.09581L12.2215 5.37242L18.0267 5.36954L17.035 8.06409L8.4532 7.52576L8.99154 16.1391L18.0254 14.7975V17.9391L8.99154 17.4008L6.5994 17.9559ZM7.56386 13.0561L7.79652 10.1119L14.3749 10.7558L17.035 13.0561H7.56386Z" fill="#FDFEFD"/>
+			<rect width="24" height="24" rx="12" fill="url(#paint0_linear_513_2396)" />
+			<path d="M6.5994 17.9559L6 5.2793L8.4532 6.09581L12.2215 5.37242L18.0267 5.36954L17.035 8.06409L8.4532 7.52576L8.99154 16.1391L18.0254 14.7975V17.9391L8.99154 17.4008L6.5994 17.9559ZM7.56386 13.0561L7.79652 10.1119L14.3749 10.7558L17.035 13.0561H7.56386Z" fill="#FDFEFD" />
 			<defs>
-			<linearGradient id="paint0_linear_513_2396" x1="12" y1="0" x2="12" y2="24" gradientUnits="userSpaceOnUse">
-			<stop stop-color="#A182F6"/>
-			<stop offset="1" stop-color="#263B67"/>
-			</linearGradient>
+				<linearGradient id="paint0_linear_513_2396" x1="12" y1="0" x2="12" y2="24" gradientUnits="userSpaceOnUse">
+					<stop stopColor="#A182F6" />
+					<stop offset="1" stopColor="#263B67" />
+				</linearGradient>
 			</defs>
 		</svg>
 	);
