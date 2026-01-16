@@ -50,12 +50,12 @@ export function PositionCardEarn({
 			main={{
 				value: (
 					<HFlex gap={8} alignItems="center" justifyContent="flex-start">
+						<TokenIcon size="medium" symbol={WHITE_LABEL_CONFIG.tokens.mainToken.symbol} />
 						<Amount
 							value={deposit}
 							fallback="−"
 							format={2}
 						/>
-						<TokenIcon size="medium" symbol={WHITE_LABEL_CONFIG.tokens.mainToken.symbol} />
 					</HFlex>
 				),
 				label: token && (

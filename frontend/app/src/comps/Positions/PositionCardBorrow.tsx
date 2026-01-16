@@ -90,6 +90,10 @@ export function PositionCardBorrow({
 			main={{
 				value: (
 					<HFlex gap={8} alignItems="center" justifyContent="flex-start">
+						<TokenIcon
+							size={24}
+							symbol={WHITE_LABEL_CONFIG.tokens.mainToken.symbol}
+						/>
 						<div
 							className={css({
 								display: "grid",
@@ -97,10 +101,6 @@ export function PositionCardBorrow({
 						>
 							<Amount value={debt} fallback="−" />
 						</div>
-						<TokenIcon
-							size={24}
-							symbol={WHITE_LABEL_CONFIG.tokens.mainToken.symbol}
-						/>
 					</HFlex>
 				),
 				// label: "Total debt",
