@@ -6,8 +6,6 @@ export { IconArrowBack } from "./IconArrowBack";
 export { IconArrowRight } from "./IconArrowRight";
 export { IconBorrow } from "./IconBorrow";
 export { IconChevronDown } from "./IconChevronDown";
-export { IconDiscord } from "./IconDiscord";
-export { IconX } from "./IconX";
 export { IconChevronSmallUp } from "./IconChevronSmallUp";
 export { IconChevronUp } from "./IconChevronUp";
 export { IconCopy } from "./IconCopy";
