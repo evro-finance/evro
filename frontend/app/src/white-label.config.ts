@@ -96,7 +96,7 @@ export const WHITE_LABEL_CONFIG = {
       },
       {
         symbol: "GNO" as const,
-        name: "Gnosis",
+        name: "GNO",
         icon: "gno",
         collateralRatio: 1.4, // 140% MCR
         maxDeposit: "25000000", // €25M initial debt limit
@@ -114,7 +114,7 @@ export const WHITE_LABEL_CONFIG = {
       },
       {
         symbol: "SDAI" as const,
-        name: "Savings xDAI",
+        name: "sDAI",
         icon: "sdai",
         collateralRatio: 1.3, // 130% MCR
         maxDeposit: "25000000", // €25M initial debt limit
@@ -132,7 +132,7 @@ export const WHITE_LABEL_CONFIG = {
       },
       {
         symbol: "WBTC" as const,
-        name: "Gnosis xDai Bridged WBTC",
+        name: "wBTC",
         icon: "wbtc",
         collateralRatio: 1.15, // 115% MCR
         maxDeposit: "25000000", // €25M initial debt limit
@@ -150,7 +150,7 @@ export const WHITE_LABEL_CONFIG = {
       },
       {
         symbol: "OSGNO" as const,
-        name: "StakeWise Staked GNO",
+        name: "osGNO",
         icon: "osgno",
         collateralRatio: 1.4, // 140% MCR
         maxDeposit: "25000000", // €25M initial debt limit
@@ -168,7 +168,7 @@ export const WHITE_LABEL_CONFIG = {
       },
       {
         symbol: "WSTETH" as const,
-        name: "Wrapped Staked ETH",
+        name: "wstETH",
         icon: "wsteth",
         collateralRatio: 1.3, // 130% MCR
         maxDeposit: "25000000", // €25M initial debt limit
