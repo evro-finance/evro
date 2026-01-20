@@ -11,6 +11,8 @@ export { IconChevronUp } from "./IconChevronUp";
 export { IconCopy } from "./IconCopy";
 export { IconCross } from "./IconCross";
 export { IconDashboard } from "./IconDashboard";
+export { IconDiscord } from "./IconDiscord";
+export { IconX} from "./IconX";
 export { IconDownvote } from "./IconDownvote";
 export { IconEarn } from "./IconEarn";
 export { IconEdit } from "./IconEdit";
