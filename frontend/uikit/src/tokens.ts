@@ -5,12 +5,12 @@ import evroToken from "./token-icons/evro.svg";
 import { WHITE_LABEL_CONFIG } from "../../app/src/white-label.config";
 
 // Import all available collateral icons
-import tokenXdai from "./token-icons/xdai.webp";
-import tokenGno from "./token-icons/gno.webp";
-import tokenSdai from "./token-icons/sdai.webp";
-import tokenWbtc from "./token-icons/wbtc.webp";
-import tokenOsgno from "./token-icons/osgno.webp";
-import tokenWsteth from "./token-icons/wsteth.webp";
+import tokenXdai from "./token-icons/xdai.png";
+import tokenGno from "./token-icons/gno.png";
+import tokenSdai from "./token-icons/sdai.png";
+import tokenWbtc from "./token-icons/wbtc.png";
+import tokenOsgno from "./token-icons/osgno.png";
+import tokenWsteth from "./token-icons/wsteth.png";
 
 // Map of available token icons by icon name from config
 const tokenIconMap: Record<string, string> = {
