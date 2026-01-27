@@ -1,5 +1,5 @@
-import { notFound } from "next/navigation";
+import { LoanScreen } from "@/src/screens/LoanScreen/LoanScreen";
 
 export default function LoanPage() {
-  return notFound();
+  return <LoanScreen />;
 }
