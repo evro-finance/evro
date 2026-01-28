@@ -137,9 +137,6 @@ contract DeployLiquity2Script is DeployGovernance, UniPriceConverter, StdCheats,
         // gnosis testnet
     address CHIADO_GNO_ADDRESS = 0x19C653Da7c37c66208fbfbE8908A5051B57b4C70;
 
-
-    address gov_multisig_address;
-
     address governor;
 
     // Curve
@@ -305,12 +302,6 @@ contract DeployLiquity2Script is DeployGovernance, UniPriceConverter, StdCheats,
             governor = vm.envAddress("GOVERNOR");
         } else {
             governor = deployer;    
-        }
-
-        if(vm.envBytes("GOVERNANCE").length == 20) {
-            gov_multisig_address = vm.envAddress("GOVERNANCE");
-        } else {
-            gov_multisig_address = msg.sender;
         }
 
         string memory deploymentMode = vm.envOr("DEPLOYMENT_MODE", DEPLOYMENT_MODE_COMPLETE);
@@ -801,7 +792,7 @@ contract DeployLiquity2Script is DeployGovernance, UniPriceConverter, StdCheats,
                 r.hintHelpers,
                 r.multiTroveGetter,
                 //computeGovernanceAddress(_deployGovernanceParams)//
-                gov_multisig_address
+                governor
             );
             r.contractsArray[vars.i] = vars.contracts;
         }
