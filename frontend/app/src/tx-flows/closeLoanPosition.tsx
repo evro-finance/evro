@@ -18,6 +18,7 @@ import { maxUint256 } from "viem";
 import { readContract, readContracts } from "wagmi/actions";
 import { createRequestSchema, verifyTransaction } from "./shared";
 import { WHITE_LABEL_CONFIG } from "@/src/white-label.config";
+import { WBTCZapper } from "../abi/WBTCZapper";
 
 const RequestSchema = createRequestSchema(
   "closeLoanPosition",
@@ -119,7 +120,7 @@ export const closeLoanPosition: FlowDeclaration<CloseLoanPositionRequest> = {
           args: [BigInt(loan.troveId)],
         });
 
-        const Zapper = branch.symbol === "ETH"
+        const Zapper = branch.symbol === "XDAI"
           ? branch.contracts.LeverageWETHZapper
           : branch.contracts.LeverageLSTZapper;
 
@@ -148,11 +149,21 @@ export const closeLoanPosition: FlowDeclaration<CloseLoanPositionRequest> = {
         const { loan } = ctx.request;
         const branch = getBranch(loan.branchId);
 
-        // repay with ${WHITE_LABEL_CONFIG.tokens.mainToken.symbol} => get ETH
-        if (!ctx.request.repayWithCollateral && branch.symbol === "ETH") {
+        // repay with ${WHITE_LABEL_CONFIG.tokens.mainToken.symbol} => get XDAI
+        if (!ctx.request.repayWithCollateral && branch.symbol === "XDAI") {
           return ctx.writeContract({
             ...branch.contracts.LeverageWETHZapper,
             functionName: "closeTroveToRawETH",
+            args: [BigInt(loan.troveId)],
+          });
+        }
+
+        // repay with ${WHITE_LABEL_CONFIG.tokens.mainToken.symbol} => get WBTC
+        if (!ctx.request.repayWithCollateral && branch.symbol === "WBTC") {
+          return ctx.writeContract({
+            ...branch.contracts.LeverageLSTZapper,
+            abi: WBTCZapper,
+            functionName: "closeTroveToWBTC",
             args: [BigInt(loan.troveId)],
           });
         }
@@ -178,11 +189,21 @@ export const closeLoanPosition: FlowDeclaration<CloseLoanPositionRequest> = {
           throw new Error("The flash loan amount could not be calculated.");
         }
 
-        // repay with collateral => get ETH
-        if (branch.symbol === "ETH") {
+        // repay with collateral => get XDAI
+        if (branch.symbol === "XDAI") {
           return ctx.writeContract({
             ...branch.contracts.LeverageWETHZapper,
             functionName: "closeTroveFromCollateral",
+            args: [BigInt(loan.troveId), closeFlashLoanAmount],
+          });
+        }
+
+        // repay with collateral => get WBTC
+        if (branch.symbol === "WBTC") {
+          return ctx.writeContract({
+            ...branch.contracts.LeverageLSTZapper,
+            abi: WBTCZapper,
+            functionName: "closeTroveToWBTC",
             args: [BigInt(loan.troveId), closeFlashLoanAmount],
           });
         }
@@ -217,7 +238,7 @@ export const closeLoanPosition: FlowDeclaration<CloseLoanPositionRequest> = {
     const { loan } = ctx.request;
     const branch = getBranch(loan.branchId);
 
-    const Zapper = branch.symbol === "ETH"
+    const Zapper = branch.symbol === "XDAI"
       ? branch.contracts.LeverageWETHZapper
       : branch.contracts.LeverageLSTZapper;
 
