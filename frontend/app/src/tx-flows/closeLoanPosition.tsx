@@ -18,6 +18,7 @@ import { maxUint256 } from "viem";
 import { readContract, readContracts } from "wagmi/actions";
 import { createRequestSchema, verifyTransaction } from "./shared";
 import { WHITE_LABEL_CONFIG } from "@/src/white-label.config";
+import { WBTCZapper } from "../abi/WBTCZapper";
 
 const RequestSchema = createRequestSchema(
   "closeLoanPosition",
@@ -157,6 +158,16 @@ export const closeLoanPosition: FlowDeclaration<CloseLoanPositionRequest> = {
           });
         }
 
+        // repay with ${WHITE_LABEL_CONFIG.tokens.mainToken.symbol} => get WBTC
+        if (!ctx.request.repayWithCollateral && branch.symbol === "WBTC") {
+          return ctx.writeContract({
+            ...branch.contracts.LeverageLSTZapper,
+            abi: WBTCZapper,
+            functionName: "closeTroveToWBTC",
+            args: [BigInt(loan.troveId)],
+          });
+        }
+
         // repay with ${WHITE_LABEL_CONFIG.tokens.mainToken.symbol} => get LST
         if (!ctx.request.repayWithCollateral) {
           return ctx.writeContract({
@@ -183,6 +194,16 @@ export const closeLoanPosition: FlowDeclaration<CloseLoanPositionRequest> = {
           return ctx.writeContract({
             ...branch.contracts.LeverageWETHZapper,
             functionName: "closeTroveFromCollateral",
+            args: [BigInt(loan.troveId), closeFlashLoanAmount],
+          });
+        }
+
+        // repay with collateral => get WBTC
+        if (branch.symbol === "WBTC") {
+          return ctx.writeContract({
+            ...branch.contracts.LeverageLSTZapper,
+            abi: WBTCZapper,
+            functionName: "closeTroveToWBTC",
             args: [BigInt(loan.troveId), closeFlashLoanAmount],
           });
         }

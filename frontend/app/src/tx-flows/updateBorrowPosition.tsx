@@ -15,6 +15,7 @@ import * as v from "valibot";
 import { maxUint256 } from "viem";
 import { createRequestSchema, verifyTransaction } from "./shared";
 import { WHITE_LABEL_CONFIG } from "@/src/white-label.config";
+import { WBTCZapper } from "../abi/WBTCZapper";
 
 const RequestSchema = createRequestSchema(
   "updateBorrowPosition",
@@ -221,6 +222,22 @@ export const updateBorrowPosition: FlowDeclaration<UpdateBorrowPositionRequest> 
               maxUpfrontFee[0],
             ],
             value: dn.gt(collChange, 0n) ? collChange[0] : 0n,
+          });
+        }
+
+        if (branch.symbol === "WBTC") {
+          return ctx.writeContract({
+            ...branch.contracts.LeverageLSTZapper,
+            abi: WBTCZapper,
+            functionName: "adjustTroveWithWBTC",
+            args: [
+              BigInt(loan.troveId),
+              dn.abs(collChange)[0],
+              dn.gt(collChange, 0n),
+              dn.abs(debtChange)[0],
+              dn.gt(debtChange, 0n),
+              maxUpfrontFee[0],
+            ],
           });
         }
 
