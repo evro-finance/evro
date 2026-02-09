@@ -15,6 +15,7 @@ import * as v from "valibot";
 import { maxUint256 } from "viem";
 import { createRequestSchema, verifyTransaction } from "./shared";
 import { WHITE_LABEL_CONFIG } from "@/src/white-label.config";
+import { WBTCZapper } from "../abi/WBTCZapper";
 
 const RequestSchema = createRequestSchema(
   "updateBorrowPosition",
@@ -208,7 +209,7 @@ export const updateBorrowPosition: FlowDeclaration<UpdateBorrowPositionRequest> 
 
         const branch = getBranch(loan.branchId);
 
-        if (branch.symbol === "ETH") {
+        if (branch.symbol === "XDAI") {
           return ctx.writeContract({
             ...branch.contracts.LeverageWETHZapper,
             functionName: "adjustTroveWithRawETH",
@@ -221,6 +222,22 @@ export const updateBorrowPosition: FlowDeclaration<UpdateBorrowPositionRequest> 
               maxUpfrontFee[0],
             ],
             value: dn.gt(collChange, 0n) ? collChange[0] : 0n,
+          });
+        }
+
+        if (branch.symbol === "WBTC") {
+          return ctx.writeContract({
+            ...branch.contracts.LeverageLSTZapper,
+            abi: WBTCZapper,
+            functionName: "adjustTroveWithWBTC",
+            args: [
+              BigInt(loan.troveId),
+              dn.abs(collChange)[0],
+              dn.gt(collChange, 0n),
+              dn.abs(debtChange)[0],
+              dn.gt(debtChange, 0n),
+              maxUpfrontFee[0],
+            ],
           });
         }
 
@@ -274,7 +291,7 @@ export const updateBorrowPosition: FlowDeclaration<UpdateBorrowPositionRequest> 
           interestRate: loan.interestRate[0],
         });
 
-        if (branch.symbol === "ETH") {
+        if (branch.symbol === "XDAI") {
           return ctx.writeContract({
             ...branch.contracts.LeverageWETHZapper,
             functionName: "adjustZombieTroveWithRawETH",
@@ -323,7 +340,7 @@ export const updateBorrowPosition: FlowDeclaration<UpdateBorrowPositionRequest> 
 
         const branch = getBranch(loan.branchId);
 
-        if (branch.symbol === "ETH") {
+        if (branch.symbol === "XDAI") {
           return ctx.writeContract({
             ...branch.contracts.LeverageWETHZapper,
             functionName: "repayBold",
@@ -353,7 +370,7 @@ export const updateBorrowPosition: FlowDeclaration<UpdateBorrowPositionRequest> 
 
         const branch = getBranch(loan.branchId);
 
-        if (branch.symbol === "ETH") {
+        if (branch.symbol === "XDAI") {
           return ctx.writeContract({
             ...branch.contracts.LeverageWETHZapper,
             functionName: "addCollWithRawETH",
@@ -383,7 +400,7 @@ export const updateBorrowPosition: FlowDeclaration<UpdateBorrowPositionRequest> 
         const debtChange = getDebtChange(loan, ctx.request.prevLoan);
         const branch = getBranch(loan.branchId);
 
-        if (branch.symbol === "ETH") {
+        if (branch.symbol === "XDAI") {
           return ctx.writeContract({
             ...branch.contracts.LeverageWETHZapper,
             functionName: "withdrawBold",
@@ -412,7 +429,7 @@ export const updateBorrowPosition: FlowDeclaration<UpdateBorrowPositionRequest> 
         const collChange = getCollChange(loan, ctx.request.prevLoan);
         const branch = getBranch(loan.branchId);
 
-        if (branch.symbol === "ETH") {
+        if (branch.symbol === "XDAI") {
           return ctx.writeContract({
             ...branch.contracts.LeverageWETHZapper,
             functionName: "withdrawCollToRawETH",
@@ -439,7 +456,7 @@ export const updateBorrowPosition: FlowDeclaration<UpdateBorrowPositionRequest> 
 
     const branch = getBranch(ctx.request.loan.branchId);
 
-    const Controller = branch.symbol === "ETH"
+    const Controller = branch.symbol === "XDAI"
       ? branch.contracts.LeverageWETHZapper
       : branch.contracts.LeverageLSTZapper;
 
@@ -456,7 +473,7 @@ export const updateBorrowPosition: FlowDeclaration<UpdateBorrowPositionRequest> 
     );
 
     // Collateral token needs to be approved if collChange > 0 and collToken != "ETH" (no LeverageWETHZapper)
-    const isCollApproved = branch.symbol === "ETH" || !dn.gt(collChange, 0) || !dn.gt(collChange, [
+    const isCollApproved = branch.symbol === "XDAI" || !dn.gt(collChange, 0) || !dn.gt(collChange, [
       (await ctx.readContract({
         ...branch.contracts.CollToken,
         functionName: "allowance",
