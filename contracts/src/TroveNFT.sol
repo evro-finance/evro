@@ -26,7 +26,7 @@ contract TroveNFT is ERC721Enumerable, ITroveNFT {
 
     constructor(IAddressesRegistry _addressesRegistry, address _governor)
         ERC721(
-            string.concat("EVRO- ", _addressesRegistry.collToken().name()),
+            string.concat("EVRO-", _addressesRegistry.collToken().name()),
             string.concat("EVRO_", _addressesRegistry.collToken().symbol())
         )
     {

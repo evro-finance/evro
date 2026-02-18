@@ -199,8 +199,8 @@ contract LiquidationsLSTTest is DevTestSetup {
             address(0)
         );
         vm.stopPrank();
-        // A makes a deposit to ensure there's MIN_BOLD_IN_SP left after liquidation
-        makeSPDepositAndClaim(A, MIN_BOLD_IN_SP);
+        // A makes a deposit to ensure there's MIN_EVRO_IN_SP left after liquidation
+        makeSPDepositAndClaim(A, MIN_EVRO_IN_SP);
 
         vm.startPrank(B);
         uint256 BTroveId = borrowerOperations.openTrove(

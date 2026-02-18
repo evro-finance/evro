@@ -107,7 +107,7 @@ uint256 constant INTEREST_RATE_ADJ_COOLDOWN = 7 days;
 
 uint256 constant SP_YIELD_SPLIT = 75 * _1pct; // 75%
 
-uint256 constant MIN_BOLD_IN_SP = 1e18;
+uint256 constant MIN_EVRO_IN_SP = 1e18;
 
 // Dummy contract that lets legacy Hardhat tests query some of the constants
 contract Constants {

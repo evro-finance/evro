@@ -23,7 +23,7 @@ import {
     ETH_GAS_COMPENSATION,
     COLL_GAS_COMPENSATION_DIVISOR,
     MIN_ANNUAL_INTEREST_RATE,
-    MIN_BOLD_IN_SP
+    MIN_EVRO_IN_SP
 } from "src/Dependencies/Constants.sol";
 
 using {mulDivCeil} for uint256;
@@ -175,7 +175,7 @@ contract SPInvariantsTestHandler is BaseHandler, TroveId {
         vm.assume(troveManager.getTroveStatus(troveId) == ITroveManager.Status.active);
 
         (uint256 debt, uint256 coll,,,) = troveManager.getEntireDebtAndColl(troveId);
-        vm.assume(debt <= (spEvro > MIN_BOLD_IN_SP ? spEvro - MIN_BOLD_IN_SP : 0)); // only interested in SP offset, no redistribution
+        vm.assume(debt <= (spEvro > MIN_EVRO_IN_SP ? spEvro - MIN_EVRO_IN_SP : 0)); // only interested in SP offset, no redistribution
 
         logCall("liquidateMe");
 
@@ -184,7 +184,7 @@ contract SPInvariantsTestHandler is BaseHandler, TroveId {
         uint256 collBefore = collateralToken.balanceOf(address(this));
         uint256 accountSurplusBefore = collSurplusPool.getCollateral(msg.sender);
         uint256 totalEvroDeposits = stabilityPool.getTotalEvroDeposits();
-        uint256 evroInSPForOffsets = totalEvroDeposits - LiquityMath._min(MIN_BOLD_IN_SP, totalEvroDeposits);
+        uint256 evroInSPForOffsets = totalEvroDeposits - LiquityMath._min(MIN_EVRO_IN_SP, totalEvroDeposits);
         uint256 collCompensation = troveManager.getCollGasCompensation(coll, debt, evroInSPForOffsets);
         // Calc claimable coll based on the remaining coll to liquidate, less the liq. penalty that goes to the SP depositors
         uint256 seizedColl = debt * (_100pct + troveManager.get_LIQUIDATION_PENALTY_SP()) / priceFeed.getPrice();

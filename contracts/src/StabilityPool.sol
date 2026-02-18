@@ -72,7 +72,7 @@ import "./Dependencies/LiquityBase.sol";
  *
  * --- MIN BOLD IN SP ---
  *
- * Once totalEvroDeposits has become >= MIN_BOLD_IN_SP, a liquidation may never fully empty the Pool - a minimum of 1 BOLD remains in the SP at all times thereafter.
+ * Once totalEvroDeposits has become >= MIN_EVRO_IN_SP, a liquidation may never fully empty the Pool - a minimum of 1 BOLD remains in the SP at all times thereafter.
  * This is enforced for liquidations in TroveManager.batchLiquidateTroves, and for withdrawals in StabilityPool.withdrawFromSP.
  * As such, it is impossible to empty the Stability Pool via liquidations, and P can never become 0.
  *
@@ -315,7 +315,7 @@ contract StabilityPool is LiquityBase, IStabilityPool, IStabilityPoolEvents {
         _sendEvrotoDepositor(msg.sender, evroToWithdraw + yieldGainToSend);
         _sendCollGainToDepositor(collToSend);
 
-        require(newTotalEvroDeposits >= MIN_BOLD_IN_SP, "Withdrawal must leave totalEvroDeposits >= MIN_BOLD_IN_SP");
+        require(newTotalEvroDeposits >= MIN_EVRO_IN_SP, "Withdrawal must leave totalEvroDeposits >= MIN_EVRO_IN_SP");
     }
 
     function _getNewStashedCollAndCollToSend(address _depositor, uint256 _currentCollGain, bool _doClaim)
@@ -361,7 +361,7 @@ contract StabilityPool is LiquityBase, IStabilityPool, IStabilityPoolEvents {
 
         // When total deposits is very small, B is not updated. In this case, the BOLD issued is held
         // until the total deposits reach 1 BOLD (remains in the balance of the SP).
-        if (totalEvroDeposits < MIN_BOLD_IN_SP) {
+        if (totalEvroDeposits < MIN_EVRO_IN_SP) {
             yieldGainsPending = accumulatedYieldGains;
             return;
         }
@@ -390,7 +390,7 @@ contract StabilityPool is LiquityBase, IStabilityPool, IStabilityPoolEvents {
         uint256 newP = numerator / totalEvroDeposits;
 
         // For `P` to turn zero, `totalEvroDeposits` has to be greater than `P * (totalEvroDeposits - _debtToOffset)`.
-        // - As the offset must leave at least 1 BOLD in the SP (MIN_BOLD_IN_SP),
+        // - As the offset must leave at least 1 BOLD in the SP (MIN_EVRO_IN_SP),
         //   the minimum value of `totalEvroDeposits - _debtToOffset` is `1e18`
         // - It can be shown that `P` is always in range [1e27, 1e36].
         // Thus, to turn `P` zero, `totalEvroDeposits` has to be greater than `1e27 * 1e18`,
@@ -485,7 +485,7 @@ contract StabilityPool is LiquityBase, IStabilityPool, IStabilityPoolEvents {
     }
 
     function getDepositorYieldGainWithPending(address _depositor) external view override returns (uint256) {
-        if (totalEvroDeposits < MIN_BOLD_IN_SP) return 0;
+        if (totalEvroDeposits < MIN_EVRO_IN_SP) return 0;
 
         uint256 initialDeposit = deposits[_depositor].initialValue;
         if (initialDeposit == 0) return 0;

@@ -174,13 +174,13 @@ contract troveNFTTest is DevTestSetup {
     }
 
     function testTroveNFTMetadata() public view {
-        assertEq(troveNFTWXDAI.name(), "EVRO- Wrapped XDAI", "Invalid Trove Name");
+        assertEq(troveNFTWXDAI.name(), "EVRO-Wrapped XDAI", "Invalid Trove Name");
         assertEq(troveNFTWXDAI.symbol(), "EVRO_WXDAI", "Invalid Trove Symbol");
 
-        assertEq(troveNFTGNO.name(), "EVRO- GNO", "Invalid Trove Name");
+        assertEq(troveNFTGNO.name(), "EVRO-GNO", "Invalid Trove Name");
         assertEq(troveNFTGNO.symbol(), "EVRO_GNO", "Invalid Trove Symbol");
 
-        assertEq(troveNFTSDAI.name(), "EVRO- Savings DAI", "Invalid Trove Name");
+        assertEq(troveNFTSDAI.name(), "EVRO-Savings DAI", "Invalid Trove Name");
         assertEq(troveNFTSDAI.symbol(), "EVRO_sDAI", "Invalid Trove Symbol");
     }
 

@@ -38,7 +38,7 @@ import {
     MAX_ANNUAL_INTEREST_RATE,
     MIN_ANNUAL_INTEREST_RATE,
     MIN_ANNUAL_INTEREST_RATE,
-    MIN_BOLD_IN_SP,
+    MIN_EVRO_IN_SP,
     MIN_DEBT,
     MIN_INTEREST_RATE_CHANGE_PERIOD,
     ONE_MINUTE,
@@ -1748,9 +1748,9 @@ contract InvariantsTestHandler is Assertions, BaseHandler, BaseMultiCollateralTe
             assertGtDecimal(v.initialEvroDeposit, 0, 18, "Should have failed as user had zero deposit");
             assertGeDecimal(
                 v.totalEvroDeposits + v.evroYield,
-                v.evroClaimed + v.withdrawn + MIN_BOLD_IN_SP,
+                v.evroClaimed + v.withdrawn + MIN_EVRO_IN_SP,
                 18,
-                "Should have failed as withdrawal left less than MIN_BOLD_IN_SP"
+                "Should have failed as withdrawal left less than MIN_EVRO_IN_SP"
             );
 
             // Effects (deposit)
@@ -1782,12 +1782,12 @@ contract InvariantsTestHandler is Assertions, BaseHandler, BaseMultiCollateralTe
             // Justify failures
             if (reason.equals("StabilityPool: User must have a non-zero deposit")) {
                 assertEqDecimal(v.initialEvroDeposit, 0, 18, "Shouldn't have failed as user had a non-zero deposit");
-            } else if (reason.equals("Withdrawal must leave totalEvroDeposits >= MIN_BOLD_IN_SP")) {
+            } else if (reason.equals("Withdrawal must leave totalEvroDeposits >= MIN_EVRO_IN_SP")) {
                 assertLtDecimal(
                     v.totalEvroDeposits + v.evroYield,
-                    v.evroClaimed + v.withdrawn + MIN_BOLD_IN_SP,
+                    v.evroClaimed + v.withdrawn + MIN_EVRO_IN_SP,
                     18,
-                    "Shouldn't have failed as withdrawal left more than MIN_BOLD_IN_SP"
+                    "Shouldn't have failed as withdrawal left more than MIN_EVRO_IN_SP"
                 );
             } else {
                 revert(reason);
@@ -2661,7 +2661,7 @@ contract InvariantsTestHandler is Assertions, BaseHandler, BaseMultiCollateralTe
     function _aggregateLiquidation(uint256 i, LatestTroveData memory trove, LiquidationTotals storage t) internal {
         // Offset debt by SP
         uint256 spRemaining = spEvroDeposits[i] - t.spOffset;
-        uint256 spOffset = Math.min(trove.entireDebt, spRemaining > MIN_BOLD_IN_SP ? spRemaining - MIN_BOLD_IN_SP : 0);
+        uint256 spOffset = Math.min(trove.entireDebt, spRemaining > MIN_EVRO_IN_SP ? spRemaining - MIN_EVRO_IN_SP : 0);
         t.spOffset += spOffset;
 
         // Share coll proportionally between SP and redistribution based on offset fraction
