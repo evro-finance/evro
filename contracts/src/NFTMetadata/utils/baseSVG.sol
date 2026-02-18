@@ -10,6 +10,8 @@ library baseSVG {
     string constant LEXEND = 'style="font-family: Lexend" ';
     string constant DARK_BLUE = "#2C1F2B";
     string constant STOIC_WHITE = "#DEE4FB";
+    string constant LABEL_GREY = "#9E9E9E";
+    string constant BROWN = "#EFA960";
 
 
     function _svgProps() internal pure returns (string memory) {
@@ -88,9 +90,9 @@ library baseSVG {
                     svg.prop("x", "16"),
                     svg.prop("y", "358"),
                     svg.prop("font-size", "14"),
-                    svg.prop("fill", "white")
+                    svg.prop("fill", LABEL_GREY)
                 ),
-                "Collateral"
+                "COLLATERAL"
             ),
             svg.text(
                 string.concat(
@@ -98,9 +100,9 @@ library baseSVG {
                     svg.prop("x", "16"),
                     svg.prop("y", "389"),
                     svg.prop("font-size", "14"),
-                    svg.prop("fill", "white")
+                    svg.prop("fill", LABEL_GREY)
                 ),
-                "Debt"
+                "DEBT"
             ),
             svg.text(
                 string.concat(
@@ -108,9 +110,9 @@ library baseSVG {
                     svg.prop("x", "16"),
                     svg.prop("y", "420"),
                     svg.prop("font-size", "14"),
-                    svg.prop("fill", "white")
+                    svg.prop("fill", LABEL_GREY)
                 ),
-                "Interest Rate"
+                "INTEREST RATE"
             ),
             svg.text(
                 string.concat(
@@ -128,9 +130,9 @@ library baseSVG {
                     svg.prop("x", "16"),
                     svg.prop("y", "462"),
                     svg.prop("font-size", "14"),
-                    svg.prop("fill", "white")
+                    svg.prop("fill", LABEL_GREY)
                 ),
-                "Owner"
+                "OWNER"
             )
         );
     }
@@ -171,7 +173,7 @@ library baseSVG {
                 svg.prop("x", "284"),
                 svg.prop("y", "462"),
                 svg.prop("font-size", "14"),
-                svg.prop("fill", "white")
+                svg.prop("fill", BROWN)
             ),
             string.concat(
                 LibString.slice(LibString.toHexStringChecksummed(_address), 0, 6),
@@ -202,7 +204,7 @@ library baseSVG {
     function _statusEl(string memory _status) internal pure returns (string memory) {
         return svg.text(
             string.concat(
-                LEXEND, svg.prop("x", "40"), svg.prop("y", "33"), svg.prop("font-size", "14"), svg.prop("fill", "white")
+                OSWALD, svg.prop("x", "40"), svg.prop("y", "33"), svg.prop("font-size", "14"), svg.prop("fill", "white")
             ),
             _status
         );

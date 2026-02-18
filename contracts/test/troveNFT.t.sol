@@ -10,15 +10,21 @@ import "src/CoGNO.sol";
 import "lib/Solady/src/utils/Base64.sol";
 
 contract troveNFTTest is DevTestSetup {
-    uint256 NUM_COLLATERALS = 3;
+    uint256 NUM_COLLATERALS = 6;
     uint256 NUM_VARIANTS = 4;
     TestDeployer.LiquityContractsDev[] public contractsArray;
     TroveNFT troveNFTWXDAI;
     TroveNFT troveNFTGNO;
     TroveNFT troveNFTSDAI;
+    TroveNFT troveNFTWBTC;
+    TroveNFT troveNFTOsGNO;
+    TroveNFT troveNFTWstETH;
     uint256[] troveIds;
     uint256[] gnoTroveIds;
     uint256[] sdaiTroveIds;
+    uint256[] wbtcTroveIds;
+    uint256[] osgnoTroveIds;
+    uint256[] wstethTroveIds;
 
     function openMulticollateralTroveNoHints100pctWithIndex(
         uint256 _collIndex,
@@ -76,6 +82,9 @@ contract troveNFTTest is DevTestSetup {
         troveManagerParamsArray[0] = TestDeployer.TroveManagerParams(150e16, 110e16, 10e16, 110e16, 5e16, 10e16);
         troveManagerParamsArray[1] = TestDeployer.TroveManagerParams(160e16, 120e16, 10e16, 120e16, 5e16, 10e16);
         troveManagerParamsArray[2] = TestDeployer.TroveManagerParams(160e16, 120e16, 10e16, 120e16, 5e16, 10e16);
+        troveManagerParamsArray[3] = TestDeployer.TroveManagerParams(150e16, 110e16, 10e16, 110e16, 5e16, 10e16);
+        troveManagerParamsArray[4] = TestDeployer.TroveManagerParams(160e16, 120e16, 10e16, 120e16, 5e16, 10e16);
+        troveManagerParamsArray[5] = TestDeployer.TroveManagerParams(150e16, 110e16, 10e16, 110e16, 5e16, 10e16);
 
         TestDeployer deployer = new TestDeployer();
         TestDeployer.LiquityContractsDev[] memory _contractsArray;
@@ -116,6 +125,9 @@ contract troveNFTTest is DevTestSetup {
         troveIds = new uint256[](NUM_VARIANTS);
         gnoTroveIds = new uint256[](NUM_VARIANTS);
         sdaiTroveIds = new uint256[](NUM_VARIANTS);
+        wbtcTroveIds = new uint256[](NUM_VARIANTS);
+        osgnoTroveIds = new uint256[](NUM_VARIANTS);
+        wstethTroveIds = new uint256[](NUM_VARIANTS);
 
         // 0 = WXDAI
         troveIds[0] = openMulticollateralTroveNoHints100pctWithIndex(0, A, 0, 10e18, 10000e18, 5e16);
@@ -135,9 +147,30 @@ contract troveNFTTest is DevTestSetup {
         sdaiTroveIds[2] = openMulticollateralTroveNoHints100pctWithIndex(2, A, 2, 100e18, 10000e18, 5e16);
         sdaiTroveIds[3] = openMulticollateralTroveNoHints100pctWithIndex(2, A, 10, 100e18, 10000e18, 5e16);
 
-        troveNFTWXDAI = TroveNFT(address(contractsArray[0].troveManager.troveNFT()));
-        troveNFTGNO = TroveNFT(address(contractsArray[1].troveManager.troveNFT()));
-        troveNFTSDAI = TroveNFT(address(contractsArray[2].troveManager.troveNFT()));
+        // 3 = wWBTC
+        wbtcTroveIds[0] = openMulticollateralTroveNoHints100pctWithIndex(3, A, 0, 100e18, 10000e18, 5e16);
+        wbtcTroveIds[1] = openMulticollateralTroveNoHints100pctWithIndex(3, A, 1, 100e18, 10000e18, 5e16);
+        wbtcTroveIds[2] = openMulticollateralTroveNoHints100pctWithIndex(3, A, 2, 100e18, 10000e18, 5e16);
+        wbtcTroveIds[3] = openMulticollateralTroveNoHints100pctWithIndex(3, A, 10, 100e18, 10000e18, 5e16);
+
+        // 4 = osGNO
+        osgnoTroveIds[0] = openMulticollateralTroveNoHints100pctWithIndex(4, A, 0, 100e18, 10000e18, 5e16);
+        osgnoTroveIds[1] = openMulticollateralTroveNoHints100pctWithIndex(4, A, 1, 100e18, 10000e18, 5e16);
+        osgnoTroveIds[2] = openMulticollateralTroveNoHints100pctWithIndex(4, A, 2, 100e18, 10000e18, 5e16);
+        osgnoTroveIds[3] = openMulticollateralTroveNoHints100pctWithIndex(4, A, 10, 100e18, 10000e18, 5e16);
+
+        // 5 = wstETH
+        wstethTroveIds[0] = openMulticollateralTroveNoHints100pctWithIndex(5, A, 0, 100e18, 10000e18, 5e16);
+        wstethTroveIds[1] = openMulticollateralTroveNoHints100pctWithIndex(5, A, 1, 100e18, 10000e18, 5e16);
+        wstethTroveIds[2] = openMulticollateralTroveNoHints100pctWithIndex(5, A, 2, 100e18, 10000e18, 5e16);
+        wstethTroveIds[3] = openMulticollateralTroveNoHints100pctWithIndex(5, A, 10, 100e18, 10000e18, 5e16);
+
+        troveNFTWXDAI  = TroveNFT(address(contractsArray[0].troveManager.troveNFT()));
+        troveNFTGNO    = TroveNFT(address(contractsArray[1].troveManager.troveNFT()));
+        troveNFTSDAI   = TroveNFT(address(contractsArray[2].troveManager.troveNFT()));
+        troveNFTWBTC   = TroveNFT(address(contractsArray[3].troveManager.troveNFT()));
+        troveNFTOsGNO  = TroveNFT(address(contractsArray[4].troveManager.troveNFT()));
+        troveNFTWstETH = TroveNFT(address(contractsArray[5].troveManager.troveNFT()));
     }
 
     function testTroveNFTMetadata() public view {
@@ -189,9 +222,12 @@ contract troveNFTTest is DevTestSetup {
         redeem(A, 30000e18);
 
         for (uint256 i = 0; i < NUM_VARIANTS; i++) {
-            uris[i] = troveNFTWXDAI.tokenURI(troveIds[i]);
-            uris[i + NUM_VARIANTS] = troveNFTGNO.tokenURI(gnoTroveIds[i]);
-            uris[i + (NUM_VARIANTS * 2)] = troveNFTSDAI.tokenURI(sdaiTroveIds[i]);
+            uris[i]                    = troveNFTWXDAI.tokenURI(troveIds[i]);
+            uris[i + NUM_VARIANTS]     = troveNFTGNO.tokenURI(gnoTroveIds[i]);
+            uris[i + NUM_VARIANTS * 2] = troveNFTSDAI.tokenURI(sdaiTroveIds[i]);
+            uris[i + NUM_VARIANTS * 3] = troveNFTWBTC.tokenURI(wbtcTroveIds[i]);
+            uris[i + NUM_VARIANTS * 4] = troveNFTOsGNO.tokenURI(osgnoTroveIds[i]);
+            uris[i + NUM_VARIANTS * 5] = troveNFTWstETH.tokenURI(wstethTroveIds[i]);
         }
 
         _writeUriFile(uris);
