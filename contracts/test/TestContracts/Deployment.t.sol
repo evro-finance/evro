@@ -39,6 +39,7 @@ import "src/Zappers/Modules/Exchanges/UniV3Exchange.sol";
 import "src/Zappers/Modules/Exchanges/UniswapV3/INonfungiblePositionManager.sol";
 import "src/Zappers/Modules/Exchanges/HybridCurveUniV3Exchange.sol";
 import {WETHTester} from "./WETHTester.sol";
+import {WXDAITester} from "./WXDAITester.sol";
 import {ERC20Faucet} from "./ERC20Faucet.sol";
 
 import "src/PriceFeeds/WETHPriceFeed.sol";
@@ -270,7 +271,7 @@ contract TestDeployer is MetadataDeployment {
         )
     {
         // used for gas compensation and as collateral of the first branch
-        WETH = new WETHTester(
+        WETH = new WXDAITester(
             100 ether, //     _tapAmount
             1 days //         _tapPeriod
         );
@@ -279,15 +280,19 @@ contract TestDeployer is MetadataDeployment {
     }
 
     function _nameToken(uint256 _index) internal pure returns (string memory) {
-        if (_index == 1) return "Wrapped Staked Ether";
-        if (_index == 2) return "Rocket Pool ETH";
-        return "LST Tester";
+        if (_index == 1) return "GNO";
+        if (_index == 2) return "Savings DAI";
+        if (_index == 3) return "Wrapped BTC";
+        if (_index == 4) return "Origin GNO";
+        return "Wrapped Staked Ether";
     }
 
     function _symboltoken(uint256 _index) internal pure returns (string memory) {
-        if (_index == 1) return "wstETH";
-        if (_index == 2) return "rETH";
-        return "LST";
+        if (_index == 1) return "GNO";
+        if (_index == 2) return "sDAI";
+        if (_index == 3) return "wWBTC";
+        if (_index == 4) return "osGNO";
+        return "wstETH";
     }
 
     function deployAndConnectContractsWithWBTC(
