@@ -4,8 +4,5 @@
   "solidity.compileUsingRemoteVersion": "v0.8.24+commit.e11b9ed9",
   "[json]": {
     "editor.defaultFormatter": "vscode.json-language-features"
-  },
-  "[solidity]": {
-    "editor.defaultFormatter": "JuanBlanco.solidity"
   }
 }

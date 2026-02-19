@@ -15,18 +15,7 @@ import "./Dependencies/Ownable.sol";
 
 contract CollateralRegistry is ICollateralRegistry, Ownable {
     // See: https://github.com/ethereum/solidity/issues/12587
-    // uint256 public immutable totalCollaterals;
 
-    // IERC20Metadata internal immutable token0;
-    // IERC20Metadata internal immutable token1;
-    // IERC20Metadata internal immutable token2;
-    // IERC20Metadata internal immutable token3;
-    // IERC20Metadata internal immutable token4;
-    // IERC20Metadata internal immutable token5;
-    // IERC20Metadata internal immutable token6;
-    // IERC20Metadata internal immutable token7;
-    // IERC20Metadata internal immutable token8;
-    // IERC20Metadata internal immutable token9;
     IERC20Metadata[] public tokens;
     ITroveManager[] public troveManagers;
 
@@ -54,28 +43,6 @@ contract CollateralRegistry is ICollateralRegistry, Ownable {
         // totalCollaterals = numTokens;
 
         evroToken = _evroToken;
-
-        // token0 = _tokens[0];
-        // token1 = numTokens > 1 ? _tokens[1] : IERC20Metadata(address(0));
-        // token2 = numTokens > 2 ? _tokens[2] : IERC20Metadata(address(0));
-        // token3 = numTokens > 3 ? _tokens[3] : IERC20Metadata(address(0));
-        // token4 = numTokens > 4 ? _tokens[4] : IERC20Metadata(address(0));
-        // token5 = numTokens > 5 ? _tokens[5] : IERC20Metadata(address(0));
-        // token6 = numTokens > 6 ? _tokens[6] : IERC20Metadata(address(0));
-        // token7 = numTokens > 7 ? _tokens[7] : IERC20Metadata(address(0));
-        // token8 = numTokens > 8 ? _tokens[8] : IERC20Metadata(address(0));
-        // token9 = numTokens > 9 ? _tokens[9] : IERC20Metadata(address(0));
-
-        // troveManager0 = _troveManagers[0];
-        // troveManager1 = numTokens > 1 ? _troveManagers[1] : ITroveManager(address(0));
-        // troveManager2 = numTokens > 2 ? _troveManagers[2] : ITroveManager(address(0));
-        // troveManager3 = numTokens > 3 ? _troveManagers[3] : ITroveManager(address(0));
-        // troveManager4 = numTokens > 4 ? _troveManagers[4] : ITroveManager(address(0));
-        // troveManager5 = numTokens > 5 ? _troveManagers[5] : ITroveManager(address(0));
-        // troveManager6 = numTokens > 6 ? _troveManagers[6] : ITroveManager(address(0));
-        // troveManager7 = numTokens > 7 ? _troveManagers[7] : ITroveManager(address(0));
-        // troveManager8 = numTokens > 8 ? _troveManagers[8] : ITroveManager(address(0));
-        // troveManager9 = numTokens > 9 ? _troveManagers[9] : ITroveManager(address(0));
 
         for (uint256 i = 0; i < numTokens; i++) {
             tokens.push(_tokens[i]);
@@ -306,14 +273,12 @@ contract CollateralRegistry is ICollateralRegistry, Ownable {
         require(_amount > 0, "CollateralRegistry: Amount must be greater than zero");
     }
 
-      /*
+    /*
     @notice Creates a new branch for the collateral registry
     @param _token The collateral token for the new branch
     @param _troveManager The trove manager for the new branch
-    @param _isRedeemable Whether the new branch is redeemable
 
-    @dev If the new branch is redeemable, it will be added to the redeemable branches array, but only 10 are allowed
-    Alos, make sure that is doesnt already exist. Do not add a new branch using an existing known trove manager. Governor is exxpected to be trusted on this.
+    @dev only 10 branches in total are allowed.  so choose wisely.  duplicate branches will revert
     */
     function createNewBranch(IERC20Metadata _token, ITroveManager _troveManager) external {
         require(msg.sender == collateralGovernor, "CR: Only collateral governor can create new branches");
@@ -333,7 +298,7 @@ contract CollateralRegistry is ICollateralRegistry, Ownable {
 
         require(tokens.length < 10, "CR: Max 10 redeemable branches");
         require(troveManagers.length < 10, "CR: Max 10 trove managers");
-        
+
         for (uint256 i = 0; i < tokens.length; i++) {
             require(address(tokens[i]) != address(_token), "CR: Token already exists");
         }

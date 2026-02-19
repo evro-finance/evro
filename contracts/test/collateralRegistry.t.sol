@@ -322,6 +322,7 @@ contract CollateralRegistryTest is DevTestSetup {
         vm.stopPrank();
 
         assertGt(token.balanceOf(E), collBalanceBefore, "redeemer should receive new branch collateral");
+        assertLt(evroToken.balanceOf(E), evroBalance, "redeemer should receive less EVRO after redemption");
     }
 
     // =========================================================================
