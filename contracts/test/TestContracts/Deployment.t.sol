@@ -356,7 +356,7 @@ contract TestDeployer is MetadataDeployment {
             vars.troveManagers[vars.i] = ITroveManager(troveManagerAddress);
         }
 
-        collateralRegistry = new CollateralRegistry(evroToken, vars.collaterals, vars.troveManagers);
+        collateralRegistry = new CollateralRegistry(evroToken, vars.collaterals, vars.troveManagers, msg.sender, msg.sender);
         hintHelpers = new HintHelpers(collateralRegistry);
         multiTroveGetter = new MultiTroveGetter(collateralRegistry);
         (contractsArray[0], zappersArray[0]) = _deployAndConnectCollateralContractsDev(
@@ -432,7 +432,7 @@ contract TestDeployer is MetadataDeployment {
             vars.troveManagers[vars.i] = ITroveManager(troveManagerAddress);
         }
 
-        collateralRegistry = new CollateralRegistry(evroToken, vars.collaterals, vars.troveManagers);
+        collateralRegistry = new CollateralRegistry(evroToken, vars.collaterals, vars.troveManagers, msg.sender, msg.sender);
         hintHelpers = new HintHelpers(collateralRegistry);
         multiTroveGetter = new MultiTroveGetter(collateralRegistry);
 
@@ -659,7 +659,7 @@ contract TestDeployer is MetadataDeployment {
         vars.troveManagers[2] = ITroveManager(troveManagerAddress);
 
         // Deploy registry and register the TMs
-        result.collateralRegistry = new CollateralRegistryTester(result.evroToken, vars.collaterals, vars.troveManagers);
+        result.collateralRegistry = new CollateralRegistryTester(result.evroToken, vars.collaterals, vars.troveManagers, msg.sender, msg.sender);
 
         result.hintHelpers = new HintHelpers(result.collateralRegistry);
         result.multiTroveGetter = new MultiTroveGetter(result.collateralRegistry);

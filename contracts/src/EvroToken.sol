@@ -128,4 +128,26 @@ contract EvroToken is Ownable, IEvroToken, ERC20Permit {
     function _requireCallerIsStabilityPool() internal view {
         require(stabilityPoolAddresses[msg.sender], "EvroToken: Caller is not the StabilityPool");
     }
+
+    function addCollateralBranch(
+                address _troveManagerAddress,
+        address _stabilityPoolAddress,
+        address _borrowerOperationsAddress,
+        address _activePoolAddress
+    ) external {
+        
+        require(msg.sender == collateralRegistryAddress, "EvroToken: Caller is not the CollateralRegistry");
+
+        troveManagerAddresses[_troveManagerAddress] = true;
+        emit TroveManagerAddressAdded(_troveManagerAddress);
+
+        stabilityPoolAddresses[_stabilityPoolAddress] = true;
+        emit StabilityPoolAddressAdded(_stabilityPoolAddress);
+
+        borrowerOperationsAddresses[_borrowerOperationsAddress] = true;
+        emit BorrowerOperationsAddressAdded(_borrowerOperationsAddress);
+
+        activePoolAddresses[_activePoolAddress] = true;
+        emit ActivePoolAddressAdded(_activePoolAddress);
+    }
 }
