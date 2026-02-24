@@ -36,6 +36,7 @@ contract CollateralRegistry is ICollateralRegistry, Ownable {
         require(_tokens.length > 0, "Collateral list cannot be empty");
         require(_troveManagers.length > 0, "Trove manager list cannot be empty");
         require(_collateralGovernor != address(0), "Collateral governor cannot be zero address");
+        require(_governor != address(0), "Governor cannot be zero address");
 
         uint256 numTokens = _tokens.length;
         require(numTokens > 0, "Collateral list cannot be empty");
@@ -314,6 +315,7 @@ contract CollateralRegistry is ICollateralRegistry, Ownable {
     }
 
     function updateCollateralGovernor(address _newCollateralGovernor) external onlyOwner{
+        require(_newCollateralGovernor != address(0), "CR: New collateral governor cannot be the zero address");
         collateralGovernor = _newCollateralGovernor;
         emit CollateralGovernorUpdated(_newCollateralGovernor);
     }
