@@ -13,6 +13,7 @@ fs_permissions = [
     { access = "read", path = "./utils/assets/" },
     { access = "read-write", path = "./utils/assets/test_output" },
     { access = "read-write", path = "./deployment-manifest.json" },
+    { access = "read-write", path = "./recovery-results.json" },
     { access = "read", path = "./addresses/" },
     { access = "read", path = "./" }
 ]
