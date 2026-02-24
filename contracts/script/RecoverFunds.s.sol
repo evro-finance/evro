@@ -19,6 +19,14 @@ import {
     MIN_DEBT, DECIMAL_PRECISION
 } from "src/Dependencies/Constants.sol";
 
+interface IWETHZapper {
+    function withdrawCollToRawETH(uint256 _troveId, uint256 _amount) external;
+}
+
+interface IGasCompZapper {
+    function withdrawColl(uint256 _troveId, uint256 _amount) external;
+}
+
 struct BranchInfo {
     string collSymbol;
     address stabilityPool;
@@ -26,6 +34,8 @@ struct BranchInfo {
     address borrowerOperations;
     address troveNFT;
     address priceFeed;
+    address wethZapper;
+    address gasCompZapper;
     uint256 ccr;
     uint256 scr;
 }
@@ -44,7 +54,7 @@ contract RecoverFundsScript is Script {
 
     // Deployment file path
     string constant DEPLOYMENT_FILE = "gnosis-deployment-v1.json";
-    string constant OUTPUT_FILE = "contracts/recovery-results.json";
+    string constant OUTPUT_FILE = "recovery-results.json";
     
     // Branch indices with open troves (WXDAI, GNO, sDAI)
     uint256[] troveBranchIndices = [0, 1, 2]; // WXDAI, GNO, sDAI
@@ -277,7 +287,18 @@ contract RecoverFundsScript is Script {
                 console2.log("  Withdrawing:", withdrawDisplay / 100, ".", withdrawDisplay % 100);
                 console2.log("  TX: withdrawColl on", branch.collSymbol, "trove", troveId);
                 
-                bo.withdrawColl(troveId, withdrawAmount);
+                // Use appropriate withdrawal method based on branch
+                if (branch.wethZapper != address(0)) {
+                    // WXDAI branch - use WETHZapper
+                    IWETHZapper(branch.wethZapper).withdrawCollToRawETH(troveId, withdrawAmount);
+                } else if (branch.gasCompZapper != address(0)) {
+                    // GNO/osGNO/sDAI branches - use GasCompZapper
+                    IGasCompZapper(branch.gasCompZapper).withdrawColl(troveId, withdrawAmount);
+                } else {
+                    // Regular withdrawal (wWBTC, wstETH, etc)
+                    bo.withdrawColl(troveId, withdrawAmount);
+                }
+                
                 console2.log("  Withdrawal successful");
                 console2.log("");
                 
@@ -309,6 +330,8 @@ contract RecoverFundsScript is Script {
         branch.borrowerOperations = vm.parseJsonAddress(deploymentJson, string.concat(branchPath, ".borrowerOperations"));
         branch.troveNFT = vm.parseJsonAddress(deploymentJson, string.concat(branchPath, ".troveNFT"));
         branch.priceFeed = vm.parseJsonAddress(deploymentJson, string.concat(branchPath, ".priceFeed"));
+        branch.wethZapper = vm.parseJsonAddress(deploymentJson, string.concat(branchPath, ".wethZapper"));
+        branch.gasCompZapper = vm.parseJsonAddress(deploymentJson, string.concat(branchPath, ".gasCompZapper"));
         
         // Set CCR and SCR based on collateral type
         if (keccak256(bytes(branch.collSymbol)) == keccak256(bytes("WXDAI"))) {

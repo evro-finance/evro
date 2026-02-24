@@ -1,0 +1,62 @@
+{
+    "deployer": "0x09D5Bd4a4f1dA1A965fE24EA54bce3d37661E056",
+    "timestamp": "1771970485",
+    "totalEvroRecovered": "114000000000000000000",
+    "spWithdrawalCount": 6,
+    "troveWithdrawalCount": 3,
+    "spWithdrawals": [
+        {
+            "branch": "WXDAI",
+            "pool": "0xC1566799ddd9664207EA9E607813bC48D03F8dEa",
+            "amount": "19000000000000000000"
+        },
+        {
+            "branch": "GNO",
+            "pool": "0x81BFDb38F437A0c20070256D7C19F8Cf20A26de1",
+            "amount": "19000000000000000000"
+        },
+        {
+            "branch": "sDAI",
+            "pool": "0x340ef18e50984B82640d69b6b06aF86E3f6f1f6E",
+            "amount": "19000000000000000000"
+        },
+        {
+            "branch": "wWBTC",
+            "pool": "0x4502BA4e4d09cA1A65E2f4AA95111eD322EA5085",
+            "amount": "19000000000000000000"
+        },
+        {
+            "branch": "osGNO",
+            "pool": "0xd09505EeA1E3613e89628C22c184e6847430C18a",
+            "amount": "19000000000000000000"
+        },
+        {
+            "branch": "wstETH",
+            "pool": "0xde2e90047E2b8b8355305233FdCeA0c95F546C82",
+            "amount": "19000000000000000000"
+        }
+    ],
+    "troveWithdrawals": [
+        {
+            "branch": "WXDAI",
+            "troveId": "100720499990859913759626226721235127574922345158207643347086497804012622629549",
+            "amount": "42172446328658285132",
+            "remainingColl": "354327553671341714868",
+            "targetCR": "150"
+        },
+        {
+            "branch": "GNO",
+            "troveId": "68935444862134280974422941262044780337742151103896206120753910235561102633376",
+            "amount": "775675677850149091",
+            "remainingColl": "3224324322149850909",
+            "targetCR": "165"
+        },
+        {
+            "branch": "sDAI",
+            "troveId": "12143259174366024529922558994427140534397299657491541086796734917898831179944",
+            "amount": "57638185141151874042",
+            "remainingColl": "322361814858848125958",
+            "targetCR": "160"
+        }
+    ]
+}
