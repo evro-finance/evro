@@ -994,7 +994,7 @@ contract ZapperWBTCTest is DevTestSetup {
     function testExcessRepaymentByAdjustGoesBackToUser() external {
         uint256 wwbtcAmount = 10 ether;
         uint256 wbtcAmount = wwbtcAmount / 1e10;
-        uint256 evroAmount = 10000e18;
+        uint256 evroAmount = 1000e18;  // Changed from 10000e18 to work with MIN_DEBT=200
 
         IZapper.OpenTroveParams memory params = IZapper.OpenTroveParams({
             owner: A,
@@ -1019,10 +1019,10 @@ contract ZapperWBTCTest is DevTestSetup {
         uint256 collBalanceBefore = WETH.balanceOf(A);
         uint256 evroDebtBefore = troveManager.getTroveEntireDebt(troveId);
 
-        // Adjust trove: remove 1 wWBTC and try to repay 9k (only will repay ~8k, up to MIN_DEBT)
+        // Adjust trove: remove 1 wWBTC and try to repay 900 (only will repay ~800, down to MIN_DEBT)
         vm.startPrank(A);
         evroToken.approve(address(wbtcZapper), type(uint256).max);
-        wbtcZapper.adjustTroveWithWBTC(troveId, 1 ether, false, 9000e18, false, 0);
+        wbtcZapper.adjustTroveWithWBTC(troveId, 1 ether, false, 900e18, false, 0);  // Changed from 9000e18
         vm.stopPrank();
 
         assertEq(evroToken.balanceOf(A), evroAmount + MIN_DEBT - evroDebtBefore, "BOLD bal mismatch");
@@ -1036,7 +1036,7 @@ contract ZapperWBTCTest is DevTestSetup {
     function testExcessRepaymentByRepayGoesBackToUser() external {
         uint256 wwbtcAmount = 10 ether;
         uint256 wbtcAmount = wwbtcAmount / 1e10;
-        uint256 evroAmount = 10000e18;
+        uint256 evroAmount = 1000e18;  // Changed from 10000e18 to work with MIN_DEBT=200
 
         IZapper.OpenTroveParams memory params = IZapper.OpenTroveParams({
             owner: A,
@@ -1060,10 +1060,10 @@ contract ZapperWBTCTest is DevTestSetup {
         uint256 evroDebtBefore = troveManager.getTroveEntireDebt(troveId);
         uint256 collBalanceBefore = WETH.balanceOf(A);
 
-        // Adjust trove: try to repay 9k (only will repay ~8k, up to MIN_DEBT)
+        // Adjust trove: try to repay 900 (only will repay ~800, down to MIN_DEBT)
         vm.startPrank(A);
         evroToken.approve(address(wbtcZapper), type(uint256).max);
-        wbtcZapper.repayEvro(troveId, 9000e18);
+        wbtcZapper.repayEvro(troveId, 900e18);  // Changed from 9000e18
         vm.stopPrank();
 
         assertEq(evroToken.balanceOf(A), evroAmount + MIN_DEBT - evroDebtBefore, "BOLD bal mismatch");

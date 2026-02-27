@@ -554,10 +554,30 @@ contract ZapperWETHTest is DevTestSetup {
     }
 
     function testCanAdjustZombieTroveWithdrawCollAndEvro() external {
-        uint256 ethAmount1 = 10 ether;
-        uint256 ethAmount2 = 1 ether;
-        uint256 evroAmount1 = 10000e18;
-        uint256 evroAmount2 = 1000e18;
+        // Open a healthy trove to keep TCR above CCR
+        vm.startPrank(B);
+        wethZapper.openTroveWithRawETH{value: 2 ether + ETH_GAS_COMPENSATION}(
+            IZapper.OpenTroveParams({
+                owner: B,
+                ownerIndex: 0,
+                collAmount: 0,
+                evroAmount: 2000e18,
+                upperHint: 0,
+                lowerHint: 0,
+                annualInterestRate: MIN_ANNUAL_INTEREST_RATE,
+                batchManager: address(0),
+                maxUpfrontFee: 1000e18,
+                addManager: address(0),
+                removeManager: address(0),
+                receiver: address(0)
+            })
+        );
+        vm.stopPrank();
+
+        uint256 ethAmount1 = 0.6 ether;
+        uint256 ethAmount2 = 0.05 ether;
+        uint256 evroAmount1 = 1000e18;
+        uint256 evroAmount2 = 100e18;  // Leave 100 EVRO (below MIN_DEBT of 200)
 
         IZapper.OpenTroveParams memory params = IZapper.OpenTroveParams({
             owner: A,
@@ -601,7 +621,7 @@ contract ZapperWETHTest is DevTestSetup {
         assertApproxEqAbs(troveManager.getTroveEntireDebt(troveId), 2 * evroAmount2, 2e18, "Trove  debt mismatch");
         assertEq(evroToken.balanceOf(A), evroBalanceBeforeA + evroAmount2, "A BOLD bal mismatch");
         assertEq(A.balance, ethBalanceBeforeA + ethAmount2, "A ETH bal mismatch");
-        assertEq(evroToken.balanceOf(B), 0, "B BOLD bal mismatch");
+        assertEq(evroToken.balanceOf(B), 2000e18, "B BOLD bal mismatch");  // B still has initial 2000 EVRO
         assertEq(B.balance, ethBalanceBeforeB, "B ETH bal mismatch");
     }
 
@@ -649,11 +669,31 @@ contract ZapperWETHTest is DevTestSetup {
     }
 
     function testCanAdjustZombieTroveAddCollAndWithdrawEvro() external {
+        // Open a healthy trove to keep TCR above CCR
+        vm.startPrank(B);
+        wethZapper.openTroveWithRawETH{value: 2 ether + ETH_GAS_COMPENSATION}(
+            IZapper.OpenTroveParams({
+                owner: B,
+                ownerIndex: 0,
+                collAmount: 0,
+                evroAmount: 2000e18,
+                upperHint: 0,
+                lowerHint: 0,
+                annualInterestRate: MIN_ANNUAL_INTEREST_RATE,
+                batchManager: address(0),
+                maxUpfrontFee: 1000e18,
+                addManager: address(0),
+                removeManager: address(0),
+                receiver: address(0)
+            })
+        );
+        vm.stopPrank();
+
         IZapper.OpenTroveParams memory params = IZapper.OpenTroveParams({
             owner: A,
             ownerIndex: 0,
             collAmount: 0, // not needed
-            evroAmount: 10000e18,
+            evroAmount: 1000e18,
             upperHint: 0,
             lowerHint: 0,
             annualInterestRate: MIN_ANNUAL_INTEREST_RATE,
@@ -664,7 +704,7 @@ contract ZapperWETHTest is DevTestSetup {
             receiver: address(0)
         });
         vm.startPrank(A);
-        uint256 troveId = wethZapper.openTroveWithRawETH{value: 10 ether + ETH_GAS_COMPENSATION}(params);
+        uint256 troveId = wethZapper.openTroveWithRawETH{value: 0.6 ether + ETH_GAS_COMPENSATION}(params);
         vm.stopPrank();
 
         // Add a remove manager for the zapper
@@ -672,12 +712,12 @@ contract ZapperWETHTest is DevTestSetup {
         wethZapper.setRemoveManagerWithReceiver(troveId, B, A);
         vm.stopPrank();
 
-        uint256 ethAmount2 = 1 ether;
-        uint256 evroAmount2 = 1000e18;
+        uint256 ethAmount2 = 0.05 ether;
+        uint256 evroAmount2 = 100e18;
 
-        // Redeem to make trove zombie
+        // Redeem to make trove zombie (below MIN_DEBT)
         vm.startPrank(A);
-        collateralRegistry.redeemCollateral(10000e18 - evroAmount2, 10, 1e18);
+        collateralRegistry.redeemCollateral(900e18, 10, 1e18);  // Leave ~100 EVRO
         vm.stopPrank();
 
         uint256 troveCollBefore = troveManager.getTroveEntireColl(troveId);
@@ -696,7 +736,7 @@ contract ZapperWETHTest is DevTestSetup {
         assertApproxEqAbs(troveManager.getTroveEntireDebt(troveId), 2 * evroAmount2, 2e18, "Trove  debt mismatch");
         assertEq(evroToken.balanceOf(A), evroBalanceBeforeA + evroAmount2, "A BOLD bal mismatch");
         assertEq(A.balance, ethBalanceBeforeA, "A ETH bal mismatch");
-        assertEq(evroToken.balanceOf(B), 0, "B BOLD bal mismatch");
+        assertEq(evroToken.balanceOf(B), 2000e18, "B BOLD bal mismatch");  // B still has initial 2000 EVRO
         assertEq(B.balance, ethBalanceBeforeB - ethAmount2, "B ETH bal mismatch");
     }
 
@@ -852,7 +892,7 @@ contract ZapperWETHTest is DevTestSetup {
 
     function testExcessRepaymentByAdjustGoesBackToUser() external {
         uint256 ethAmount = 10 ether;
-        uint256 evroAmount = 10000e18;
+        uint256 evroAmount = 1000e18;  // Changed from 10000e18 to work with MIN_DEBT=200
 
         IZapper.OpenTroveParams memory params = IZapper.OpenTroveParams({
             owner: A,
@@ -876,10 +916,10 @@ contract ZapperWETHTest is DevTestSetup {
         uint256 collBalanceBefore = WETH.balanceOf(A);
         uint256 evroDebtBefore = troveManager.getTroveEntireDebt(troveId);
 
-        // Adjust trove: remove 1 ETH and try to repay 9k (only will repay ~8k, up to MIN_DEBT)
+        // Adjust trove: remove 1 ETH and try to repay 900 (only will repay ~800, down to MIN_DEBT)
         vm.startPrank(A);
         evroToken.approve(address(wethZapper), type(uint256).max);
-        wethZapper.adjustTroveWithRawETH(troveId, 1 ether, false, 9000e18, false, 0);
+        wethZapper.adjustTroveWithRawETH(troveId, 1 ether, false, 900e18, false, 0);  // Changed from 9000e18
         vm.stopPrank();
 
         assertEq(evroToken.balanceOf(A), evroAmount + MIN_DEBT - evroDebtBefore, "BOLD bal mismatch");
@@ -892,7 +932,7 @@ contract ZapperWETHTest is DevTestSetup {
 
     function testExcessRepaymentByRepayGoesBackToUser() external {
         uint256 ethAmount = 10 ether;
-        uint256 evroAmount = 10000e18;
+        uint256 evroAmount = 1000e18;  // Changed from 10000e18 to work with MIN_DEBT=200
 
         IZapper.OpenTroveParams memory params = IZapper.OpenTroveParams({
             owner: A,
@@ -915,10 +955,10 @@ contract ZapperWETHTest is DevTestSetup {
         uint256 evroDebtBefore = troveManager.getTroveEntireDebt(troveId);
         uint256 collBalanceBefore = WETH.balanceOf(A);
 
-        // Adjust trove: try to repay 9k (only will repay ~8k, up to MIN_DEBT)
+        // Adjust trove: try to repay 900 (only will repay ~800, down to MIN_DEBT)
         vm.startPrank(A);
         evroToken.approve(address(wethZapper), type(uint256).max);
-        wethZapper.repayEvro(troveId, 9000e18);
+        wethZapper.repayEvro(troveId, 900e18);  // Changed from 9000e18
         vm.stopPrank();
 
         assertEq(evroToken.balanceOf(A), evroAmount + MIN_DEBT - evroDebtBefore, "BOLD bal mismatch");

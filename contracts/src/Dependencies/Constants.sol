@@ -17,6 +17,7 @@ uint256 constant MIN_LIQUIDATION_PENALTY_SP = 5e16; // 5%
 uint256 constant MAX_LIQUIDATION_PENALTY_REDISTRIBUTION = 20e16; // 20%
 
 // Collateral branch parameters (SETH = staked ETH, i.e. wstETH / rETH)
+// for the sake of being on gnosis, WETH == WXDAI
 uint256 constant CCR_WETH = 150 * _1pct;
 uint256 constant MCR_WETH = 110 * _1pct;
 uint256 constant SCR_WETH = 110 * _1pct;

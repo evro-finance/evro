@@ -501,9 +501,13 @@ contract Redemptions is DevTestSetup {
         // Check last Zombie trove pointer
         assertEq(troveManager.lastZombieTroveId(), troveIDs.B, "Wrong last zombie trove pointer before");
 
-        // Liquidate B
-        priceFeed.setPrice(priceFeed.getPrice() / 30);
-        liquidate(A, troveIDs.B);
+        // Open a new trove and provide SP liquidity for liquidation
+        openTroveNoHints100pct(F, 100 ether, 10000e18, 5e16);
+        makeSPDepositAndClaim(F, 5000e18);
+
+        // Liquidate B (more severe price drop for lower debt)
+        priceFeed.setPrice(1.2e18);
+        liquidate(F, troveIDs.B);
 
         // Check B is liquidated
         assertEq(
@@ -520,14 +524,15 @@ contract Redemptions is DevTestSetup {
         // Trove to keep TCR high
         openTroveWithExactICRAndDebt(B, 0, 10 ether, 10_000 ether, 0.1 ether);
 
-        (uint256 trove1,) = openTroveWithExactICRAndDebt(A, 0, 1.1 ether, 2_000 ether, 0.01 ether); // ICR 110%
-        openTroveWithExactICRAndDebt(A, 1, 1.5 ether, 4_000 ether, 0.02 ether); // ICR 150%
+        // Open trove1 closer to MCR so price drop pushes it below 100%
+        (uint256 trove1,) = openTroveWithExactICRAndDebt(A, 0, 1.11 ether, 300 ether, 0.01 ether); // ICR 111%
+        openTroveWithExactICRAndDebt(A, 1, 1.5 ether, 1_000 ether, 0.02 ether); // ICR 150%
 
-        redeem(A, 100 ether);
+        redeem(A, 200 ether);  // Redeem to make trove1 zombie (below MIN_DEBT)
         assertEq(troveManager.lastZombieTroveId(), trove1, "trove1 should have become lastZombieTroveId");
 
-        // Drop price by 20%, so that trove1's ICR < 100%
-        priceFeed.setPrice(priceFeed.getPrice() * 80 / 100);
+        // Drop price more severely, so that trove1's ICR < 100%
+        priceFeed.setPrice(priceFeed.getPrice() * 30 / 100);  // 70% drop
         assertLtDecimal(troveManager.getCurrentICR(trove1, priceFeed.getPrice()), 1 ether, 18, "ICR should be < 100%");
 
         uint256 trove1Debt = troveManager.getTroveEntireDebt(trove1);
@@ -986,8 +991,8 @@ contract Redemptions is DevTestSetup {
         makeSPDepositAndClaim(E, evroToken.balanceOf(E));
         assertGt(stabilityPool.getTotalEvroDeposits(), troveManager.getTroveEntireDebt(troveIDs.B));
 
-        // Price drops, B becomes liquidateable
-        uint256 price = 10e18;
+        // Price drops significantly, B becomes liquidateable
+        uint256 price = 1.5e18;  // More severe price drop for lower debt amounts
         priceFeed.setPrice(price);
 
         // assertFalse(troveManager.checkBelowCriticalThreshold(price));
