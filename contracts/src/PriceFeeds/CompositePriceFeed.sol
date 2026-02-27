@@ -90,7 +90,7 @@ abstract contract CompositePriceFeed is MainnetPriceFeedBase {
 
         // Calculate the canonical LST-USD price: USD_per_LST = USD_per_ETH * underlying_per_LST
         uint256 lstUsdCanonicalPrice = _ethUsdPrice * lstRate / 1e18;
-        
+
         // Convert USD to EUR
         uint256 lstEurCanonicalPrice = FixedPointMathLib.divWad(lstUsdCanonicalPrice, eurUsdPrice);
 

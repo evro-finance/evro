@@ -4,13 +4,13 @@ pragma solidity 0.8.24;
 import "./SVG.sol";
 
 library bauhaus {
-    string constant GOLDEN = "#F5D93A";
-    string constant CORAL = "#FB7C59";
-    string constant GREEN = "#63D77D";
-    string constant CYAN = "#95CBF3";
-    string constant BLUE = "#405AE5";
-    string constant DARK_BLUE = "#121B44";
-    string constant BROWN = "#D99664";
+    string constant GOLDEN = "#F5889B";
+    string constant CORAL = "#A081F5";
+    string constant GREEN = "#F1EFEE";
+    string constant CYAN = "#C6B8FA";
+    string constant BLUE = "#A3C0D7";
+    string constant BROWN = "#EFA960";
+    string constant DARK_BLUE = "#2C1F2B";
 
     enum colorCode {
         GOLDEN,
@@ -26,12 +26,11 @@ library bauhaus {
         bytes32 collSig = keccak256(bytes(_collName));
         uint256 variant = _troveId % 4;
 
-        if (collSig == keccak256("WETH")) {
+        if (collSig == keccak256("WXDAI") || collSig == keccak256("sDAI")) {
             return _img1(variant);
-        } else if (collSig == keccak256("wstETH")) {
+        } else if (collSig == keccak256("GNO") || collSig == keccak256("osGNO")) {
             return _img2(variant);
         } else {
-            // assume rETH
             return _img3(variant);
         }
     }
@@ -128,7 +127,7 @@ library bauhaus {
             //background
             svg.rect(
                 string.concat(
-                    svg.prop("x", "16"),
+                    svg.prop("x", "26"),
                     svg.prop("y", "55"),
                     svg.prop("width", "268"),
                     svg.prop("height", "268"),

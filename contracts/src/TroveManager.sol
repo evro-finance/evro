@@ -431,7 +431,7 @@ contract TroveManager is LiquityBase, ITroveManager, ITroveEvents {
         // - If the SP has total deposits >= 1e18, we leave 1e18 in it untouched.
         // - If it has 0 < x < 1e18 total deposits, we leave x in it.
         uint256 totalEvroDeposits = stabilityPoolCached.getTotalEvroDeposits();
-        uint256 evroToLeaveInSP = LiquityMath._min(MIN_BOLD_IN_SP, totalEvroDeposits);
+        uint256 evroToLeaveInSP = LiquityMath._min(MIN_EVRO_IN_SP, totalEvroDeposits);
         uint256 evroInSPForOffsets = totalEvroDeposits - evroToLeaveInSP;
 
         // Perform the appropriate liquidation sequence - tally values and obtain their totals.

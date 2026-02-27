@@ -36,11 +36,11 @@ contract MetadataNFT is IMetadataNFT {
     function uri(TroveData memory _troveData) public view returns (string memory) {
         string memory attr = attributes(_troveData);
         return json.formattedMetadata(
-            string.concat("Liquity V2 - ", IERC20Metadata(_troveData._collToken).name()),
+            string.concat("Evro PROTOCOL | ", IERC20Metadata(_troveData._collToken).name(), " Token on Gnosis Chain"),
             string.concat(
-                "Liquity V2 is a collateralized debt platform. Users can lock up ",
+                "Evro is a collateralized debt platform. Users can lock up ",
                 IERC20Metadata(_troveData._collToken).symbol(),
-                " to issue stablecoin tokens (BOLD) to their own Ethereum address. The individual collateralized debt positions are called Troves, and are represented as NFTs."
+                " to issue a Euro based stablecoin (EVRO) to their own wallet address. The Individual collateralized debt positions are called troves, and are represented as NFTs. "
             ),
             renderSVGImage(_troveData),
             attr
@@ -52,7 +52,11 @@ contract MetadataNFT is IMetadataNFT {
             baseSVG._svgProps(),
             string.concat(
                 baseSVG._baseElements(assetReader),
-                bauhaus._bauhaus(IERC20Metadata(_troveData._collToken).symbol(), _troveData._tokenId),
+                svg.el(
+                    "g",
+                    svg.prop("transform", "translate(10, 0)"),
+                    bauhaus._bauhaus(IERC20Metadata(_troveData._collToken).symbol(), _troveData._tokenId)
+                ),
                 dynamicTextComponents(_troveData)
             )
         );

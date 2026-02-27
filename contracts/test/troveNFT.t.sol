@@ -10,13 +10,21 @@ import "src/CoGNO.sol";
 import "lib/Solady/src/utils/Base64.sol";
 
 contract troveNFTTest is DevTestSetup {
-    uint256 NUM_COLLATERALS = 3;
+    uint256 NUM_COLLATERALS = 6;
     uint256 NUM_VARIANTS = 4;
     TestDeployer.LiquityContractsDev[] public contractsArray;
-    TroveNFT troveNFTWETH;
+    TroveNFT troveNFTWXDAI;
+    TroveNFT troveNFTGNO;
+    TroveNFT troveNFTSDAI;
+    TroveNFT troveNFTWBTC;
+    TroveNFT troveNFTOsGNO;
     TroveNFT troveNFTWstETH;
-    TroveNFT troveNFTRETH;
     uint256[] troveIds;
+    uint256[] gnoTroveIds;
+    uint256[] sdaiTroveIds;
+    uint256[] wbtcTroveIds;
+    uint256[] osgnoTroveIds;
+    uint256[] wstethTroveIds;
 
     function openMulticollateralTroveNoHints100pctWithIndex(
         uint256 _collIndex,
@@ -74,6 +82,9 @@ contract troveNFTTest is DevTestSetup {
         troveManagerParamsArray[0] = TestDeployer.TroveManagerParams(150e16, 110e16, 10e16, 110e16, 5e16, 10e16);
         troveManagerParamsArray[1] = TestDeployer.TroveManagerParams(160e16, 120e16, 10e16, 120e16, 5e16, 10e16);
         troveManagerParamsArray[2] = TestDeployer.TroveManagerParams(160e16, 120e16, 10e16, 120e16, 5e16, 10e16);
+        troveManagerParamsArray[3] = TestDeployer.TroveManagerParams(150e16, 110e16, 10e16, 110e16, 5e16, 10e16);
+        troveManagerParamsArray[4] = TestDeployer.TroveManagerParams(160e16, 120e16, 10e16, 120e16, 5e16, 10e16);
+        troveManagerParamsArray[5] = TestDeployer.TroveManagerParams(150e16, 110e16, 10e16, 110e16, 5e16, 10e16);
 
         TestDeployer deployer = new TestDeployer();
         TestDeployer.LiquityContractsDev[] memory _contractsArray;
@@ -112,39 +123,65 @@ contract troveNFTTest is DevTestSetup {
         }
 
         troveIds = new uint256[](NUM_VARIANTS);
+        gnoTroveIds = new uint256[](NUM_VARIANTS);
+        sdaiTroveIds = new uint256[](NUM_VARIANTS);
+        wbtcTroveIds = new uint256[](NUM_VARIANTS);
+        osgnoTroveIds = new uint256[](NUM_VARIANTS);
+        wstethTroveIds = new uint256[](NUM_VARIANTS);
 
-        // 0 = WETH
+        // 0 = WXDAI
         troveIds[0] = openMulticollateralTroveNoHints100pctWithIndex(0, A, 0, 10e18, 10000e18, 5e16);
         troveIds[1] = openMulticollateralTroveNoHints100pctWithIndex(0, A, 1, 10e18, 10000e18, 5e16);
         troveIds[2] = openMulticollateralTroveNoHints100pctWithIndex(0, A, 2, 10e18, 10000e18, 5e16);
         troveIds[3] = openMulticollateralTroveNoHints100pctWithIndex(0, A, 10, 10e18, 10000e18, 5e16);
 
-        // 1 = wstETH
-        openMulticollateralTroveNoHints100pctWithIndex(1, A, 0, 100e18, 10000e18, 5e16);
-        openMulticollateralTroveNoHints100pctWithIndex(1, A, 1, 100e18, 10000e18, 5e16);
-        openMulticollateralTroveNoHints100pctWithIndex(1, A, 2, 100e18, 10000e18, 5e16);
-        openMulticollateralTroveNoHints100pctWithIndex(1, A, 10, 100e18, 10000e18, 5e16);
+        // 1 = GNO
+        gnoTroveIds[0] = openMulticollateralTroveNoHints100pctWithIndex(1, A, 0, 100e18, 10000e18, 5e16);
+        gnoTroveIds[1] = openMulticollateralTroveNoHints100pctWithIndex(1, A, 1, 100e18, 10000e18, 5e16);
+        gnoTroveIds[2] = openMulticollateralTroveNoHints100pctWithIndex(1, A, 2, 100e18, 10000e18, 5e16);
+        gnoTroveIds[3] = openMulticollateralTroveNoHints100pctWithIndex(1, A, 10, 100e18, 10000e18, 5e16);
 
-        // 2 = rETH
-        openMulticollateralTroveNoHints100pctWithIndex(2, A, 0, 100e18, 10000e18, 5e16);
-        openMulticollateralTroveNoHints100pctWithIndex(2, A, 1, 100e18, 10000e18, 5e16);
-        openMulticollateralTroveNoHints100pctWithIndex(2, A, 2, 100e18, 10000e18, 5e16);
-        openMulticollateralTroveNoHints100pctWithIndex(2, A, 10, 100e18, 10000e18, 5e16);
+        // 2 = sDAI
+        sdaiTroveIds[0] = openMulticollateralTroveNoHints100pctWithIndex(2, A, 0, 100e18, 10000e18, 5e16);
+        sdaiTroveIds[1] = openMulticollateralTroveNoHints100pctWithIndex(2, A, 1, 100e18, 10000e18, 5e16);
+        sdaiTroveIds[2] = openMulticollateralTroveNoHints100pctWithIndex(2, A, 2, 100e18, 10000e18, 5e16);
+        sdaiTroveIds[3] = openMulticollateralTroveNoHints100pctWithIndex(2, A, 10, 100e18, 10000e18, 5e16);
 
-        troveNFTWETH = TroveNFT(address(contractsArray[0].troveManager.troveNFT()));
-        troveNFTWstETH = TroveNFT(address(contractsArray[1].troveManager.troveNFT()));
-        troveNFTRETH = TroveNFT(address(contractsArray[2].troveManager.troveNFT()));
+        // 3 = wWBTC
+        wbtcTroveIds[0] = openMulticollateralTroveNoHints100pctWithIndex(3, A, 0, 100e18, 10000e18, 5e16);
+        wbtcTroveIds[1] = openMulticollateralTroveNoHints100pctWithIndex(3, A, 1, 100e18, 10000e18, 5e16);
+        wbtcTroveIds[2] = openMulticollateralTroveNoHints100pctWithIndex(3, A, 2, 100e18, 10000e18, 5e16);
+        wbtcTroveIds[3] = openMulticollateralTroveNoHints100pctWithIndex(3, A, 10, 100e18, 10000e18, 5e16);
+
+        // 4 = osGNO
+        osgnoTroveIds[0] = openMulticollateralTroveNoHints100pctWithIndex(4, A, 0, 100e18, 10000e18, 5e16);
+        osgnoTroveIds[1] = openMulticollateralTroveNoHints100pctWithIndex(4, A, 1, 100e18, 10000e18, 5e16);
+        osgnoTroveIds[2] = openMulticollateralTroveNoHints100pctWithIndex(4, A, 2, 100e18, 10000e18, 5e16);
+        osgnoTroveIds[3] = openMulticollateralTroveNoHints100pctWithIndex(4, A, 10, 100e18, 10000e18, 5e16);
+
+        // 5 = wstETH
+        wstethTroveIds[0] = openMulticollateralTroveNoHints100pctWithIndex(5, A, 0, 100e18, 10000e18, 5e16);
+        wstethTroveIds[1] = openMulticollateralTroveNoHints100pctWithIndex(5, A, 1, 100e18, 10000e18, 5e16);
+        wstethTroveIds[2] = openMulticollateralTroveNoHints100pctWithIndex(5, A, 2, 100e18, 10000e18, 5e16);
+        wstethTroveIds[3] = openMulticollateralTroveNoHints100pctWithIndex(5, A, 10, 100e18, 10000e18, 5e16);
+
+        troveNFTWXDAI  = TroveNFT(address(contractsArray[0].troveManager.troveNFT()));
+        troveNFTGNO    = TroveNFT(address(contractsArray[1].troveManager.troveNFT()));
+        troveNFTSDAI   = TroveNFT(address(contractsArray[2].troveManager.troveNFT()));
+        troveNFTWBTC   = TroveNFT(address(contractsArray[3].troveManager.troveNFT()));
+        troveNFTOsGNO  = TroveNFT(address(contractsArray[4].troveManager.troveNFT()));
+        troveNFTWstETH = TroveNFT(address(contractsArray[5].troveManager.troveNFT()));
     }
 
     function testTroveNFTMetadata() public view {
-        assertEq(troveNFTWETH.name(), "Liquity V2 - Wrapped Ether Tester", "Invalid Trove Name");
-        assertEq(troveNFTWETH.symbol(), "LV2_WETH", "Invalid Trove Symbol");
+        assertEq(troveNFTWXDAI.name(), "EVRO-Wrapped XDAI", "Invalid Trove Name");
+        assertEq(troveNFTWXDAI.symbol(), "EVRO_WXDAI", "Invalid Trove Symbol");
 
-        assertEq(troveNFTWstETH.name(), "Liquity V2 - Wrapped Staked Ether", "Invalid Trove Name");
-        assertEq(troveNFTWstETH.symbol(), "LV2_wstETH", "Invalid Trove Symbol");
+        assertEq(troveNFTGNO.name(), "EVRO-GNO", "Invalid Trove Name");
+        assertEq(troveNFTGNO.symbol(), "EVRO_GNO", "Invalid Trove Symbol");
 
-        assertEq(troveNFTRETH.name(), "Liquity V2 - Rocket Pool ETH", "Invalid Trove Name");
-        assertEq(troveNFTRETH.symbol(), "LV2_rETH", "Invalid Trove Symbol");
+        assertEq(troveNFTSDAI.name(), "EVRO-Savings DAI", "Invalid Trove Name");
+        assertEq(troveNFTSDAI.symbol(), "EVRO_sDAI", "Invalid Trove Symbol");
     }
 
     string topMulti =
@@ -185,38 +222,41 @@ contract troveNFTTest is DevTestSetup {
         redeem(A, 30000e18);
 
         for (uint256 i = 0; i < NUM_VARIANTS; i++) {
-            uris[i] = troveNFTWETH.tokenURI(troveIds[i]);
-            uris[i + NUM_VARIANTS] = troveNFTWstETH.tokenURI(troveIds[i]);
-            uris[i + (NUM_VARIANTS * 2)] = troveNFTRETH.tokenURI(troveIds[i]);
+            uris[i]                    = troveNFTWXDAI.tokenURI(troveIds[i]);
+            uris[i + NUM_VARIANTS]     = troveNFTGNO.tokenURI(gnoTroveIds[i]);
+            uris[i + NUM_VARIANTS * 2] = troveNFTSDAI.tokenURI(sdaiTroveIds[i]);
+            uris[i + NUM_VARIANTS * 3] = troveNFTWBTC.tokenURI(wbtcTroveIds[i]);
+            uris[i + NUM_VARIANTS * 4] = troveNFTOsGNO.tokenURI(osgnoTroveIds[i]);
+            uris[i + NUM_VARIANTS * 5] = troveNFTWstETH.tokenURI(wstethTroveIds[i]);
         }
 
         _writeUriFile(uris);
     }
 
     function testTroveIdToOwnerAndCoGNOBalance() public {
-        address owner = troveNFTWETH.ownerOf(troveIds[0]);
+        address owner = troveNFTWXDAI.ownerOf(troveIds[0]);
         assertEq(owner, A, "Trove 0 owner should be A");
 
-        address owner2 = troveNFTWETH.ownerOf(troveIds[1]);
+        address owner2 = troveNFTWXDAI.ownerOf(troveIds[1]);
         assertEq(owner2, A, "Trove 1 owner should be A");
 
-        address owner3 = troveNFTWETH.ownerOf(troveIds[2]);
+        address owner3 = troveNFTWXDAI.ownerOf(troveIds[2]);
         assertEq(owner3, A, "Trove 2 owner should be A");
 
-        address owner4 = troveNFTWETH.ownerOf(troveIds[3]);
+        address owner4 = troveNFTWXDAI.ownerOf(troveIds[3]);
         assertEq(owner4, A, "Trove 3 owner should be A");
 
         //transfer a trove to a new address, then test again.
         vm.startPrank(A);
-        troveNFTWETH.transferFrom(A, B, troveIds[0]);
+        troveNFTWXDAI.transferFrom(A, B, troveIds[0]);
         vm.stopPrank();
 
-        owner = troveNFTWETH.ownerOf(troveIds[0]);
+        owner = troveNFTWXDAI.ownerOf(troveIds[0]);
         assertEq(owner, B, "Trove 0 owner should be B");
 
         // Verify ownerToTroveIds arrays are correct
-        uint256[] memory aTroves = troveNFTWETH.ownerToTroveIds(A);
-        uint256[] memory bTroves = troveNFTWETH.ownerToTroveIds(B);
+        uint256[] memory aTroves = troveNFTWXDAI.ownerToTroveIds(A);
+        uint256[] memory bTroves = troveNFTWXDAI.ownerToTroveIds(B);
         assertEq(aTroves.length, 3, "A should have 3 troves");
         assertEq(bTroves.length, 1, "B should have 1 trove");
         assertEq(bTroves[0], troveIds[0], "B should own troveIds[0]");
@@ -235,7 +275,7 @@ contract troveNFTTest is DevTestSetup {
 
         // Transfer NFT back to A
         vm.startPrank(B);
-        troveNFTWETH.transferFrom(B, A, troveIds[0]);
+        troveNFTWXDAI.transferFrom(B, A, troveIds[0]);
         vm.stopPrank();
 
         // Verify balances updated after NFT transfer
@@ -249,18 +289,18 @@ contract troveNFTTest is DevTestSetup {
     }
 
     function testTroveURIAttributes() public view {
-        address collateral = address(contractsArray[0].collToken);
+        address collateral = address(contractsArray[1].collToken);
 
-        string memory uri = troveNFTWETH.tokenURI(troveIds[0]);
+        string memory uri = troveNFTGNO.tokenURI(troveIds[0]);
         string memory uriSplit = LibString.slice(uri, 29, bytes(uri).length);
         string memory decodedUri = string(Base64.decode(uriSplit));
 
         // Check for expected attributes
-        assertTrue(LibString.contains(decodedUri, '"name": "Liquity V2 - '), "NFT Name attribute missing");
+        assertTrue(LibString.contains(decodedUri, '"name": "Evro PROTOCOL |'), "NFT Name attribute missing");
 
         assertTrue(
             LibString.contains(
-                decodedUri, '"description": "Liquity V2 is a collateralized debt platform. Users can lock up'
+                decodedUri, '"description": "Evro is a collateralized debt platform. Users can lock up'
             ),
             "NFT description attribute missing"
         );
@@ -282,7 +322,7 @@ contract troveNFTTest is DevTestSetup {
             "Incorrect Collateral Token value"
         );
         assertTrue(
-            LibString.contains(decodedUri, '"value": "10000000000000000000"'), "Incorrect Collateral Amount value"
+            LibString.contains(decodedUri, '"value": "100000000000000000000"'), "Incorrect Collateral Amount value"
         );
         assertTrue(
             LibString.contains(decodedUri, string.concat('"value": "', Strings.toHexString(address(evroToken)))),
@@ -484,12 +524,12 @@ contract troveNFTTest is DevTestSetup {
     function testSafeTransferFrom() public {
         // Test safeTransferFrom works same as transferFrom
         vm.prank(A);
-        troveNFTWETH.safeTransferFrom(A, B, troveIds[1]);
+        troveNFTWXDAI.safeTransferFrom(A, B, troveIds[1]);
         
-        assertEq(troveNFTWETH.ownerOf(troveIds[1]), B, "Trove owner should be B after safeTransferFrom");
+        assertEq(troveNFTWXDAI.ownerOf(troveIds[1]), B, "Trove owner should be B after safeTransferFrom");
         
-        uint256[] memory aTroves = troveNFTWETH.ownerToTroveIds(A);
-        uint256[] memory bTroves = troveNFTWETH.ownerToTroveIds(B);
+        uint256[] memory aTroves = troveNFTWXDAI.ownerToTroveIds(A);
+        uint256[] memory bTroves = troveNFTWXDAI.ownerToTroveIds(B);
         assertEq(aTroves.length, 3, "A should have 3 troves after transfer");
         assertEq(bTroves.length, 1, "B should have 1 trove after transfer");
         assertEq(bTroves[0], troveIds[1], "B should own troveIds[1]");
@@ -500,14 +540,14 @@ contract troveNFTTest is DevTestSetup {
         uint256 middleTroveId = troveIds[1];
         
         // Verify A has 4 troves initially
-        uint256[] memory aTrovesBefore = troveNFTWETH.ownerToTroveIds(A);
+        uint256[] memory aTrovesBefore = troveNFTWXDAI.ownerToTroveIds(A);
         assertEq(aTrovesBefore.length, 4, "A should have 4 troves initially");
         
         vm.startPrank(A);
         contractsArray[0].borrowerOperations.closeTrove(middleTroveId);
         vm.stopPrank();
         
-        uint256[] memory aTroves = troveNFTWETH.ownerToTroveIds(A);
+        uint256[] memory aTroves = troveNFTWXDAI.ownerToTroveIds(A);
         assertEq(aTroves.length, 3, "A should have 3 troves after closing one");
         
         // Verify the middle trove was removed
@@ -521,10 +561,10 @@ contract troveNFTTest is DevTestSetup {
         uint256 middleTroveId = troveIds[1];
         
         vm.prank(A);
-        troveNFTWETH.transferFrom(A, B, middleTroveId);
+        troveNFTWXDAI.transferFrom(A, B, middleTroveId);
         
-        uint256[] memory aTroves = troveNFTWETH.ownerToTroveIds(A);
-        uint256[] memory bTroves = troveNFTWETH.ownerToTroveIds(B);
+        uint256[] memory aTroves = troveNFTWXDAI.ownerToTroveIds(A);
+        uint256[] memory bTroves = troveNFTWXDAI.ownerToTroveIds(B);
         
         assertEq(aTroves.length, 3, "A should have 3 troves after transfer");
         assertEq(bTroves.length, 1, "B should have 1 trove");
@@ -542,29 +582,29 @@ contract troveNFTTest is DevTestSetup {
         CollateralGNO coGNO = new CollateralGNO(address(contractsArray[0].troveManager));
         // A -> B
         vm.prank(A);
-        troveNFTWETH.transferFrom(A, B, troveId);
-        assertEq(troveNFTWETH.ownerOf(troveId), B, "Owner should be B");
+        troveNFTWXDAI.transferFrom(A, B, troveId);
+        assertEq(troveNFTWXDAI.ownerOf(troveId), B, "Owner should be B");
         // check coGNO balance of A and B
         assertEq(coGNO.balanceOf(A), 30e18, "CoGNO balance of A should be 30e18 (3 troves)");
         assertEq(coGNO.balanceOf(B), 10e18, "CoGNO balance of B should be 10e18 (troveIds[0])");
         // B -> C
         vm.prank(B);
-        troveNFTWETH.transferFrom(B, C, troveId);
-        assertEq(troveNFTWETH.ownerOf(troveId), C, "Owner should be C");
+        troveNFTWXDAI.transferFrom(B, C, troveId);
+        assertEq(troveNFTWXDAI.ownerOf(troveId), C, "Owner should be C");
         // check coGNO balance of B and C
         assertEq(coGNO.balanceOf(B), 0, "CoGNO balance of B should be 0 (troveIds[0] transferred to C)");
         assertEq(coGNO.balanceOf(C), 10e18, "CoGNO balance of C should be 10e18 (troveIds[0])");
         // C -> A
         vm.prank(C);
-        troveNFTWETH.transferFrom(C, A, troveId);
-        assertEq(troveNFTWETH.ownerOf(troveId), A, "Owner should be A again");
+        troveNFTWXDAI.transferFrom(C, A, troveId);
+        assertEq(troveNFTWXDAI.ownerOf(troveId), A, "Owner should be A again");
         // check coGNO balance of C and A
         assertEq(coGNO.balanceOf(C), 0, "CoGNO balance of C should be 0 (troveIds[0] transferred to A)");
         assertEq(coGNO.balanceOf(A), 40e18, "CoGNO balance of A should be 40e18 (4 troves)");
         // Verify final state
-        uint256[] memory aTroves = troveNFTWETH.ownerToTroveIds(A);
-        uint256[] memory bTroves = troveNFTWETH.ownerToTroveIds(B);
-        uint256[] memory cTroves = troveNFTWETH.ownerToTroveIds(C);
+        uint256[] memory aTroves = troveNFTWXDAI.ownerToTroveIds(A);
+        uint256[] memory bTroves = troveNFTWXDAI.ownerToTroveIds(B);
+        uint256[] memory cTroves = troveNFTWXDAI.ownerToTroveIds(C);
         
         assertEq(aTroves.length, 4, "A should have 4 troves");
         assertEq(bTroves.length, 0, "B should have 0 troves");
@@ -573,51 +613,51 @@ contract troveNFTTest is DevTestSetup {
 
     function testGovernorFunctions() public {
         address newGovernor = address(0x123);
-        address currentGovernor = troveNFTWETH.governor();
+        address currentGovernor = troveNFTWXDAI.governor();
         
         // Non-governor cannot change governor
         vm.prank(A);
         vm.expectRevert("TroveNFT: Caller is not the governor");
-        troveNFTWETH.changeGovernor(newGovernor);
+        troveNFTWXDAI.changeGovernor(newGovernor);
         
         // Non-governor cannot update URI
         vm.prank(A);
         vm.expectRevert("TroveNFT: Caller is not the governor.");
-        troveNFTWETH.governorUpdateURI(address(0x456));
+        troveNFTWXDAI.governorUpdateURI(address(0x456));
         
         // Governor can change governor
         vm.prank(currentGovernor);
-        troveNFTWETH.changeGovernor(newGovernor);
-        assertEq(troveNFTWETH.governor(), newGovernor, "Governor should be updated");
+        troveNFTWXDAI.changeGovernor(newGovernor);
+        assertEq(troveNFTWXDAI.governor(), newGovernor, "Governor should be updated");
         
         // Old governor can no longer act
         vm.prank(currentGovernor);
         vm.expectRevert("TroveNFT: Caller is not the governor");
-        troveNFTWETH.changeGovernor(currentGovernor);
+        troveNFTWXDAI.changeGovernor(currentGovernor);
         
         // New governor can update URI
         vm.prank(newGovernor);
-        troveNFTWETH.governorUpdateURI(address(0x789));
-        assertEq(troveNFTWETH.externalNFTUriAddress(), address(0x789), "External URI should be updated");
+        troveNFTWXDAI.governorUpdateURI(address(0x789));
+        assertEq(troveNFTWXDAI.externalNFTUriAddress(), address(0x789), "External URI should be updated");
     }
 
     function testERC721Enumerable() public view {
         // Test totalSupply
-        uint256 totalSupply = troveNFTWETH.totalSupply();
+        uint256 totalSupply = troveNFTWXDAI.totalSupply();
         assertEq(totalSupply, 4, "Total supply should be 4");
         
         // Test tokenOfOwnerByIndex
-        uint256 firstToken = troveNFTWETH.tokenOfOwnerByIndex(A, 0);
-        assertEq(troveNFTWETH.ownerOf(firstToken), A, "First token should be owned by A");
+        uint256 firstToken = troveNFTWXDAI.tokenOfOwnerByIndex(A, 0);
+        assertEq(troveNFTWXDAI.ownerOf(firstToken), A, "First token should be owned by A");
         
         // Test tokenByIndex
-        uint256 globalFirstToken = troveNFTWETH.tokenByIndex(0);
-        assertTrue(troveNFTWETH.ownerOf(globalFirstToken) != address(0), "Token at index 0 should exist");
+        uint256 globalFirstToken = troveNFTWXDAI.tokenByIndex(0);
+        assertTrue(troveNFTWXDAI.ownerOf(globalFirstToken) != address(0), "Token at index 0 should exist");
         
         // Verify all tokens are enumerable
         for (uint256 i = 0; i < totalSupply; i++) {
-            uint256 tokenId = troveNFTWETH.tokenByIndex(i);
-            assertTrue(troveNFTWETH.ownerOf(tokenId) != address(0), "All tokens should have owners");
+            uint256 tokenId = troveNFTWXDAI.tokenByIndex(i);
+            assertTrue(troveNFTWXDAI.ownerOf(tokenId) != address(0), "All tokens should have owners");
         }
     }
 
@@ -626,45 +666,45 @@ contract troveNFTTest is DevTestSetup {
         
         vm.prank(A);
         vm.expectRevert();
-        troveNFTWETH.transferFrom(A, B, nonExistentId);
+        troveNFTWXDAI.transferFrom(A, B, nonExistentId);
     }
 
     function testUnauthorizedTransfer() public {
         // B tries to transfer A's token without approval
         vm.prank(B);
         vm.expectRevert();
-        troveNFTWETH.transferFrom(A, B, troveIds[0]);
+        troveNFTWXDAI.transferFrom(A, B, troveIds[0]);
     }
 
     function testApprovalAndTransfer() public {
         // A approves B to transfer troveIds[0]
         vm.prank(A);
-        troveNFTWETH.approve(B, troveIds[0]);
+        troveNFTWXDAI.approve(B, troveIds[0]);
         
         // B can now transfer
         vm.prank(B);
-        troveNFTWETH.transferFrom(A, C, troveIds[0]);
+        troveNFTWXDAI.transferFrom(A, C, troveIds[0]);
         
-        assertEq(troveNFTWETH.ownerOf(troveIds[0]), C, "C should own the trove after approved transfer");
+        assertEq(troveNFTWXDAI.ownerOf(troveIds[0]), C, "C should own the trove after approved transfer");
     }
 
     function testSetApprovalForAll() public {
         // A approves B as operator for all tokens
         vm.prank(A);
-        troveNFTWETH.setApprovalForAll(B, true);
+        troveNFTWXDAI.setApprovalForAll(B, true);
         
         // B can transfer any of A's tokens
         vm.prank(B);
-        troveNFTWETH.transferFrom(A, C, troveIds[0]);
-        assertEq(troveNFTWETH.ownerOf(troveIds[0]), C, "C should own troveIds[0]");
+        troveNFTWXDAI.transferFrom(A, C, troveIds[0]);
+        assertEq(troveNFTWXDAI.ownerOf(troveIds[0]), C, "C should own troveIds[0]");
         
         vm.prank(B);
-        troveNFTWETH.transferFrom(A, C, troveIds[1]);
-        assertEq(troveNFTWETH.ownerOf(troveIds[1]), C, "C should own troveIds[1]");
+        troveNFTWXDAI.transferFrom(A, C, troveIds[1]);
+        assertEq(troveNFTWXDAI.ownerOf(troveIds[1]), C, "C should own troveIds[1]");
         
         // Verify ownerToTroveIds updated correctly
-        uint256[] memory aTroves = troveNFTWETH.ownerToTroveIds(A);
-        uint256[] memory cTroves = troveNFTWETH.ownerToTroveIds(C);
+        uint256[] memory aTroves = troveNFTWXDAI.ownerToTroveIds(A);
+        uint256[] memory cTroves = troveNFTWXDAI.ownerToTroveIds(C);
         assertEq(aTroves.length, 2, "A should have 2 troves");
         assertEq(cTroves.length, 2, "C should have 2 troves");
     }

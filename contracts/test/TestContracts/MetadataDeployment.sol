@@ -8,15 +8,11 @@ import "src/NFTMetadata/utils/Utils.sol";
 import "src/NFTMetadata/utils/FixedAssets.sol";
 
 contract MetadataDeployment is Script /* , StdAssertions */ {
-    struct File {
-        bytes data;
-        uint256 start;
-        uint256 end;
-    }
+    mapping(bytes4 => bytes) public files;
 
-    mapping(bytes4 => File) public files;
-
-    address public pointer;
+    address public fontsPointer;    // oswald + lexend (~15.2KB)
+    address public logos1Pointer;   // EVRO, WXDAI, GNO, sDAI (~13.3KB)
+    address public logos2Pointer;   // wWBTC, osGNO, wstETH (~10.9KB)
 
     FixedAssetReader public initializedFixedAssetReader;
 
@@ -33,91 +29,96 @@ contract MetadataDeployment is Script /* , StdAssertions */ {
     function _loadFiles() internal {
         string memory root = string.concat(vm.projectRoot(), "/utils/assets/");
 
-        //emit log_string(root);
-
-        uint256 offset = 0;
-
-        //read evro file
-
-        bytes memory evroFile = bytes(vm.readFile(string.concat(root, "evro_logo.txt")));
-        File memory evro = File(evroFile, offset, offset + evroFile.length);
-
-        offset += evroFile.length;
-
-        files[bytes4(keccak256("BOLD"))] = evro;
-
-        //read eth file
-        bytes memory ethFile = bytes(vm.readFile(string.concat(root, "weth_logo.txt")));
-        File memory eth = File(ethFile, offset, offset + ethFile.length);
-
-        offset += ethFile.length;
-
-        files[bytes4(keccak256("WETH"))] = eth;
-
-        //read wstETH file
-        bytes memory wstethFile = bytes(vm.readFile(string.concat(root, "wsteth_logo.txt")));
-        File memory wsteth = File(wstethFile, offset, offset + wstethFile.length);
-
-        offset += wstethFile.length;
-
-        files[bytes4(keccak256("wstETH"))] = wsteth;
-
-        //read rETH file
-        bytes memory rethFile = bytes(vm.readFile(string.concat(root, "reth_logo.txt")));
-        File memory reth = File(rethFile, offset, offset + rethFile.length);
-
-        offset += rethFile.length;
-
-        files[bytes4(keccak256("rETH"))] = reth;
-
-        //read geist font file
-        bytes memory geistFile = bytes(vm.readFile(string.concat(root, "geist.txt")));
-        File memory geist = File(geistFile, offset, offset + geistFile.length);
-
-        offset += geistFile.length;
-
-        files[bytes4(keccak256("geist"))] = geist;
+        files[bytes4(keccak256("oswald"))]  = bytes(vm.readFile(string.concat(root, "oswald.txt")));
+        files[bytes4(keccak256("lexend"))]  = bytes(vm.readFile(string.concat(root, "lexend.txt")));
+        files[bytes4(keccak256("osGNO"))]   = bytes(vm.readFile(string.concat(root, "osgno_logo.txt")));
+        files[bytes4(keccak256("EVRO"))]    = bytes(vm.readFile(string.concat(root, "evro_logo.txt")));
+        files[bytes4(keccak256("WXDAI"))]   = bytes(vm.readFile(string.concat(root, "xdai_logo.txt")));
+        files[bytes4(keccak256("GNO"))]     = bytes(vm.readFile(string.concat(root, "gno_logo.txt")));
+        files[bytes4(keccak256("sDAI"))]    = bytes(vm.readFile(string.concat(root, "sdai_logo.txt")));
+        files[bytes4(keccak256("wWBTC"))]   = bytes(vm.readFile(string.concat(root, "wbtc_logo.txt")));
+        files[bytes4(keccak256("wstETH"))]  = bytes(vm.readFile(string.concat(root, "wsteth_logo.txt")));
     }
 
     function _storeFile() internal {
-        bytes memory data = bytes.concat(
-            files[bytes4(keccak256("BOLD"))].data,
-            files[bytes4(keccak256("WETH"))].data,
-            files[bytes4(keccak256("wstETH"))].data,
-            files[bytes4(keccak256("rETH"))].data,
-            files[bytes4(keccak256("geist"))].data
-        );
+        // Contract 1: fonts only (~15.2KB)
+        fontsPointer = SSTORE2.write(bytes.concat(
+            files[bytes4(keccak256("oswald"))],
+            files[bytes4(keccak256("lexend"))]
+        ));
 
-        //emit log_named_uint("data length", data.length);
+        // Contract 2: EVRO, WXDAI, GNO, sDAI (~13.3KB)
+        logos1Pointer = SSTORE2.write(bytes.concat(
+            files[bytes4(keccak256("EVRO"))],
+            files[bytes4(keccak256("WXDAI"))],
+            files[bytes4(keccak256("GNO"))],
+            files[bytes4(keccak256("sDAI"))]
+        ));
 
-        pointer = SSTORE2.write(data);
+        // Contract 3: wWBTC, osGNO, wstETH (~10.9KB)
+        logos2Pointer = SSTORE2.write(bytes.concat(
+            files[bytes4(keccak256("wWBTC"))],
+            files[bytes4(keccak256("osGNO"))],
+            files[bytes4(keccak256("wstETH"))]
+        ));
     }
 
     function _deployFixedAssetReader(bytes32 _salt) internal {
-        bytes4[] memory sigs = new bytes4[](5);
-        sigs[0] = bytes4(keccak256("BOLD"));
-        sigs[1] = bytes4(keccak256("WETH"));
-        sigs[2] = bytes4(keccak256("wstETH"));
-        sigs[3] = bytes4(keccak256("rETH"));
-        sigs[4] = bytes4(keccak256("geist"));
+        bytes4[] memory sigs = new bytes4[](9);
+        sigs[0] = bytes4(keccak256("oswald"));
+        sigs[1] = bytes4(keccak256("lexend"));
+        sigs[2] = bytes4(keccak256("EVRO"));
+        sigs[3] = bytes4(keccak256("WXDAI"));
+        sigs[4] = bytes4(keccak256("GNO"));
+        sigs[5] = bytes4(keccak256("sDAI"));
+        sigs[6] = bytes4(keccak256("wWBTC"));
+        sigs[7] = bytes4(keccak256("osGNO"));
+        sigs[8] = bytes4(keccak256("wstETH"));
 
-        FixedAssetReader.Asset[] memory FixedAssets = new FixedAssetReader.Asset[](5);
-        FixedAssets[0] = FixedAssetReader.Asset(
-            uint128(files[bytes4(keccak256("BOLD"))].start), uint128(files[bytes4(keccak256("BOLD"))].end)
-        );
-        FixedAssets[1] = FixedAssetReader.Asset(
-            uint128(files[bytes4(keccak256("WETH"))].start), uint128(files[bytes4(keccak256("WETH"))].end)
-        );
-        FixedAssets[2] = FixedAssetReader.Asset(
-            uint128(files[bytes4(keccak256("wstETH"))].start), uint128(files[bytes4(keccak256("wstETH"))].end)
-        );
-        FixedAssets[3] = FixedAssetReader.Asset(
-            uint128(files[bytes4(keccak256("rETH"))].start), uint128(files[bytes4(keccak256("rETH"))].end)
-        );
-        FixedAssets[4] = FixedAssetReader.Asset(
-            uint128(files[bytes4(keccak256("geist"))].start), uint128(files[bytes4(keccak256("geist"))].end)
-        );
+        initializedFixedAssetReader = new FixedAssetReader{salt: _salt}(sigs, _buildAssets());
+    }
 
-        initializedFixedAssetReader = new FixedAssetReader{salt: _salt}(pointer, sigs, FixedAssets);
+    function _buildAssets() private view returns (FixedAssetReader.Asset[] memory) {
+        FixedAssetReader.Asset[] memory assets = new FixedAssetReader.Asset[](9);
+        _buildFontAssets(assets);
+        _buildLogoAssets(assets);
+        return assets;
+    }
+
+    function _buildFontAssets(FixedAssetReader.Asset[] memory assets) private view {
+        bytes4[2] memory keys;
+        keys[0] = bytes4(keccak256("oswald"));
+        keys[1] = bytes4(keccak256("lexend"));
+        uint128 offset = 0;
+        for (uint256 i = 0; i < 2; i++) {
+            uint128 len = uint128(files[keys[i]].length);
+            assets[i] = FixedAssetReader.Asset(fontsPointer, offset, offset + len);
+            offset += len;
+        }
+    }
+
+    function _buildLogoAssets(FixedAssetReader.Asset[] memory assets) private view {
+        bytes4[4] memory keys1;
+        keys1[0] = bytes4(keccak256("EVRO"));
+        keys1[1] = bytes4(keccak256("WXDAI"));
+        keys1[2] = bytes4(keccak256("GNO"));
+        keys1[3] = bytes4(keccak256("sDAI"));
+        uint128 offset = 0;
+        for (uint256 i = 0; i < 4; i++) {
+            uint128 len = uint128(files[keys1[i]].length);
+            assets[i + 2] = FixedAssetReader.Asset(logos1Pointer, offset, offset + len);
+            offset += len;
+        }
+
+        bytes4[3] memory keys2;
+        keys2[0] = bytes4(keccak256("wWBTC"));
+        keys2[1] = bytes4(keccak256("osGNO"));
+        keys2[2] = bytes4(keccak256("wstETH"));
+        offset = 0;
+        for (uint256 i = 0; i < 3; i++) {
+            uint128 len = uint128(files[keys2[i]].length);
+            assets[i + 6] = FixedAssetReader.Asset(logos2Pointer, offset, offset + len);
+            offset += len;
+        }
     }
 }

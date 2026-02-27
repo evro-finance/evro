@@ -137,10 +137,8 @@ contract DeployLiquity2Script is DeployGovernance, UniPriceConverter, StdCheats,
         // gnosis testnet
     address CHIADO_GNO_ADDRESS = 0x19C653Da7c37c66208fbfbE8908A5051B57b4C70;
 
-
-    address gov_multisig_address;
-
     address governor;
+    address feeRouter;
 
     // Curve
     ICurveStableswapNGFactory curveStableswapFactory;
@@ -307,10 +305,10 @@ contract DeployLiquity2Script is DeployGovernance, UniPriceConverter, StdCheats,
             governor = deployer;    
         }
 
-        if(vm.envBytes("GOVERNANCE").length == 20) {
-            gov_multisig_address = vm.envAddress("GOVERNANCE");
+        if(vm.envBytes("FEE_ROUTER").length == 20) {
+            feeRouter = vm.envAddress("FEE_ROUTER");
         } else {
-            gov_multisig_address = msg.sender;
+            feeRouter = deployer;
         }
 
         string memory deploymentMode = vm.envOr("DEPLOYMENT_MODE", DEPLOYMENT_MODE_COMPLETE);
@@ -784,7 +782,7 @@ contract DeployLiquity2Script is DeployGovernance, UniPriceConverter, StdCheats,
             vars.troveManagers[vars.i] = ITroveManager(troveManagerAddress);
         }
 
-        r.collateralRegistry = new CollateralRegistry(r.evroToken, vars.collaterals, vars.troveManagers);
+        r.collateralRegistry = new CollateralRegistry(r.evroToken, vars.collaterals, vars.troveManagers, governor, governor);
         r.hintHelpers = new HintHelpers(r.collateralRegistry);
         r.multiTroveGetter = new MultiTroveGetter(r.collateralRegistry);
         r.debtInFrontHelper = new DebtInFrontHelper(r.collateralRegistry, r.hintHelpers);
@@ -801,7 +799,7 @@ contract DeployLiquity2Script is DeployGovernance, UniPriceConverter, StdCheats,
                 r.hintHelpers,
                 r.multiTroveGetter,
                 //computeGovernanceAddress(_deployGovernanceParams)//
-                gov_multisig_address
+                feeRouter
             );
             r.contractsArray[vars.i] = vars.contracts;
         }

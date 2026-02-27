@@ -6,15 +6,19 @@ import {utils, LibString, numUtils} from "./Utils.sol";
 import "./FixedAssets.sol";
 
 library baseSVG {
-    string constant GEIST = 'style="font-family: Geist" ';
-    string constant DARK_BLUE = "#121B44";
+    string constant OSWALD = 'style="font-family: Oswald" ';
+    string constant LEXEND = 'style="font-family: Lexend" ';
+    string constant DARK_BLUE = "#2C1F2B";
     string constant STOIC_WHITE = "#DEE4FB";
+    string constant LABEL_GREY = "#9E9E9E";
+    string constant BROWN = "#EFA960";
+
 
     function _svgProps() internal pure returns (string memory) {
         return string.concat(
-            svg.prop("width", "300"),
-            svg.prop("height", "484"),
-            svg.prop("viewBox", "0 0 300 484"),
+            svg.prop("width", "320"),
+            svg.prop("height", "504"),
+            svg.prop("viewBox", "0 0 320 504"),
             svg.prop("style", "background:none")
         );
     }
@@ -23,8 +27,10 @@ library baseSVG {
         return string.concat(
             svg.rect(
                 string.concat(
+                    svg.prop("x", "10"),
+                    svg.prop("y", "10"),
                     svg.prop("fill", DARK_BLUE),
-                    svg.prop("rx", "8"),
+                    svg.prop("rx", "10"),
                     svg.prop("width", "300"),
                     svg.prop("height", "484")
                 )
@@ -37,15 +43,14 @@ library baseSVG {
     }
 
     function _styles(FixedAssetReader _assetReader) private view returns (string memory) {
-        return svg.el(
-            "style",
-            utils.NULL,
-            string.concat(
-                '@font-face { font-family: "Geist"; src: url("data:font/woff2;utf-8;base64,',
-                _assetReader.readAsset(bytes4(keccak256("geist"))),
-                '"); }'
-            )
+        string memory body = string.concat(
+            '@font-face { font-family: "Oswald"; src: url("data:font/woff2;utf-8;base64,',
+            _assetReader.readAsset(bytes4(keccak256("oswald"))),
+            '"); } @font-face { font-family: "Lexend"; src: url("data:font/woff2;utf-8;base64,',
+            _assetReader.readAsset(bytes4(keccak256("lexend"))),
+            '"); }'
         );
+        return svg.el("style", utils.NULL, body);
     }
 
     function _leverageLogo() internal pure returns (string memory) {
@@ -65,13 +70,13 @@ library baseSVG {
         return svg.el(
             "image",
             string.concat(
-                svg.prop("x", "264"),
+                svg.prop("x", "278"),
                 svg.prop("y", "373.5"),
                 svg.prop("width", "20"),
                 svg.prop("height", "20"),
                 svg.prop(
                     "href",
-                    string.concat("data:image/svg+xml;base64,", _assetReader.readAsset(bytes4(keccak256("BOLD"))))
+                    string.concat("data:image/svg+xml;base64,", _assetReader.readAsset(bytes4(keccak256("EVRO"))))
                 )
             )
         );
@@ -81,38 +86,38 @@ library baseSVG {
         return string.concat(
             svg.text(
                 string.concat(
-                    GEIST,
-                    svg.prop("x", "16"),
+                    LEXEND,
+                    svg.prop("x", "24"),
                     svg.prop("y", "358"),
                     svg.prop("font-size", "14"),
-                    svg.prop("fill", "white")
+                    svg.prop("fill", LABEL_GREY)
                 ),
-                "Collateral"
+                "COLLATERAL"
             ),
             svg.text(
                 string.concat(
-                    GEIST,
-                    svg.prop("x", "16"),
+                    LEXEND,
+                    svg.prop("x", "24"),
                     svg.prop("y", "389"),
                     svg.prop("font-size", "14"),
-                    svg.prop("fill", "white")
+                    svg.prop("fill", LABEL_GREY)
                 ),
-                "Debt"
+                "DEBT"
             ),
             svg.text(
                 string.concat(
-                    GEIST,
-                    svg.prop("x", "16"),
+                    LEXEND,
+                    svg.prop("x", "24"),
                     svg.prop("y", "420"),
                     svg.prop("font-size", "14"),
-                    svg.prop("fill", "white")
+                    svg.prop("fill", LABEL_GREY)
                 ),
-                "Interest Rate"
+                "INTEREST RATE"
             ),
             svg.text(
                 string.concat(
-                    GEIST,
-                    svg.prop("x", "265"),
+                    OSWALD,
+                    svg.prop("x", "279"),
                     svg.prop("y", "422"),
                     svg.prop("font-size", "20"),
                     svg.prop("fill", "white")
@@ -121,13 +126,13 @@ library baseSVG {
             ),
             svg.text(
                 string.concat(
-                    GEIST,
-                    svg.prop("x", "16"),
+                    LEXEND,
+                    svg.prop("x", "24"),
                     svg.prop("y", "462"),
                     svg.prop("font-size", "14"),
-                    svg.prop("fill", "white")
+                    svg.prop("fill", LABEL_GREY)
                 ),
-                "Owner"
+                "OWNER"
             )
         );
     }
@@ -135,7 +140,7 @@ library baseSVG {
     function _formattedDynamicEl(string memory _value, uint256 _x, uint256 _y) internal pure returns (string memory) {
         return svg.text(
             string.concat(
-                GEIST,
+                OSWALD,
                 svg.prop("text-anchor", "end"),
                 svg.prop("x", LibString.toString(_x)),
                 svg.prop("y", LibString.toString(_y)),
@@ -149,9 +154,9 @@ library baseSVG {
     function _formattedIdEl(string memory _id) internal pure returns (string memory) {
         return svg.text(
             string.concat(
-                GEIST,
+                OSWALD,
                 svg.prop("text-anchor", "end"),
-                svg.prop("x", "284"),
+                svg.prop("x", "296"),
                 svg.prop("y", "33"),
                 svg.prop("font-size", "14"),
                 svg.prop("fill", "white")
@@ -163,12 +168,12 @@ library baseSVG {
     function _formattedAddressEl(address _address) internal pure returns (string memory) {
         return svg.text(
             string.concat(
-                GEIST,
+                OSWALD,
                 svg.prop("text-anchor", "end"),
-                svg.prop("x", "284"),
+                svg.prop("x", "296"),
                 svg.prop("y", "462"),
                 svg.prop("font-size", "14"),
-                svg.prop("fill", "white")
+                svg.prop("fill", BROWN)
             ),
             string.concat(
                 LibString.slice(LibString.toHexStringChecksummed(_address), 0, 6),
@@ -182,7 +187,7 @@ library baseSVG {
         return svg.el(
             "image",
             string.concat(
-                svg.prop("x", "264"),
+                svg.prop("x", "278"),
                 svg.prop("y", "342.5"),
                 svg.prop("width", "20"),
                 svg.prop("height", "20"),
@@ -199,7 +204,7 @@ library baseSVG {
     function _statusEl(string memory _status) internal pure returns (string memory) {
         return svg.text(
             string.concat(
-                GEIST, svg.prop("x", "40"), svg.prop("y", "33"), svg.prop("font-size", "14"), svg.prop("fill", "white")
+                OSWALD, svg.prop("x", "44"), svg.prop("y", "33"), svg.prop("font-size", "14"), svg.prop("fill", "white")
             ),
             _status
         );
@@ -211,9 +216,9 @@ library baseSVG {
         returns (string memory)
     {
         return string.concat(
-            _formattedDynamicEl(numUtils.toLocaleString(_coll, 18, 4), 256, 360),
-            _formattedDynamicEl(numUtils.toLocaleString(_debt, 18, 2), 256, 391),
-            _formattedDynamicEl(numUtils.toLocaleString(_annualInterestRate, 16, 2), 256, 422)
+            _formattedDynamicEl(numUtils.toLocaleString(_coll, 18, 4), 276, 360),
+            _formattedDynamicEl(numUtils.toLocaleString(_debt, 18, 2), 276, 391),
+            _formattedDynamicEl(numUtils.toLocaleString(_annualInterestRate, 16, 2), 276, 422)
         );
     }
 }

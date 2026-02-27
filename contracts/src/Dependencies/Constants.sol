@@ -17,6 +17,7 @@ uint256 constant MIN_LIQUIDATION_PENALTY_SP = 5e16; // 5%
 uint256 constant MAX_LIQUIDATION_PENALTY_REDISTRIBUTION = 20e16; // 20%
 
 // Collateral branch parameters (SETH = staked ETH, i.e. wstETH / rETH)
+// for the sake of being on gnosis, WETH == WXDAI
 uint256 constant CCR_WETH = 150 * _1pct;
 uint256 constant MCR_WETH = 110 * _1pct;
 uint256 constant SCR_WETH = 110 * _1pct;
@@ -67,8 +68,8 @@ uint256 constant LIQUIDATION_PENALTY_REDISTRIBUTION_OSGNO = 10 * _1pct;
 uint256 constant COLL_GAS_COMPENSATION_DIVISOR = 200; // dividing by 200 yields 0.5%
 uint256 constant COLL_GAS_COMPENSATION_CAP = 10 ether; // Max coll gas compensation capped at 10 xDAI
 
-// Minimum amount of net Evro debt a trove must have
-uint256 constant MIN_DEBT = 2000e18;
+// Minimum amount of net Evro debt a trove must have 200 xdai
+uint256 constant MIN_DEBT = 200e18;
 
 uint256 constant MIN_ANNUAL_INTEREST_RATE = _1pct / 2; // 0.5%
 uint256 constant MAX_ANNUAL_INTEREST_RATE = 250 * _1pct;
@@ -107,7 +108,7 @@ uint256 constant INTEREST_RATE_ADJ_COOLDOWN = 7 days;
 
 uint256 constant SP_YIELD_SPLIT = 75 * _1pct; // 75%
 
-uint256 constant MIN_BOLD_IN_SP = 1e18;
+uint256 constant MIN_EVRO_IN_SP = 1e18;
 
 // Dummy contract that lets legacy Hardhat tests query some of the constants
 contract Constants {

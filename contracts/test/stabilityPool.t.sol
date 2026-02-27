@@ -2622,7 +2622,7 @@ contract SPTest is DevTestSetup {
         assertEq(stabilityPool.getTotalEvroDeposits(), 2e18);
 
         vm.startPrank(A);
-        vm.expectRevert("Withdrawal must leave totalEvroDeposits >= MIN_BOLD_IN_SP");
+        vm.expectRevert("Withdrawal must leave totalEvroDeposits >= MIN_EVRO_IN_SP");
         // Claim all gains here so they don't get added to deposit
         stabilityPool.withdrawFromSP(_withdrawal, true);
     }
