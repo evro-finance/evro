@@ -23,4 +23,8 @@ interface ICollateralRegistry {
 
     function getRedemptionFeeWithDecay(uint256 _ETHDrawn) external view returns (uint256);
     function getEffectiveRedemptionFeeInEvro(uint256 _redeemAmount) external view returns (uint256);
+
+    function createNewBranch(IERC20Metadata _token, ITroveManager _troveManager) external;
+    function collateralGovernor() external view returns (address);
+    function updateCollateralGovernor(address _newCollateralGovernor) external;
 }
