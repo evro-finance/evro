@@ -1,12 +1,12 @@
-import {
-  useVotingState
-} from './hooks';
-import { createContext } from 'react';
-import { noop } from '@/src/screens/StakeScreen/components/PanelVoting/utils';
+import { noop } from "@/src/utils";
+import { createContext } from "react";
+import { useVotingState } from "./hooks";
 
-export type Context = Omit<ReturnType<typeof useVotingState>, 'isLoading'>;
+export type Context = Omit<ReturnType<typeof useVotingState>, "isLoading">;
 
 export const context = createContext<Context>({
+  votingInputError: new Set(),
+  setVotingInputError: noop,
   voteAllocations: {},
   inputVoteAllocations: {},
   setInputVoteAllocations: noop,

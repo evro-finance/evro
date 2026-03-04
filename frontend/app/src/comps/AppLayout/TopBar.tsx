@@ -13,15 +13,15 @@ import { Menu } from "./Menu";
 import { MenuDrawerButton } from "./MenuDrawer";
 
 export function TopBar() {
-	const headerConfig = useWhiteLabelHeader();
-
-	const menuItems: MenuItem[] = [
-		[headerConfig.navigation.items.dashboard, "/", IconDashboard],
-		// Conditional menu items
-		...(headerConfig.navigation.showBorrow ? [[headerConfig.navigation.items.borrow, "/borrow", IconBorrow] as MenuItem] : []),
-		...(headerConfig.navigation.showEarn ? [[headerConfig.navigation.items.earn, "/earn", IconEarn] as MenuItem] : []),
-		...(headerConfig.navigation.showStake ? [[headerConfig.navigation.items.stake, "/stake", IconStake] as MenuItem] : []),
-	];
+  const headerConfig = useWhiteLabelHeader();
+  
+  const menuItems: MenuItem[] = [
+    [headerConfig.navigation.items.dashboard, "/", IconDashboard],
+    // Conditional menu items
+    ...(headerConfig.navigation.showBorrow ? [[headerConfig.navigation.items.borrow, "/borrow", IconBorrow] as MenuItem] : []),
+    ...(headerConfig.navigation.showEarn ? [[headerConfig.navigation.items.earn, "/earn", IconEarn] as MenuItem] : []),
+    ...(headerConfig.navigation.showStake ? [[headerConfig.navigation.items.stake, "/stake", IconStake] as MenuItem] : []),
+  ];
 
 	return (
 		<div

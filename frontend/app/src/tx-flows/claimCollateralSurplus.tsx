@@ -149,15 +149,15 @@ export const claimCollateralSurplus: FlowDeclaration<ClaimCollateralSurplusReque
 		const { branchId } = request;
 		const collateral = getCollToken(branchId);
 
-		return (
-			<div className="p-4">
-				<p>
-					This will claim all available collateral surplus from your unclaimed liquidated positions for the{" "}
-					{collateral?.name} collateral. The total amount will be sent to your wallet.
-				</p>
-			</div>
-		);
-	},
+    return (
+      <div className="p-4">
+        <p>
+          This will claim all available remaining collateral from your unclaimed liquidated positions for the{" "}
+          {collateral?.name} collateral. The total amount will be sent to your wallet.
+        </p>
+      </div>
+    );
+  },
 
 	steps: {
 		claimCollateral: {

@@ -2,7 +2,7 @@ import type { TokenSymbol } from "@/src/types";
 import type { ReactNode } from "react";
 
 import { css } from "@/styled-system/css";
-import { IconArrowRight, IconPlus, TokenIcon, TOKENS_BY_SYMBOL } from "@liquity2/uikit";
+import { IconArrowRight, IconExternal, IconPlus, TokenIcon, TOKENS_BY_SYMBOL } from "@liquity2/uikit";
 import Link from "next/link";
 
 export function EarnPositionSummaryBase({
@@ -14,19 +14,21 @@ export function EarnPositionSummaryBase({
 	subtitle,
 	title,
 }: {
-	action?: null | {
-		label: string;
-		path: `/${string}`;
-	};
-	active: boolean;
-	infoItems?: Array<{
-		content: ReactNode;
-		label: ReactNode;
-	}>;
-	poolInfo?: ReactNode;
-	poolToken: TokenSymbol;
-	subtitle?: ReactNode;
-	title?: ReactNode;
+  action?: null | {
+    label: string;
+    // Generic href
+    path: string;
+    external?: boolean;
+  };
+  active: boolean;
+  infoItems?: Array<{
+    content: ReactNode;
+    label: ReactNode;
+  }>;
+  poolInfo?: ReactNode;
+  poolToken: TokenSymbol;
+  subtitle?: ReactNode;
+  title?: ReactNode;
 }) {
 	const token = TOKENS_BY_SYMBOL[poolToken];
 
@@ -174,78 +176,82 @@ export function EarnPositionSummaryBase({
 					))}
 				</div>
 
-				{action && (
-					<OpenLink
-						active={active}
-						path={action.path}
-						title={action.label}
-					/>
-				)}
-			</div>
-		</div>
-	);
+        {action && (
+          <OpenLink
+            active={active}
+            path={action.path}
+            title={action.label}
+            external={action.external}
+          />
+        )}
+      </div>
+    </div>
+  );
 }
 
 function OpenLink({
-	active,
-	path,
-	title,
+  active,
+  path,
+  title,
+  external,
 }: {
-	active: boolean;
-	path: string;
-	title: string;
+  active: boolean;
+  path: string;
+  title: string;
+  external?: boolean;
 }) {
-	return (
-		<Link
-			title={title}
-			href={path}
-			className={css({
-				position: "absolute",
-				inset: "0 -16px -12px auto",
-				display: "grid",
-				placeItems: {
-					base: "end center",
-					large: "center",
-				},
-				padding: {
-					base: "16px 12px",
-					large: "0 12px 0 24px",
-				},
-				borderRadius: 0,
-				_focusVisible: {
-					outline: "2px solid token(colors.focused)",
-					outlineOffset: -2,
-				},
-				_active: {
-					translate: "0 1px",
-				},
+  return (
+    <Link
+      title={title}
+      href={path}
+      target={external ? "_blank" : undefined}
+      className={css({
+        position: "absolute",
+        inset: "0 -16px -12px auto",
+        display: "grid",
+        placeItems: {
+          base: "end center",
+          large: "center",
+        },
+        padding: {
+          base: "16px 12px",
+          large: "0 12px 0 24px",
+        },
+        borderRadius: 8,
+        _focusVisible: {
+          outline: "2px solid token(colors.focused)",
+          outlineOffset: -2,
+        },
+        _active: {
+          translate: "0 1px",
+        },
 
-				"& > div": {
-					transformOrigin: "50% 50%",
-					transition: "scale 80ms",
-				},
-				_hover: {
-					"& > div": {
-						scale: 1.05,
-					},
-				},
-			})}
-		>
-			<div
-				className={css({
-					display: "grid",
-					placeItems: "center",
-					width: 34,
-					height: 34,
-					color: "accentContent",
-					background: "accent",
-					borderRadius: "50%",
-				})}
-			>
-				{active
-					? <IconArrowRight size={24} />
-					: <IconPlus size={24} />}
-			</div>
-		</Link>
-	);
+        "& > div": {
+          transformOrigin: "50% 50%",
+          transition: "scale 80ms",
+        },
+        _hover: {
+          "& > div": {
+            scale: 1.05,
+          },
+        },
+      })}
+    >
+      <div
+        className={css({
+          display: "grid",
+          placeItems: "center",
+          width: 34,
+          height: 34,
+          color: "accentContent",
+          background: "accent",
+          borderRadius: "50%",
+        })}
+      >
+        {external ? <IconExternal size={24} /> : active
+          ? <IconArrowRight size={24} />
+          : <IconPlus size={24} />}
+      </div>
+    </Link>
+  );
 }

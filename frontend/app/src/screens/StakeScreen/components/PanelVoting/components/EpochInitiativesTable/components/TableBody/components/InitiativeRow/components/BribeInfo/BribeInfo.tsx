@@ -1,16 +1,15 @@
-import { css } from "@/styled-system/css";
-import { gt, mul } from "dnum";
-import { fmtnum } from "@/src/formatting";
-import { Amount } from "@/src/comps/Amount/Amount";
-import { tokenIconUrl } from "@/src/utils";
-import { CHAIN_ID } from "@/src/env";
-import { usePrice } from "@/src/services/Prices";
-import { useVotingStateContext } from "@/src/screens/StakeScreen/components/PanelVoting/providers/PanelVotingProvider/hooks";
-import { TokenIcon } from "@liquity2/uikit";
-import { WHITE_LABEL_CONFIG } from "@/src/white-label.config";
-
+import { type Address, TokenIcon } from "@liquity2/uikit";
+import * as dn from "dnum";
 import type { FC } from "react";
-import type { Address } from "@liquity2/uikit";
+
+import { Amount } from "@/src/comps/Amount/Amount";
+import { CHAIN_ID } from "@/src/env";
+import { fmtnum } from "@/src/formatting";
+import { useVotingStateContext } from "@/src/screens/StakeScreen/components/PanelVoting/providers/PanelVotingProvider/hooks";
+import { usePrice } from "@/src/services/Prices";
+import { tokenIconUrl } from "@/src/utils";
+import { css } from "@/styled-system/css";
+import { WHITE_LABEL_CONFIG } from "@/src/white-label.config";
 
 interface BribeInfoProps {
   initiativeAddress: Address;
@@ -22,11 +21,9 @@ export const BribeInfo: FC<BribeInfoProps> = ({ initiativeAddress }) => {
   const boldPrice = usePrice(bribe ? WHITE_LABEL_CONFIG.tokens.mainToken.symbol : null);
   const bribeTokenPrice = usePrice(bribe ? bribe.tokenSymbol : null);
 
-  if (!bribe || (gt(bribe.boldAmount, 0) && gt(bribe.tokenAmount, 0))) {
+  if (!bribe || (dn.eq(bribe.boldAmount, 0) && dn.eq(bribe.tokenAmount, 0))) {
     return null;
   }
-
-  const bribeTokenAmount = gt(bribe.tokenAmount, 0);
 
   return (
     <div
@@ -47,7 +44,7 @@ export const BribeInfo: FC<BribeInfoProps> = ({ initiativeAddress }) => {
           flexWrap: "wrap",
         })}
       >
-        {gt(bribe.boldAmount, 0) && (
+        {dn.gt(bribe.boldAmount, 0) && (
           <div
             title={`${fmtnum(bribe.boldAmount)} ${WHITE_LABEL_CONFIG.tokens.mainToken.symbol}`}
             className={css({
@@ -63,13 +60,13 @@ export const BribeInfo: FC<BribeInfoProps> = ({ initiativeAddress }) => {
                 format="compact"
                 title={null}
                 prefix="($"
-                value={mul(bribe.boldAmount, boldPrice.data)}
+                value={dn.mul(bribe.boldAmount, boldPrice.data)}
                 suffix=")"
               />
             )}
           </div>
         )}
-        {bribeTokenAmount && (
+        {dn.gt(bribe.tokenAmount, 0) && (
           <div
             title={`${fmtnum(bribe.tokenAmount)} ${bribe.tokenSymbol} (${bribe.tokenAddress})`}
             className={css({
@@ -93,7 +90,7 @@ export const BribeInfo: FC<BribeInfoProps> = ({ initiativeAddress }) => {
                 format="compact"
                 title={null}
                 prefix="($"
-                value={mul(bribe.tokenAmount, bribeTokenPrice.data)}
+                value={dn.mul(bribe.tokenAmount, bribeTokenPrice.data)}
                 suffix=")"
               />
             )}

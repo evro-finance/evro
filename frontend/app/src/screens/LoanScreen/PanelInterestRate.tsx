@@ -6,26 +6,37 @@ import { Amount } from "@/src/comps/Amount/Amount";
 import { Field } from "@/src/comps/Field/Field";
 import { FlowButton } from "@/src/comps/FlowButton/FlowButton";
 import { InterestRateField } from "@/src/comps/InterestRateField/InterestRateField";
+import { LinkTextButton } from "@/src/comps/LinkTextButton/LinkTextButton";
 import { UpdateBox } from "@/src/comps/UpdateBox/UpdateBox";
+import { WarningBox } from "@/src/comps/WarningBox/WarningBox";
+import { INTEREST_RATE_ADJ_COOLDOWN } from "@/src/constants";
 import content from "@/src/content";
 import { useInputFieldValue } from "@/src/form-utils";
 import { WHITE_LABEL_CONFIG } from "@/src/white-label.config";
 import { fmtnum, formatRelativeTime } from "@/src/formatting";
 import { formatRisk } from "@/src/formatting";
 import { getLoanDetails } from "@/src/liquity-math";
-import { getCollToken, useRedemptionRisk, useTroveRateUpdateCooldown } from "@/src/liquity-utils";
+import {
+  getCollToken,
+  useBranchCollateralRatios,
+  useRedemptionRiskOfInterestRate,
+  useRedemptionRiskOfLoan,
+  useTroveRateUpdateCooldown,
+} from "@/src/liquity-utils";
 import { usePrice } from "@/src/services/Prices";
 import { infoTooltipProps, riskLevelToStatusMode } from "@/src/uikit-utils";
 import { useAccount } from "@/src/wagmi-utils";
 import { css } from "@/styled-system/css";
-import { addressesEqual, HFlex, IconSuggestion, InfoTooltip, StatusDot } from "@liquity2/uikit";
+import { addressesEqual, Checkbox, HFlex, IconExternal, IconSuggestion, InfoTooltip, StatusDot } from "@liquity2/uikit";
 import * as dn from "dnum";
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useId, useRef, useState } from "react";
 
 export function PanelInterestRate({
   loan,
+  loanMode,
 }: {
   loan: PositionLoanCommitted;
+  loanMode: "borrow" | "multiply";
 }) {
   const account = useAccount();
 
@@ -45,10 +56,16 @@ export function PanelInterestRate({
     loan.batchManager,
   );
 
+  const [agreeToLiquidationRisk, setAgreeToLiquidationRisk] = useState(false);
+  const agreeCheckboxId = useId();
+
   const updateRateCooldown = useUpdateRateCooldown(loan.branchId, loan.troveId);
 
-  const currentRedemptionRisk = useRedemptionRisk(loan.branchId, loan.interestRate);
-  const newRedemptionRisk = useRedemptionRisk(loan.branchId, interestRate);
+  const collateralRatios = useBranchCollateralRatios(loan.branchId);
+  const isZombieTrove = loan.isZombie;
+
+  const currentRedemptionRisk = useRedemptionRiskOfLoan(loan);
+  const newRedemptionRisk = useRedemptionRiskOfInterestRate(loan.branchId, interestRate, loan);
 
   const loanDetails = getLoanDetails(
     loan.deposit,
@@ -66,6 +83,10 @@ export function PanelInterestRate({
     collPrice.data ?? null,
   );
 
+  useEffect(() => {
+    setAgreeToLiquidationRisk(false);
+  }, [newLoanDetails.status]);
+
   const boldInterestPerYear = interestRate
     && debt.parsed
     && dn.mul(debt.parsed, interestRate);
@@ -74,19 +95,29 @@ export function PanelInterestRate({
     && loan.borrowed
     && dn.mul(loan.borrowed, loan.interestRate);
 
+  const isCcrConditionsNotMet = collateralRatios.data?.tcr
+    && collateralRatios.data?.ccr
+    && updateRateCooldown
+    && dn.lt(collateralRatios.data.tcr, collateralRatios.data.ccr)
+    && updateRateCooldown.active;
+
+  const isDelegated = interestRateDelegate;
   const allowSubmit = Boolean(
     account.address && addressesEqual(
       loan.borrower,
       account.address,
     ),
   )
+    && !isZombieTrove
     && deposit.parsed && dn.gt(deposit.parsed, 0)
     && debt.parsed && dn.gt(debt.parsed, 0)
     && interestRate && dn.gt(interestRate, 0)
     && (
       !dn.eq(interestRate, loan.interestRate)
       || loan.batchManager !== interestRateDelegate
-    );
+    )
+    && !isCcrConditionsNotMet
+    && (newLoanDetails.status !== "at-risk" || (!isDelegated && agreeToLiquidationRisk));
 
   return (
     <>
@@ -222,6 +253,94 @@ export function PanelInterestRate({
           ]}
         />
       </div>
+
+      {isCcrConditionsNotMet && collateralRatios.data
+        ? (
+          <WarningBox>
+            <div>
+              <div
+                className={css({
+                  fontSize: 16,
+                  fontWeight: 600,
+                  marginBottom: 12,
+                })}
+              >
+                {content.ccrWarning.title}
+              </div>
+              <div
+                className={css({
+                  fontSize: 15,
+                  marginBottom: 12,
+                })}
+              >
+                {content.ccrWarning.interestRateAdjustment({
+                  tcr: <Amount value={collateralRatios.data.tcr} percentage format={0} />,
+                  ccr: <Amount value={collateralRatios.data.ccr} percentage format={0} />,
+                  cooldownDays: INTEREST_RATE_ADJ_COOLDOWN / (24 * 60 * 60),
+                })}
+              </div>
+              <LinkTextButton
+                href={content.ccrWarning.learnMoreUrl}
+                target="_blank"
+                rel="noopener noreferrer"
+                label={
+                  <span
+                    className={css({
+                      display: "flex",
+                      alignItems: "center",
+                      gap: 4,
+                      color: "white",
+                    })}
+                  >
+                    <span>{content.ccrWarning.learnMoreLabel}</span>
+                    <IconExternal size={16} />
+                  </span>
+                }
+              />
+            </div>
+          </WarningBox>
+        )
+        : newLoanDetails.status === "at-risk" && (
+          <WarningBox>
+            {isDelegated
+              ? content.atRiskWarning.delegated(`${fmtnum(newLoanDetails.maxLtvAllowed, "pct2z")}%`)
+              : (
+                <>
+                  {content.atRiskWarning.manual(
+                    `${fmtnum(newLoanDetails.ltv, "pct2z")}%`,
+                    `${fmtnum(newLoanDetails.maxLtv, "pct2z")}%`,
+                  ).message}
+                  <label
+                    htmlFor={agreeCheckboxId}
+                    className={css({
+                      display: "flex",
+                      alignItems: "center",
+                      gap: 12,
+                      cursor: "pointer",
+                    })}
+                  >
+                    <Checkbox
+                      id={agreeCheckboxId}
+                      checked={agreeToLiquidationRisk}
+                      onChange={(checked) => {
+                        setAgreeToLiquidationRisk(checked);
+                      }}
+                    />
+                    {content.atRiskWarning.manual("", "").checkboxLabel}
+                  </label>
+                </>
+              )}
+          </WarningBox>
+        )}
+
+      {isZombieTrove && (
+        <WarningBox>
+          <div>
+            Interest rate can't be adjusted on loans with debt below 2,000 ${WHITE_LABEL_CONFIG.tokens.mainToken.symbol}. Please adjust your debt first.
+          </div>
+        </WarningBox>
+      )}
+
       <FlowButton
         disabled={!allowSubmit}
         label="Update position"
@@ -234,6 +353,7 @@ export function PanelInterestRate({
           successLink: ["/", "Go to the dashboard"],
           successMessage: "The position interest rate has been updated successfully.",
 
+          leverageMode: loanMode === "multiply",
           prevLoan: { ...loan },
           loan: {
             ...loan,

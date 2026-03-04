@@ -1,247 +1,214 @@
-import type { BranchId, Dnum, TroveId } from "@/src/types";
-import type { Config as WagmiConfig } from "wagmi";
+import type { FlowStep } from "@/src/services/TransactionFlow";
+import type { BranchId, CollateralSymbol, Dnum } from "@/src/types";
 
-import { CLOSE_FROM_COLLATERAL_SLIPPAGE } from "@/src/constants";
-import { getProtocolContract } from "@/src/contracts";
-import { dnum18 } from "@/src/dnum-utils";
+import { getBranchContract, getProtocolContract } from "@/src/contracts";
+import { dnum18, DNUM_0 } from "@/src/dnum-utils";
 import { getBranch } from "@/src/liquity-utils";
-import { useDebouncedQueryKey } from "@/src/react-utils";
 import { useQuery } from "@tanstack/react-query";
 import * as dn from "dnum";
-import { useConfig as useWagmiConfig } from "wagmi";
-import { readContract, readContracts } from "wagmi/actions";
+import { useMemo } from "react";
+import { parseEventLogs } from "viem";
+import { useConfig as useWagmiConfig, useReadContracts } from "wagmi";
+import { getTransactionReceipt } from "wagmi/actions";
+import { useDebounced } from "./react-utils";
+import { WHITE_LABEL_CONFIG } from "./white-label.config";
 
-const DECIMAL_PRECISION = 10n ** 18n;
+const MARGINAL_AMOUNT_DIVIDER = 1_000n;
 
-export async function getLeverUpTroveParams(
-  branchId: BranchId,
-  troveId: TroveId,
-  leverageFactor: number,
-  wagmiConfig: WagmiConfig,
+export type SwapDirection =
+  | { inputToken: typeof WHITE_LABEL_CONFIG.tokens.mainToken.symbol; outputToken: CollateralSymbol }
+  | { inputToken: CollateralSymbol; outputToken: typeof WHITE_LABEL_CONFIG.tokens.mainToken.symbol };
+
+export type QuoteExactInputParams = SwapDirection & {
+  inputAmount: Dnum;
+};
+
+export type QuoteExactOutputParams = SwapDirection & {
+  outputAmount: Dnum;
+};
+
+function calcPriceImpact(
+  inputAmount: bigint,
+  inputAmountMarginal: bigint,
+  outputAmount: bigint,
+  outputAmountMarginal: bigint,
 ) {
-  const { PriceFeed, TroveManager } = getBranch(branchId).contracts;
-  const [priceResult, troveDataResult] = await readContracts(wagmiConfig, {
-    contracts: [{
-      abi: PriceFeed.abi,
-      address: PriceFeed.address,
-      functionName: "fetchPrice",
-    }, {
-      abi: TroveManager.abi,
-      address: TroveManager.address,
-      functionName: "getLatestTroveData",
-      args: [BigInt(troveId)],
-    }],
-  });
+  if (inputAmount == 0n || inputAmountMarginal == 0n) return null;
 
-  const [price] = priceResult.result ?? [];
-  const troveData = troveDataResult.result;
+  const exchangeRate = dn.div(outputAmount, inputAmount, 18);
+  const exchangeRateMarginal = dn.div(outputAmountMarginal, inputAmountMarginal, 18);
 
-  if (!price || !troveData) {
-    return null;
-  }
-
-  const currentCR = await readContract(wagmiConfig, {
-    abi: TroveManager.abi,
-    address: TroveManager.address,
-    functionName: "getCurrentICR",
-    args: [BigInt(troveId), price],
-  });
-
-  const currentLR = leverageRatioToCollateralRatio(currentCR);
-
-  const leverageRatio = BigInt(leverageFactor * 1000) * DECIMAL_PRECISION / 1000n;
-  if (leverageRatio <= currentLR) {
-    throw new Error(`Multiply ratio should increase: ${leverageRatio} <= ${currentLR}`);
-  }
-
-  const currentCollAmount = troveData.entireColl;
-  const flashLoanAmount = currentCollAmount * leverageRatio / currentLR - currentCollAmount;
-  const expectedBoldAmount = flashLoanAmount * price / DECIMAL_PRECISION;
-  const maxNetDebtIncrease = expectedBoldAmount * 105n / 100n; // 5% slippage
-
-  return {
-    flashLoanAmount,
-    effectiveBoldAmount: maxNetDebtIncrease,
-  };
+  if (dn.eq(exchangeRateMarginal, DNUM_0)) return null;
+  return dn.div(dn.sub(exchangeRateMarginal, exchangeRate), exchangeRateMarginal);
 }
 
-export async function getLeverDownTroveParams(
+export function useQuoteExactInput(params: QuoteExactInputParams) {
+  const inputAmount = dn.from(params.inputAmount, 18)[0];
+  const inputAmountMarginal = inputAmount / MARGINAL_AMOUNT_DIVIDER;
+  const collToBold = params.outputToken === WHITE_LABEL_CONFIG.tokens.mainToken.symbol;
+  const collToken = getBranchContract(collToBold ? params.inputToken : params.outputToken, "CollToken").address;
+
+  const values = useMemo(() => ({
+    inputAmount,
+    inputAmountMarginal,
+    collToBold,
+    collToken,
+  }), [inputAmount, inputAmountMarginal, collToBold, collToken]);
+
+  const [debounced, bouncing] = useDebounced(values);
+  const ExchangeHelpersV2 = getProtocolContract("ExchangeHelpersV2");
+
+  return useReadContracts({
+    contracts: [
+      {
+        ...ExchangeHelpersV2,
+        functionName: "quoteExactInput",
+        args: [debounced.inputAmount, debounced.collToBold, debounced.collToken],
+      },
+      {
+        ...ExchangeHelpersV2,
+        functionName: "quoteExactInput",
+        args: [debounced.inputAmountMarginal, debounced.collToBold, debounced.collToken],
+      },
+    ],
+
+    query: {
+      refetchInterval: 12_000,
+      enabled: !bouncing && debounced.inputAmountMarginal > 0n, // implies debounced.inputAmount > 0n
+
+      select: (data) =>
+        data[0].status === "failure"
+          ? ({ bouncing, outputAmount: null, priceImpact: null })
+          : ({
+            bouncing,
+            outputAmount: dnum18(data[0].result),
+            priceImpact: calcPriceImpact(
+              debounced.inputAmount,
+              debounced.inputAmountMarginal,
+              data[0].result,
+              data[1].result ?? 0n,
+            ),
+          }),
+    },
+  });
+}
+
+export function useQuoteExactOutput(params: QuoteExactOutputParams) {
+  const outputAmount = dn.from(params.outputAmount, 18)[0];
+  const outputAmountMarginal = outputAmount / MARGINAL_AMOUNT_DIVIDER;
+  const collToBold = params.outputToken === WHITE_LABEL_CONFIG.tokens.mainToken.symbol;
+  const collToken = getBranchContract(collToBold ? params.inputToken : params.outputToken, "CollToken").address;
+
+  const values = useMemo(() => ({
+    outputAmount,
+    outputAmountMarginal,
+    collToBold,
+    collToken,
+  }), [outputAmount, outputAmountMarginal, collToBold, collToken]);
+
+  const [debounced, bouncing] = useDebounced(values);
+  const ExchangeHelpersV2 = getProtocolContract("ExchangeHelpersV2");
+
+  return useReadContracts({
+    contracts: [
+      {
+        ...ExchangeHelpersV2,
+        functionName: "quoteExactOutput",
+        args: [debounced.outputAmount, debounced.collToBold, debounced.collToken],
+      },
+      {
+        ...ExchangeHelpersV2,
+        functionName: "quoteExactOutput",
+        args: [debounced.outputAmountMarginal, debounced.collToBold, debounced.collToken],
+      },
+    ],
+
+    query: {
+      refetchInterval: 12_000,
+      enabled: !bouncing && debounced.outputAmountMarginal > 0n, // implies debounced.outputAmount > 0n
+
+      select: (data) =>
+        data[0].status === "failure"
+          ? ({ bouncing, inputAmount: null, priceImpact: null })
+          : ({
+            bouncing,
+            inputAmount: dnum18(data[0].result),
+            priceImpact: calcPriceImpact(
+              data[0].result,
+              data[1].result ?? 0n,
+              debounced.outputAmount,
+              debounced.outputAmountMarginal,
+            ),
+          }),
+    },
+  });
+}
+
+/**
+ * Extracts the slippage refund amount from a leverage or close position transaction receipt.
+ * The slippage refund is a Transfer event from the zapper contract to the user's wallet.
+ *
+ * Supported transaction types:
+ * - openLeveragedTrove: Opening a leverage position
+ * - leverUpTrove: Increasing leverage
+ * - leverDownTrove: Decreasing leverage
+ * - closeLoanPosition: Closing position (when repaying with collateral)
+ */
+export function useSlippageRefund(
   branchId: BranchId,
-  troveId: TroveId,
-  leverageFactor: number,
-  wagmiConfig: WagmiConfig,
+  account: string,
+  steps: FlowStep[] | null,
+  isCloseLoanToCollateral = false,
 ) {
-  const { PriceFeed, TroveManager } = getBranch(branchId).contracts;
-  const [priceResult, troveDataResult] = await readContracts(wagmiConfig, {
-    contracts: [{
-      abi: PriceFeed.abi,
-      address: PriceFeed.address,
-      functionName: "fetchPrice",
-    }, {
-      abi: TroveManager.abi,
-      address: TroveManager.address,
-      functionName: "getLatestTroveData",
-      args: [BigInt(troveId)],
-    }],
-  });
-
-  const [price] = priceResult.result ?? [];
-  const troveData = troveDataResult.result;
-
-  if (!price || !troveData) {
-    return null;
-  }
-
-  const currentCR = await readContract(wagmiConfig, {
-    abi: TroveManager.abi,
-    address: TroveManager.address,
-    functionName: "getCurrentICR",
-    args: [BigInt(troveId), price],
-  });
-
-  const currentLR = leverageRatioToCollateralRatio(currentCR);
-
-  const leverageRatio = BigInt(leverageFactor * 1000) * DECIMAL_PRECISION / 1000n;
-  if (leverageRatio >= currentLR) {
-    throw new Error(`Multiply ratio should decrease: ${leverageRatio} >= ${currentLR}`);
-  }
-
-  const currentCollAmount = troveData.entireColl;
-  const flashLoanAmount = currentCollAmount - (currentCollAmount * leverageRatio / currentLR);
-  const expectedBoldAmount = flashLoanAmount * price / DECIMAL_PRECISION;
-  const minBoldDebt = expectedBoldAmount * 95n / 100n; // 5% slippage
-
-  return {
-    flashLoanAmount,
-    minBoldAmount: minBoldDebt,
-  };
-}
-
-// from openLeveragedTroveWithIndex() in contracts/src/test/zapperLeverage.t.sol
-export async function getOpenLeveragedTroveParams(
-  branchId: BranchId,
-  collAmount: bigint,
-  leverageFactor: number,
-  wagmiConfig: WagmiConfig,
-) {
-  const { PriceFeed } = getBranch(branchId).contracts;
-  const FetchPriceAbi = PriceFeed.abi.find((fn) => fn.name === "fetchPrice");
-  if (!FetchPriceAbi) {
-    throw new Error("fetchPrice ABI not found");
-  }
-  const [price] = await readContract(wagmiConfig, {
-    abi: [{ ...FetchPriceAbi, stateMutability: "view" }] as const,
-    address: PriceFeed.address,
-    functionName: "fetchPrice",
-  });
-
-  const leverageRatio = BigInt(leverageFactor * 1000) * DECIMAL_PRECISION / 1000n;
-  const flashLoanAmount = collAmount * (leverageRatio - DECIMAL_PRECISION) / DECIMAL_PRECISION;
-  const expectedBoldAmount = flashLoanAmount * price / DECIMAL_PRECISION;
-  const maxNetDebt = expectedBoldAmount * 105n / 100n; // 5% slippage
-
-  return {
-    effectiveBoldAmount: maxNetDebt,
-    expectedBoldAmount,
-    flashLoanAmount,
-    maxNetDebt,
-    price,
-  };
-}
-
-// from _getCloseFlashLoanAmount() in contracts/src/test/zapperLeverage.t.sol
-export async function getCloseFlashLoanAmount(
-  branchId: BranchId,
-  troveId: TroveId,
-  wagmiConfig: WagmiConfig,
-): Promise<bigint | null> {
-  const { PriceFeed, TroveManager } = getBranch(branchId).contracts;
-  const [priceResult, latestTroveDataResult] = await readContracts(wagmiConfig, {
-    contracts: [{
-      abi: PriceFeed.abi,
-      address: PriceFeed.address,
-      functionName: "fetchPrice",
-    }, {
-      abi: TroveManager.abi,
-      address: TroveManager.address,
-      functionName: "getLatestTroveData",
-      args: [BigInt(troveId)],
-    }],
-  });
-
-  const [price] = priceResult.result ?? [];
-  const latestTroveData = latestTroveDataResult.result;
-
-  if (!price || !latestTroveData) {
-    return null;
-  }
-
-  return (
-    latestTroveData.entireDebt * DECIMAL_PRECISION
-    / price
-    * BigInt(100 + CLOSE_FROM_COLLATERAL_SLIPPAGE * 100)
-    / 100n
-  );
-}
-
-function leverageRatioToCollateralRatio(inputRatio: bigint) {
-  return inputRatio * DECIMAL_PRECISION / (inputRatio - DECIMAL_PRECISION);
-}
-
-export function useCheckLeverageSlippage({
-  branchId,
-  initialDeposit,
-  leverageFactor,
-  ownerIndex,
-}: {
-  branchId: BranchId;
-  initialDeposit: Dnum | null;
-  leverageFactor: number;
-  ownerIndex: number | null;
-}) {
   const wagmiConfig = useWagmiConfig();
-  const WethContract = getProtocolContract("WETH");
-  const ExchangeHelpersContract = getProtocolContract("ExchangeHelpers");
+  const branch = getBranch(branchId);
 
-  const debouncedQueryKey = useDebouncedQueryKey([
-    "openLeveragedTroveParams",
-    branchId,
-    String(!initialDeposit || initialDeposit[0]),
-    leverageFactor,
-    ownerIndex,
-  ], 100);
+  // Find the last confirmed step that might have a slippage refund
+  const relevantStep = steps
+    ?.slice()
+    .reverse()
+    .find(
+      (step) =>
+        (
+          step.id === "leverUpTrove"
+          || step.id === "leverDownTrove"
+          || (step.id === "closeLoanPosition" && isCloseLoanToCollateral)
+          || step.id === "openLeveragedTrove"
+        )
+        && step.status === "confirmed"
+        && step.artifact,
+    );
 
   return useQuery({
-    queryKey: debouncedQueryKey,
+    enabled: Boolean(relevantStep?.artifact),
+    queryKey: ["slippage-refund", relevantStep?.artifact],
     queryFn: async () => {
-      const params = initialDeposit && (await getOpenLeveragedTroveParams(
-        branchId,
-        initialDeposit[0],
-        leverageFactor,
-        wagmiConfig,
-      ));
+      if (!relevantStep?.artifact) return null;
 
-      if (params === null) {
-        return null;
-      }
-
-      const [_, slippage] = await readContract(wagmiConfig, {
-        abi: ExchangeHelpersContract.abi,
-        address: ExchangeHelpersContract.address,
-        functionName: "getCollFromBold",
-        args: [
-          params.expectedBoldAmount,
-          WethContract.address,
-          params.flashLoanAmount,
-        ],
+      const receipt = await getTransactionReceipt(wagmiConfig, {
+        hash: relevantStep.artifact as `0x${string}`,
       });
 
-      return dnum18(slippage);
+      const transferEvents = parseEventLogs({
+        abi: branch.contracts.CollToken.abi,
+        logs: receipt.logs,
+        eventName: "Transfer",
+      });
+
+      // Find transfer from zapper to user (slippage refund)
+      const zapperAddress = branch.symbol === "ETH"
+        ? branch.contracts.LeverageWETHZapper.address.toLowerCase()
+        : branch.contracts.LeverageLSTZapper.address.toLowerCase();
+
+      const slippageTransfer = transferEvents.find(
+        (event) =>
+          event.args.from?.toLowerCase() === zapperAddress
+          && event.args.to?.toLowerCase() === account.toLowerCase(),
+      );
+
+      return slippageTransfer?.args.value
+        ? dnum18(slippageTransfer.args.value)
+        : null;
     },
-    enabled: Boolean(
-      initialDeposit
-        && dn.gt(initialDeposit, 0)
-        && ownerIndex !== null,
-    ),
   });
 }

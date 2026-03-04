@@ -4,6 +4,7 @@ import { Amount } from "@/src/comps/Amount/Amount";
 import { ETH_GAS_COMPENSATION } from "@/src/constants";
 import { dnum18 } from "@/src/dnum-utils";
 import { fmtnum } from "@/src/formatting";
+import { useDelegateDisplayName } from "@/src/liquity-delegate";
 import {
   getBranch,
   getCollToken,
@@ -98,6 +99,7 @@ export const openBorrowPosition: FlowDeclaration<OpenBorrowPositionRequest> = {
 
     const { branchId, interestRateDelegate, boldAmount } = request;
     const delegate = useInterestBatchDelegate(branchId, interestRateDelegate);
+    const delegateDisplayName = useDelegateDisplayName(interestRateDelegate);
     const yearlyBoldInterest = dn.mul(
       boldAmount,
       dn.add(request.annualInterestRate, delegate.data?.fee ?? 0),
@@ -155,6 +157,7 @@ export const openBorrowPosition: FlowDeclaration<OpenBorrowPositionRequest> = {
                 <AccountButton
                   key="start"
                   address={request.interestRateDelegate}
+                  displayName={delegateDisplayName}
                 />,
                 <div key="end">
                   {delegate.isLoading

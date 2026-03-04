@@ -10,27 +10,33 @@ import { DefaultPool } from "@/src/abi/DefaultPool";
 import { ExchangeHelpers } from "@/src/abi/ExchangeHelpers";
 import { Governance } from "@/src/abi/Governance";
 import { HintHelpers } from "@/src/abi/HintHelpers";
+import { IExchangeHelpersV2 } from "@/src/abi/IExchangeHelpersV2";
 import { LeverageLSTZapper } from "@/src/abi/LeverageLSTZapper";
 import { LeverageWETHZapper } from "@/src/abi/LeverageWETHZapper";
 import { LqtyStaking } from "@/src/abi/LqtyStaking";
 import { LqtyToken } from "@/src/abi/LqtyToken";
 import { MultiTroveGetter } from "@/src/abi/MultiTroveGetter";
 import { PriceFeed } from "@/src/abi/PriceFeed";
+import { RedemptionHelper } from "@/src/abi/RedemptionHelper";
 import { SortedTroves } from "@/src/abi/SortedTroves";
 import { StabilityPool } from "@/src/abi/StabilityPool";
 import { TroveManager } from "@/src/abi/TroveManager";
 import { TroveNFT } from "@/src/abi/TroveNFT";
+import { V1StabilityPoolAbi } from "@/src/abi/V1StabilityPool";
 import {
   CONTRACT_MAIN_TOKEN,
   CONTRACT_COLLATERAL_REGISTRY,
   CONTRACT_DEBT_IN_FRONT_HELPER,
   CONTRACT_EXCHANGE_HELPERS,
+  CONTRACT_EXCHANGE_HELPERS_V2,
   CONTRACT_GOVERNANCE,
   CONTRACT_HINT_HELPERS,
   CONTRACT_LQTY_STAKING,
   CONTRACT_LQTY_TOKEN,
   CONTRACT_LUSD_TOKEN,
   CONTRACT_MULTI_TROVE_GETTER,
+  CONTRACT_REDEMPTION_HELPER,
+  CONTRACT_V1_STABILITY_POOL,
   CONTRACT_WETH,
   ENV_BRANCHES,
 } from "@/src/env";
@@ -41,12 +47,15 @@ const protocolAbis = {
   CollateralRegistry,
   DebtInFrontHelper,
   ExchangeHelpers,
+  ExchangeHelpersV2: IExchangeHelpersV2,
   Governance,
   HintHelpers,
   LqtyStaking,
   LqtyToken,
   LusdToken: erc20Abi,
   MultiTroveGetter,
+  RedemptionHelper,
+  V1StabilityPool: V1StabilityPoolAbi,
   WETH: erc20Abi,
 } as const;
 
@@ -126,6 +135,10 @@ export const CONTRACTS: Contracts = {
     abi: abis.ExchangeHelpers,
     address: CONTRACT_EXCHANGE_HELPERS,
   },
+  ExchangeHelpersV2: {
+    abi: abis.ExchangeHelpersV2,
+    address: CONTRACT_EXCHANGE_HELPERS_V2,
+  },
   HintHelpers: { abi: abis.HintHelpers, address: CONTRACT_HINT_HELPERS },
   LqtyStaking: { abi: abis.LqtyStaking, address: CONTRACT_LQTY_STAKING },
   LqtyToken: { abi: abis.LqtyToken, address: CONTRACT_LQTY_TOKEN },
@@ -134,6 +147,11 @@ export const CONTRACTS: Contracts = {
     abi: abis.MultiTroveGetter,
     address: CONTRACT_MULTI_TROVE_GETTER,
   },
+  RedemptionHelper: {
+    abi: abis.RedemptionHelper,
+    address: CONTRACT_REDEMPTION_HELPER,
+  },
+  V1StabilityPool: { abi: abis.V1StabilityPool, address: CONTRACT_V1_STABILITY_POOL },
   WETH: { abi: abis.WETH, address: CONTRACT_WETH },
   branches: ENV_BRANCHES.map(({ branchId, symbol, contracts }) => ({
     id: branchId,

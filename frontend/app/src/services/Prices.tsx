@@ -9,23 +9,15 @@ import { getBranchContract } from "@/src/contracts";
 import { dnum18, dnumOrNull } from "@/src/dnum-utils";
 import { isCollateralSymbol } from "@liquity2/uikit";
 import { useQuery } from "@tanstack/react-query";
-import { useConfig as useWagmiConfig } from "wagmi";
+import { useConfig as useWagmiConfig, useReadContracts } from "wagmi";
 import { readContract } from "wagmi/actions";
 
 async function fetchCollateralPrice(
   symbol: CollateralSymbol,
   config: ReturnType<typeof useWagmiConfig>,
 ): Promise<Dnum> {
-  const PriceFeed = getBranchContract(symbol, "PriceFeed");
-
-  const FetchPriceAbi = PriceFeed.abi.find((fn) => fn.name === "fetchPrice");
-  if (!FetchPriceAbi) {
-    throw new Error("fetchPrice ABI not found");
-  }
-
   const [price] = await readContract(config, {
-    abi: [{ ...FetchPriceAbi, stateMutability: "view" }] as const,
-    address: PriceFeed.address,
+    ...getBranchContract(symbol, "PriceFeed"),
     functionName: "fetchPrice",
   });
 
@@ -61,5 +53,21 @@ export function usePrice(symbol: string | null): UseQueryResult<Dnum | null> {
     },
     enabled: symbol !== null,
     refetchInterval: PRICE_REFRESH_INTERVAL,
+  });
+}
+
+export function useCollateralPrices(symbols: CollateralSymbol[]) {
+  return useReadContracts({
+    allowFailure: false,
+
+    contracts: symbols.map((symbol) => ({
+      ...getBranchContract(symbol, "PriceFeed"),
+      functionName: "fetchPrice",
+    } as const)),
+
+    query: {
+      select: (data) => data.map(([price]) => dnum18(price)),
+      refetchInterval: 12_000,
+    },
   });
 }

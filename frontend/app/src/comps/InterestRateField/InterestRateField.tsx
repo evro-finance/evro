@@ -3,13 +3,20 @@ import type { Dnum } from "dnum";
 
 import { useAppear } from "@/src/anim-utils";
 import { useBreakpointName } from "@/src/breakpoints";
-import { INTEREST_RATE_START, REDEMPTION_RISK } from "@/src/constants";
+import { INTEREST_RATE_MAX, INTEREST_RATE_START, REDEMPTION_RISK } from "@/src/constants";
 import content from "@/src/content";
 import { WHITE_LABEL_CONFIG } from "@/src/white-label.config";
 import { DNUM_0, jsonStringifyWithDnum } from "@/src/dnum-utils";
 import { useInputFieldValue } from "@/src/form-utils";
 import { fmtnum } from "@/src/formatting";
-import { findClosestRateIndex, getBranch, useAverageInterestRate, useInterestRateChartData } from "@/src/liquity-utils";
+import {
+  EMPTY_LOAN,
+  findClosestRateIndex,
+  useAverageInterestRate,
+  useDebtInFrontOfInterestRate,
+  useDebtInFrontOfLoan,
+  useInterestRateChartData,
+} from "@/src/liquity-utils";
 import { infoTooltipProps } from "@/src/uikit-utils";
 import { noop } from "@/src/utils";
 import { css } from "@/styled-system/css";
@@ -19,7 +26,6 @@ import * as dn from "dnum";
 import { memo, useCallback, useEffect, useId, useMemo, useRef, useState } from "react";
 import { match } from "ts-pattern";
 import { DelegateModal } from "./DelegateModal";
-import { IcStrategiesModal } from "./IcStrategiesModal";
 import { MiniChart } from "./MiniChart";
 
 const DELEGATE_MODES = [
@@ -33,37 +39,38 @@ const SHOW_AVERAGE_BUTTON_MODES: DelegateMode[] = [
 ] as const;
 
 export const InterestRateField = memo(
-	function InterestRateField({
-		branchId,
-		debt,
-		delegate,
-		inputId: inputIdFromProps,
-		interestRate,
-		mode,
-		onAverageInterestRateLoad = noop,
-		onChange,
-		onDelegateChange,
-		onModeChange = noop,
-		loan,
-	}: {
-		branchId: BranchId;
-		debt: Dnum | null;
-		delegate: Address | null;
-		inputId?: string;
-		interestRate: Dnum | null;
-		mode: DelegateMode;
-		onAverageInterestRateLoad?: (averageInterestRate: Dnum) => void;
-		onChange: (interestRate: Dnum) => void;
-		onDelegateChange: (delegate: Address | null) => void;
-		onModeChange?: (mode: DelegateMode) => void;
-		loan?: PositionLoanCommitted;
-	}) {
-		const [delegatePicker, setDelegatePicker] = useState<
-			"strategy" | "delegate" | null
-		>(null);
+  function InterestRateField({
+    branchId,
+    debt,
+    delegate,
+    inputId: inputIdFromProps,
+    interestRate,
+    mode,
+    onAverageInterestRateLoad = noop,
+    onChange,
+    onDelegateChange,
+    onModeChange = noop,
+    loan,
+  }: {
+    branchId: BranchId;
+    debt: Dnum | null;
+    delegate: Address | null;
+    inputId?: string;
+    interestRate: Dnum | null;
+    mode: DelegateMode;
+    // XXX why is average interest rate loaded inside this component and not the parent?
+    onAverageInterestRateLoad?: (averageInterestRate: Dnum, setValue: (value: string) => void) => void;
+    onChange: (interestRate: Dnum) => void;
+    onDelegateChange: (delegate: Address | null) => void;
+    onModeChange?: (mode: DelegateMode) => void;
+    loan?: PositionLoanCommitted;
+  }) {
+    const [delegatePicker, setDelegatePicker] = useState<
+      "delegate" | null
+    >(null);
 
-		const autoInputId = useId();
-		const inputId = inputIdFromProps ?? autoInputId;
+    const autoInputId = useId();
+    const inputId = inputIdFromProps ?? autoInputId;
 
 		const averageInterestRate = useAverageInterestRate(branchId);
 
@@ -76,291 +83,296 @@ export const InterestRateField = memo(
 			rateTouchedForBranch.current = null;
 		}
 
-		useEffect(() => {
-			let cancelled = false;
-			if (rateTouchedForBranch.current === null && averageInterestRate.data) {
-				rateTouchedForBranch.current = branchId;
-				setTimeout(() => {
-					if (averageInterestRate.data && !cancelled) {
-						onAverageInterestRateLoad(averageInterestRate.data);
-					}
-				}, 0);
-				return () => {
-					cancelled = true;
-				};
-			}
-		}, [
-			averageInterestRate.data,
-			branchId,
-			onAverageInterestRateLoad,
-		]);
+    useEffect(() => {
+      let cancelled = false;
+      if (rateTouchedForBranch.current === null && averageInterestRate.data) {
+        rateTouchedForBranch.current = branchId;
+        setTimeout(() => {
+          if (averageInterestRate.data && !cancelled) {
+            onAverageInterestRateLoad(averageInterestRate.data, fieldValue.setValue);
+          }
+        }, 0);
+        return () => {
+          cancelled = true;
+        };
+      }
+    }, [
+      averageInterestRate.data,
+      branchId,
+      onAverageInterestRateLoad,
+    ]);
 
-		useEffect(() => {
-			setDelegatePicker(null);
-			onDelegateChange(null);
-			onModeChange("manual");
-		}, [
-			branchId,
-			onDelegateChange,
-			onModeChange,
-		]);
+    useEffect(() => {
+      setDelegatePicker(null);
+      if (!delegate) {
+        onDelegateChange(null);
+        onModeChange("manual");
+      }
+    }, [
+      branchId,
+      delegate,
+      onDelegateChange,
+      onModeChange,
+    ]);
 
-		const fieldValue = useInputFieldValue((value) => `${fmtnum(value)}%`, {
-			onFocusChange: ({ parsed, focused }) => {
-				if (!focused && parsed) {
-					const rounded = dn.div(dn.round(dn.mul(parsed, 10)), 10);
-					fieldValue.setValue(
-						rounded[0] === 0n
-							? String(INTEREST_RATE_START * 100)
-							: dn.toString(rounded),
-					);
-				}
-			},
-			onChange: ({ parsed }) => {
-				if (parsed) {
-					rateTouchedForBranch.current = branchId;
-					onChange(dn.div(parsed, 100));
-				}
-			},
-		});
+    const fieldValue = useInputFieldValue((value) => `${fmtnum(value)}%`, {
+      defaultValue: interestRate ? dn.toString(dn.mul(interestRate, 100)) : undefined,
 
-		const interestChartData = useInterestRateChartData(branchId, loan);
-		const interestRateRounded = interestRate && dn.div(dn.round(dn.mul(interestRate, 1000)), 1000);
+      onFocusChange: ({ parsed, focused }) => {
+        if (!focused && parsed) {
+          if (dn.lt(parsed, INTEREST_RATE_START * 100)) fieldValue.setValue(String(INTEREST_RATE_START * 100));
+          if (dn.gt(parsed, INTEREST_RATE_MAX * 100)) fieldValue.setValue(String(INTEREST_RATE_MAX * 100));
+        }
+      },
 
-		const bracket = interestRateRounded && interestChartData.data?.find(
-			({ rate }) => rate[0] === interestRateRounded[0],
-		);
+      onChange: ({ parsed }) => {
+        if (parsed) {
+          rateTouchedForBranch.current = branchId;
+          onChange(dn.div(parsed, 100));
+        }
+      },
+    });
 
-		const redeemableTransition = useAppear(bracket?.debtInFront !== undefined);
+    const interestChartData = useInterestRateChartData(branchId, loan);
+    const debtInFrontOfLoan = useDebtInFrontOfLoan(loan ?? EMPTY_LOAN);
+    const debtInFrontOfInterestRate = useDebtInFrontOfInterestRate(branchId, interestRate ?? DNUM_0, loan);
 
-		const handleDelegateSelect = (delegate: Delegate) => {
-			setDelegatePicker(null);
-			rateTouchedForBranch.current = branchId;
-			onChange(delegate.interestRate);
-			onDelegateChange(delegate.address ?? null);
-		};
+    // When a loan exists already and the selected interest rate is the same as the existing interest rate
+    // (for example as in the initial state after navigating to the interest rate panel)
+    // show the current precise debt-in-front of the loan.
+    // This is useful for checking how far the loan is from redemption (beyond just checking the risk level).
+    // If the loan is not redeemable, e.g. because it has been fully redeemed, we revert to debt-in-front
+    // based on interest rate (i.e. the debt that would be in front of the position if it were to be made
+    // active again at its current interest rate).
+    const debtInFront = loan && interestRate && dn.eq(loan.interestRate, interestRate)
+      ? debtInFrontOfLoan.data && (
+        debtInFrontOfLoan.data.debtInFront
+          ? debtInFrontOfLoan.data // redeemable (debtInFront not null)
+          : debtInFrontOfInterestRate.data // not redeemable (debtInFront is null)
+      )
+      : debtInFrontOfInterestRate.data;
 
-		const branch = getBranch(branchId);
+    const redeemableTransition = useAppear(debtInFront !== undefined);
 
-		const hasStrategies = branch.strategies.length > 0;
-		const activeDelegateModes = DELEGATE_MODES.filter(() => hasStrategies);
+    const handleDelegateSelect = (delegate: Delegate) => {
+      setDelegatePicker(null);
+      fieldValue.setValue(dn.toString(dn.mul(delegate.interestRate, 100)));
+      onDelegateChange(delegate.address ?? null);
+    };
+
+    const activeDelegateModes = DELEGATE_MODES;
 
 		const boldInterestPerYear = interestRate && debt && dn.mul(interestRate, debt);
 
 		const breakpoint = useBreakpointName();
 
-		return (
-			<>
-				<InputField
-					id={inputId}
-					labelHeight={32}
-					labelSpacing={24}
-					disabled={mode !== "manual"}
-					contextual={match(mode)
-						.with("manual", () => (
-							<ManualInterestRateSlider
-								interestChartData={interestChartData}
-								interestRate={interestRate}
-								fieldValue={fieldValue}
-							/>
-						))
-						.exhaustive()}
-					label={{
-						start: (
-							<div
-								className={css({
-									display: "flex",
-									alignItems: "center",
-									gap: 4,
-								})}
-							>
-								<div>Interest rate</div>
-								{averageInterestRate.data && SHOW_AVERAGE_BUTTON_MODES.includes(mode) && (
-									<div>
-										<TextButton
-											size="small"
-											title={`Set average interest rate (${fmtnum(averageInterestRate.data, {
-												preset: "pct1z",
-												suffix: "%",
-											})
-												})`}
-											label={`(avg. ${fmtnum(averageInterestRate.data, {
-												preset: "pct1z",
-												suffix: "%",
-											})
-												})`}
-											onClick={(event) => {
-												if (averageInterestRate.data) {
-													event.preventDefault();
-													rateTouchedForBranch.current = branchId;
-													onChange(averageInterestRate.data);
-												}
-											}}
-										/>
-									</div>
-								)}
-							</div>
-						),
-						end: (
-							<div>
-								<Dropdown
-									items={activeDelegateModes.map(
-										(mode) => content.interestRateField.delegateModes[mode],
-									)}
-									menuWidth={300}
-									menuPlacement="end"
-									onSelect={(index) => {
-										const mode = activeDelegateModes[index];
-										if (mode) {
-											onModeChange(mode);
-										}
-										onDelegateChange(null);
-									}}
-									selected={activeDelegateModes.findIndex((mode_) => mode_ === mode)}
-									size="small"
-								/>
-							</div>
-						),
-					}}
-					placeholder="0.00"
-					secondary={{
-						start: (
-							<div
-								className={css({
-									display: "flex",
-									alignItems: "center",
-									gap: 4,
-									minWidth: 120,
-									userSelect: "none",
-								})}
-							>
-								<div
-									className={css({
-										minWidth: 0,
-										flexShrink: 1,
-										overflow: "hidden",
-										whiteSpace: "nowrap",
-										textOverflow: "ellipsis",
-									})}
-								>
-									{boldInterestPerYear && (mode === "manual" || delegate !== null)
-										? fmtnum(boldInterestPerYear, breakpoint === "small" ? "compact" : "2z")
-										: "−"} {WHITE_LABEL_CONFIG.tokens.mainToken.symbol} / year
-								</div>
-								<InfoTooltip {...infoTooltipProps(content.generalInfotooltips.interestRateBoldPerYear)} />
-							</div>
-						),
-						end: redeemableTransition((style, show) => (
-							show && (
-								<a.div
-									title={`Redeemable before you: ${(mode === "manual" || delegate !== null)
-											? fmtnum(bracket?.debtInFront, "compact")
-											: "−"
-										} ${WHITE_LABEL_CONFIG.tokens.mainToken.symbol}`}
-									className={css({
-										overflow: "hidden",
-										whiteSpace: "nowrap",
-										textOverflow: "ellipsis",
-										userSelect: "none",
-									})}
-									style={style}
-								>
-									<span>
-										{breakpoint === "large" ? "Redeemable before you: " : "Red. before: "}
-										<span
-											className={css({
-												fontVariantNumeric: "tabular-nums",
-											})}
-										>
-											{(mode === "manual" || delegate !== null)
-												? fmtnum(bracket?.debtInFront, "compact")
-												: "−"}
-										</span>
-										{breakpoint === "large" && <span>{` ${WHITE_LABEL_CONFIG.tokens.mainToken.symbol}`}</span>}
-									</span>
-								</a.div>
-							)
-						)),
-					}}
-					{...fieldValue.inputFieldProps}
-					value={
-						// no delegate selected yet
-						(mode !== "manual" && delegate === null)
-							? ""
-							: fieldValue.value
-					}
-					valueUnfocused={
-						// delegate mode, but no delegate selected yet
-						(mode !== "manual" && delegate === null)
-							? null
-							: <>{!fieldValue.isEmpty && fieldValue.parsed && interestRate}</>
-								? (
-									<span
-										style={{
-											display: "flex",
-											alignItems: "center",
-											gap: 8,
-										}}
-									>
-										{delegate !== null && breakpoint === "large" && <MiniChart size="medium" />}
-										<span
-											style={{
-												fontVariantNumeric: "tabular-nums",
-											}}
-										>
-											{(mode === "manual" || delegate !== null) && fmtnum(
-												interestRate,
-												"pct1z",
-											)}
-										</span>
-										<span
-											className={css({
-												color: "#878AA4",
-												fontSize: {
-													base: 20,
-													large: 24,
-												},
-											})}
-										>
-											%{breakpoint === "large" ? " per year" : ""}
-										</span>
-									</span>
-								)
-								: null
-					}
-				/>
-				<DelegateModal
-					branchId={branchId}
-					onClose={() => {
-						setDelegatePicker(null);
-					}}
-					onSelectDelegate={handleDelegateSelect}
-					visible={delegatePicker === "delegate"}
-				/>
-				<IcStrategiesModal
-					branchId={branchId}
-					onClose={() => {
-						setDelegatePicker(null);
-					}}
-					onSelectDelegate={handleDelegateSelect}
-					visible={delegatePicker === "strategy"}
-				/>
-			</>
-		);
-	},
-	(prev, next) => (
-		jsonStringifyWithDnum(prev) === jsonStringifyWithDnum(next)
-	),
+    return (
+      <>
+        <InputField
+          id={inputId}
+          labelHeight={32}
+          labelSpacing={24}
+          disabled={mode !== "manual"}
+          contextual={match(mode)
+            .with("manual", () => (
+              <ManualInterestRateSlider
+                interestChartData={interestChartData}
+                interestRate={interestRate}
+                fieldValue={fieldValue}
+              />
+            ))
+            .exhaustive()}
+          label={{
+            start: (
+              <div
+                className={css({
+                  display: "flex",
+                  alignItems: "center",
+                  gap: 4,
+                })}
+              >
+                <div>Interest rate</div>
+                {averageInterestRate.data && SHOW_AVERAGE_BUTTON_MODES.includes(mode) && (
+                  <div>
+                    <TextButton
+                      size="small"
+                      title={`Set average interest rate (${
+                        fmtnum(averageInterestRate.data, {
+                          preset: "pct2z",
+                          suffix: "%",
+                        })
+                      })`}
+                      label={`(avg. ${
+                        fmtnum(averageInterestRate.data, {
+                          preset: "pct2z",
+                          suffix: "%",
+                        })
+                      })`}
+                      onClick={(event) => {
+                        if (averageInterestRate.data) {
+                          event.preventDefault();
+                          const rounded = dn.div(dn.round(dn.mul(averageInterestRate.data, 1e4)), 1e4);
+                          fieldValue.setValue(dn.toString(dn.mul(rounded, 100)));
+                        }
+                      }}
+                    />
+                  </div>
+                )}
+              </div>
+            ),
+            end: (
+              <div>
+                <Dropdown
+                  items={activeDelegateModes.map(
+                    (mode) => content.interestRateField.delegateModes[mode],
+                  )}
+                  menuWidth={300}
+                  menuPlacement="end"
+                  onSelect={(index) => {
+                    const mode = activeDelegateModes[index];
+                    if (mode) {
+                      onModeChange(mode);
+                    }
+                    onDelegateChange(null);
+                  }}
+                  selected={activeDelegateModes.findIndex((mode_) => mode_ === mode)}
+                  size="small"
+                />
+              </div>
+            ),
+          }}
+          placeholder="0.00"
+          secondary={{
+            start: (
+              <div
+                className={css({
+                  display: "flex",
+                  alignItems: "center",
+                  gap: 4,
+                  minWidth: 120,
+                  userSelect: "none",
+                })}
+              >
+                <div
+                  className={css({
+                    minWidth: 0,
+                    flexShrink: 1,
+                    overflow: "hidden",
+                    whiteSpace: "nowrap",
+                    textOverflow: "ellipsis",
+                  })}
+                >
+                  {boldInterestPerYear && (mode === "manual" || delegate !== null)
+                    ? fmtnum(boldInterestPerYear, breakpoint === "small" ? "compact" : "2z")
+                    : "−"} {WHITE_LABEL_CONFIG.tokens.mainToken.symbol} / year
+                </div>
+                <InfoTooltip {...infoTooltipProps(content.generalInfotooltips.interestRateBoldPerYear)} />
+              </div>
+            ),
+            end: redeemableTransition((style, show) => (
+              show && (
+                <a.div
+                  title={`Redeemable before you: ${
+                    (mode === "manual" || delegate !== null)
+                      ? fmtnum(debtInFront?.debtInFront, "compact")
+                      : "−"
+                  } ${WHITE_LABEL_CONFIG.tokens.mainToken.symbol}`}
+                  className={css({
+                    overflow: "hidden",
+                    whiteSpace: "nowrap",
+                    textOverflow: "ellipsis",
+                    userSelect: "none",
+                  })}
+                  style={style}
+                >
+                  <span>
+                    {breakpoint === "large" ? "Redeemable before you: " : "Red. before: "}
+                    <span
+                      className={css({
+                        fontVariantNumeric: "tabular-nums",
+                      })}
+                    >
+                      {(mode === "manual" || delegate !== null)
+                        ? fmtnum(debtInFront?.debtInFront, "compact")
+                        : "−"}
+                    </span>
+                    {breakpoint === "large" && <span>{` ${WHITE_LABEL_CONFIG.tokens.mainToken.symbol}`}</span>}
+                  </span>
+                </a.div>
+              )
+            )),
+          }}
+          {...fieldValue.inputFieldProps}
+          value={
+            // no delegate selected yet
+            (mode !== "manual" && delegate === null)
+              ? ""
+              : fieldValue.value
+          }
+          valueUnfocused={
+            // delegate mode, but no delegate selected yet
+            (mode !== "manual" && delegate === null)
+              ? null
+              : <>{!fieldValue.isEmpty && fieldValue.parsed && interestRate}</>
+              ? (
+                <span
+                  style={{
+                    display: "flex",
+                    alignItems: "center",
+                    gap: 8,
+                  }}
+                >
+                  {delegate !== null && breakpoint === "large" && <MiniChart size="medium" />}
+                  <span
+                    style={{
+                      fontVariantNumeric: "tabular-nums",
+                    }}
+                  >
+                    {(mode === "manual" || delegate !== null) && fmtnum(
+                      interestRate,
+                      "pct2z",
+                    )}
+                  </span>
+                  <span
+                    className={css({
+                      color: "#878AA4",
+                      fontSize: {
+                        base: 20,
+                        large: 24,
+                      },
+                    })}
+                  >
+                    %
+                  </span>
+                </span>
+              )
+              : null
+          }
+        />
+        <DelegateModal
+          branchId={branchId}
+          onClose={() => {
+            setDelegatePicker(null);
+          }}
+          onSelectDelegate={handleDelegateSelect}
+          visible={delegatePicker === "delegate"}
+        />
+      </>
+    );
+  },
+  (prev, next) => (
+    jsonStringifyWithDnum(prev) === jsonStringifyWithDnum(next)
+  ),
 );
 
 function ManualInterestRateSlider({
-	fieldValue,
-	interestChartData,
-	interestRate,
+  fieldValue,
+  interestChartData,
+  interestRate,
 }: {
-	fieldValue: ReturnType<typeof useInputFieldValue>;
-	interestChartData: ReturnType<typeof useInterestRateChartData>;
-	interestRate: Dnum | null;
+  fieldValue: ReturnType<typeof useInputFieldValue>;
+  interestChartData: ReturnType<typeof useInterestRateChartData>;
+  interestRate: Dnum | null;
 }) {
 	const rateToSliderPosition = useCallback((rate: bigint, chartRates: bigint[]) => {
 		if (!rate || !chartRates || chartRates.length === 0) return 0;
@@ -436,37 +448,31 @@ function ManualInterestRateSlider({
 
 	const breakpoint = useBreakpointName();
 
-	return transition((style, show) =>
-		show && (
-			<a.div
-				style={{
-					display: "flex",
-					alignItems: "center",
-					justifyContent: "center",
-					width: breakpoint === "large" ? 260 : 200,
-					paddingTop: 16,
-					...style,
-				}}
-			>
-				<Slider
-					gradient={gradientStops}
-					gradientMode="high-to-low"
-					chart={interestChartData.data?.map(({ size }) => size) ?? []}
-					onChange={(value) => {
-						if (interestChartData.data) {
-							const index = Math.min(
-								interestChartData.data.length - 1,
-								Math.round(value * (interestChartData.data.length)),
-							);
-							fieldValue.setValue(String(dn.toNumber(dn.mul(
-								interestChartData.data[index]?.rate ?? DNUM_0,
-								100,
-							))));
-						}
-					}}
-					value={value}
-				/>
-			</a.div>
-		)
-	);
+  return transition((style, show) =>
+    show && (
+      <a.div
+        style={{
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "center",
+          width: breakpoint === "small" ? 200 : 260,
+          paddingTop: 16,
+          ...style,
+        }}
+      >
+        <Slider
+          gradient={gradientStops}
+          gradientMode="high-to-low"
+          chart={interestChartData.data?.map(({ size }) => size) ?? []}
+          onChange={(value) => {
+            if (interestChartData.data) {
+              const index = Math.round(value * (interestChartData.data.length - 1));
+              fieldValue.setValue(dn.toString(dn.mul(interestChartData.data[index]?.rate ?? DNUM_0, 100)));
+            }
+          }}
+          value={value}
+        />
+      </a.div>
+    )
+  );
 }

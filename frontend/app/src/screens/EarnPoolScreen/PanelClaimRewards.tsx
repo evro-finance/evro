@@ -1,21 +1,19 @@
 import type { BranchId, PositionEarn, TokenSymbol } from "@/src/types";
-import type { Dnum } from "dnum";
-import { ReactNode, useState } from "react";
 
 import { Amount } from "@/src/comps/Amount/Amount";
 import { FlowButton } from "@/src/comps/FlowButton/FlowButton";
 import content from "@/src/content";
 import { WHITE_LABEL_CONFIG } from "@/src/white-label.config";
 import { dnum18, DNUM_0 } from "@/src/dnum-utils";
-import { getCollToken, isEarnPositionActive } from "@/src/liquity-utils";
+import { getCollToken } from "@/src/liquity-utils";
 import { getBranch } from "@/src/liquity-utils";
 import { usePrice } from "@/src/services/Prices";
 import { useAccount } from "@/src/wagmi-utils";
 import { css } from "@/styled-system/css";
-import { Checkbox, InfoTooltip, TokenIcon } from "@liquity2/uikit";
 import * as dn from "dnum";
 import { encodeFunctionData } from "viem";
 import { useEstimateGas, useGasPrice } from "wagmi";
+import { Rewards } from "./components/Rewards";
 
 export function PanelClaimRewards({
   branchId,
@@ -25,7 +23,6 @@ export function PanelClaimRewards({
   position?: PositionEarn;
 }) {
   const account = useAccount();
-  const [compound, setCompound] = useState(false);
 
   const collateral = getCollToken(branchId);
   if (!collateral || branchId === null) {
@@ -36,12 +33,8 @@ export function PanelClaimRewards({
   const boldPriceUsd = usePrice(WHITE_LABEL_CONFIG.tokens.mainToken.symbol as TokenSymbol);
   const collPriceUsd = usePrice(collateral.symbol);
 
-  const isActive = isEarnPositionActive(position ?? null);
-
-  const totalRewards = collPriceUsd.data && boldPriceUsd.data && dn.add(
-    dn.mul(position?.rewards?.bold ?? DNUM_0, boldPriceUsd.data),
-    dn.mul(position?.rewards?.coll ?? DNUM_0, collPriceUsd.data),
-  );
+  const boldRewardsUsd = boldPriceUsd.data && dn.mul(position?.rewards?.bold ?? DNUM_0, boldPriceUsd.data);
+  const collRewardsUsd = collPriceUsd.data && dn.mul(position?.rewards?.coll ?? DNUM_0, collPriceUsd.data);
 
   const branch = getBranch(branchId);
   const gasEstimate = useEstimateGas({
@@ -49,7 +42,7 @@ export function PanelClaimRewards({
     data: encodeFunctionData({
       abi: branch.contracts.StabilityPool.abi,
       functionName: "withdrawFromSP",
-      args: [0n, !compound], // withdraw 0, either claim or compound
+      args: [0n, true], // withdraw 0, claim
     }),
     to: branch.contracts.StabilityPool.address,
   });
@@ -63,7 +56,10 @@ export function PanelClaimRewards({
   const txGasPriceUsd = gasPriceEth && ethPrice.data
     && dn.mul(gasPriceEth, ethPrice.data);
 
-  const allowSubmit = account.isConnected && totalRewards && dn.gt(totalRewards, 0);
+  const allowSubmit = account.isConnected && (
+    dn.gt(position?.rewards?.bold ?? DNUM_0, DNUM_0)
+    || dn.gt(position?.rewards?.coll ?? DNUM_0, DNUM_0)
+  );
 
   return (
     <div
@@ -83,12 +79,14 @@ export function PanelClaimRewards({
       >
         <Rewards
           amount={position?.rewards?.bold ?? DNUM_0}
+          amountUsd={boldRewardsUsd ?? DNUM_0}
           label={content.earnScreen.rewardsPanel.boldRewardsLabel}
           symbol={WHITE_LABEL_CONFIG.tokens.mainToken.symbol}
         />
         <Rewards
           amount={position?.rewards?.coll ?? DNUM_0}
-          label={content.earnScreen.rewardsPanel.collRewardsLabel}
+          amountUsd={collRewardsUsd ?? DNUM_0}
+          label={content.earnScreen.rewardsPanel.collRewardsLabel(collateral.name)}
           symbol={collateral.symbol}
         />
 
@@ -101,20 +99,6 @@ export function PanelClaimRewards({
             color: "contentAlt",
           })}
         >
-          <div
-            style={{
-              display: "flex",
-              justifyContent: "space-between",
-              gap: 24,
-            }}
-          >
-            <div>{content.earnScreen.rewardsPanel.totalUsdLabel}</div>
-            <Amount
-              prefix="$"
-              value={totalRewards}
-              format={2}
-            />
-          </div>
           <div
             style={{
               display: "flex",
@@ -143,53 +127,9 @@ export function PanelClaimRewards({
           paddingTop: 24,
         }}
       >
-        {isActive && (
-          <div
-            style={{
-              display: "flex",
-              justifyContent: "space-between",
-            }}
-          >
-            <div
-              className={css({
-                display: "flex",
-                alignItems: "center",
-                gap: 8,
-              })}
-            >
-              <label
-                className={css({
-                  display: "flex",
-                  alignItems: "center",
-                  gap: 8,
-                  cursor: "pointer",
-                  userSelect: "none",
-                })}
-              >
-                <Checkbox
-                  id="checkbox-compound-rewards"
-                  checked={compound}
-                  onChange={setCompound}
-                />
-                Compound {WHITE_LABEL_CONFIG.tokens.mainToken.symbol} rewards
-              </label>
-              <InfoTooltip
-                content={{
-                  heading: `Compound ${WHITE_LABEL_CONFIG.tokens.mainToken.symbol} rewards`,
-                  body: (
-                    <>
-                      When enabled, your {WHITE_LABEL_CONFIG.tokens.mainToken.symbol} rewards will be automatically added back to your stability pool deposit,
-                      earning you more rewards over time. Collateral rewards will still be claimed normally.
-                    </>
-                  ),
-                }}
-              />
-            </div>
-          </div>
-        )}
-
         <FlowButton
           disabled={!allowSubmit}
+          label={content.earnScreen.rewardsPanel.action}
           request={position && {
             flowId: "earnClaimRewards",
             backLink: [
@@ -197,56 +137,11 @@ export function PanelClaimRewards({
               "Back to earn position",
             ],
             successLink: ["/", "Go to the Dashboard"],
-            successMessage: compound
-              ? "The rewards have been compounded successfully."
-              : "The rewards have been claimed successfully.",
+            successMessage: "The rewards have been successfully claimed.",
             earnPosition: position,
-            compound,
+            compound: false,
           }}
         />
-      </div>
-    </div>
-  );
-}
-
-function Rewards({
-  amount,
-  label,
-  symbol,
-}: {
-  amount: Dnum;
-  label: ReactNode;
-  symbol: TokenSymbol;
-}) {
-  return (
-    <div
-      className={css({
-        display: "grid",
-        gap: 24,
-        medium: {
-          gridTemplateColumns: "1.2fr 1fr",
-        },
-        alignItems: "start",
-        padding: "24px 0",
-        borderBottom: "1px solid token(colors.separator)",
-      })}
-    >
-      <div>{label}</div>
-      <div
-        className={css({
-          display: "flex",
-          justifyContent: "flex-start",
-          alignItems: "center",
-          gap: 8,
-          fontSize: 20,
-          medium: {
-            justifyContent: "flex-end",
-            fontSize: 28,
-          },
-        })}
-      >
-        <Amount value={amount} />
-        <TokenIcon symbol={symbol} size={24} />
       </div>
     </div>
   );

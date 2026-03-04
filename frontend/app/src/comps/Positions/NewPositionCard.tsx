@@ -10,26 +10,36 @@ import { useEffect, useRef, useState } from "react";
 const contentActions = content.home.actions;
 
 const actions = {
-	borrow: {
-		colors: {
+  borrow: {
+    colors: {
 			background: "#EFA960",
 			foreground: token.var("colors.evroBorrowBackgroundContent"),
 			foregroundAlt: token.var("colors.evroBorrowBackgroundContentAlt"),
-		},
-		description: contentActions.borrow.description,
-		path: "/borrow",
-		title: "Borrow",
-	},
-	earn: {
+    },
+    description: contentActions.borrow.description,
+    path: "/borrow",
+    title: "Borrow",
+  },
+  earn: {
 		colors: {
 			background: "#8F61F1",
 			foreground: token.var("colors.brandBlueContent"),
 			foregroundAlt: token.var("colors.brandBlueContentAlt"),
 		},
-		description: contentActions.earn.description,
-		path: "/earn",
-		title: "Earn",
-	},
+    description: contentActions.earn.description,
+    path: "/earn",
+    title: "Earn",
+  },
+  stake: {
+    colors: {
+      background: token("colors.brandGolden"),
+      foreground: token("colors.brandGoldenContent"),
+      foregroundAlt: token("colors.brandGoldenContentAlt"),
+    },
+    description: contentActions.stake.description,
+    path: "/stake",
+    title: "Stake",
+  },
 } as const;
 
 const actionsEntries = Object.entries(actions);

@@ -79,7 +79,7 @@ export const earnClaimRewards: FlowDeclaration<EarnClaimRewardsRequest> = {
     return (
       <>
         <TransactionDetailsRow
-          label={compound ? `Compound ${WHITE_LABEL_CONFIG.tokens.mainToken.symbol} rewards` : `Claim ${WHITE_LABEL_CONFIG.tokens.mainToken.symbol} rewards`}
+          label={compound ? `Compound ${WHITE_LABEL_CONFIG.tokens.mainToken.symbol}` : `Claim ${WHITE_LABEL_CONFIG.tokens.mainToken.symbol}`}
           value={[
             <Amount
               key="start"
@@ -93,28 +93,30 @@ export const earnClaimRewards: FlowDeclaration<EarnClaimRewardsRequest> = {
             />,
           ]}
         />
-        <TransactionDetailsRow
-          label={`Claim ${collateral.name} rewards`}
-          value={[
-            <Amount
-              key="start"
-              value={rewardsColl}
-              suffix={` ${collateral.symbol}`}
-            />,
-            <Amount
-              key="end"
-              value={rewardsCollUsd}
-              prefix="$"
-            />,
-          ]}
-        />
+        {!compound && (
+          <TransactionDetailsRow
+            label={`Claimed ${collateral.name}`}
+            value={[
+              <Amount
+                key="start"
+                value={rewardsColl}
+                suffix={` ${collateral.name}`}
+              />,
+              <Amount
+                key="end"
+                value={rewardsCollUsd}
+                prefix="$"
+              />,
+            ]}
+          />
+        )}
       </>
     );
   },
 
   steps: {
     claimRewards: {
-      name: (ctx) => ctx.request.compound ? "Compound rewards" : "Claim rewards",
+      name: (ctx) => ctx.request.compound ? `Compound ${WHITE_LABEL_CONFIG.tokens.mainToken.symbol} rewards` : "Claim rewards",
       Status: TransactionStatus,
 
       async commit(ctx) {

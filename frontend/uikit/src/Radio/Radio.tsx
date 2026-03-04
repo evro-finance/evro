@@ -56,31 +56,31 @@ export function Radio({
 		firstRender.current = false;
 	}, [checked, inRadioGroup]);
 
-	const checkTransition = useTransition(checked, {
-		config: {
-			mass: 1,
-			tension: 2400,
-			friction: 100,
-		},
-		initial: {
-			tickColor: color(disabled ? "disabledBorder" : "controlSurface"),
-			ringColor: color("accent"),
-			tickProgress: 0,
-		},
-		from: {
-			tickColor: color(disabled ? "disabledBorder" : "controlSurface"),
-			ringColor: color("accent"),
-			tickProgress: 1,
-		},
-		enter: {
-			tickProgress: 0,
-		},
-		leave: {
-			tickColor: color(disabled ? "disabledBorder" : "controlSurface"),
-			ringColor: color("controlBorder"),
-			tickProgress: 1,
-		},
-	});
+  const checkTransition = useTransition([checked, disabled], {
+    config: {
+      mass: 1,
+      tension: 2400,
+      friction: 100,
+    },
+    initial: {
+      tickColor: color(disabled ? "disabledBorder" : "controlSurface"),
+      ringColor: color("accent"),
+      tickProgress: 0,
+    },
+    from: {
+      tickColor: color(disabled ? "disabledBorder" : "controlSurface"),
+      ringColor: color("accent"),
+      tickProgress: 1,
+    },
+    enter: {
+      tickProgress: 0,
+    },
+    leave: {
+      tickColor: color(disabled ? "disabledBorder" : "controlSurface"),
+      ringColor: color("controlBorder"),
+      tickProgress: 1,
+    },
+  });
 
 	return (
 		<button

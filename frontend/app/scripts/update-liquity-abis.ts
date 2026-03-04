@@ -16,6 +16,8 @@ const ABIS = [
   ["HintHelpers"],
   ["MultiTroveGetter"],
   ["DebtInFrontHelper"],
+  ["IExchangeHelpersV2"],
+  ["RedemptionHelper"],
 
   // Governance (V2-gov lib)
   ["Governance"],

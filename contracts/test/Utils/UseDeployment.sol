@@ -8,6 +8,7 @@ import {Strings} from "openzeppelin-contracts/contracts/utils/Strings.sol";
 import {IUserProxy} from "V2-gov/src/interfaces/IUserProxy.sol";
 import {CurveV2GaugeRewards} from "V2-gov/src/CurveV2GaugeRewards.sol";
 import {Governance} from "V2-gov/src/Governance.sol";
+import {IExchangeHelpers} from "src/Zappers/Interfaces/IExchangeHelpers.sol";
 import {ILeverageZapper} from "src/Zappers/Interfaces/ILeverageZapper.sol";
 import {IZapper} from "src/Zappers/Interfaces/IZapper.sol";
 import {IActivePool} from "src/Interfaces/IActivePool.sol";
@@ -73,6 +74,7 @@ contract UseDeployment is CommonBase {
     ICollateralRegistry collateralRegistry;
     IEvroToken evroToken;
     IHintHelpers hintHelpers;
+    IExchangeHelpers exchangeHelpers;
     Governance governance;
     ICurveStableSwapNG curveUsdcEvro;
     ILiquidityGaugeV6 curveUsdcEvroGauge;
@@ -89,6 +91,7 @@ contract UseDeployment is CommonBase {
         collateralRegistry = ICollateralRegistry(json.readAddress(".collateralRegistry"));
         evroToken = IEvroToken(BOLD = json.readAddress(".evroToken"));
         hintHelpers = IHintHelpers(json.readAddress(".hintHelpers"));
+        exchangeHelpers = IExchangeHelpers(json.readAddress(".exchangeHelpers"));
         governance = Governance(json.readAddress(".governance.governance"));
         curveUsdcEvro = ICurveStableSwapNG(json.readAddress(".governance.curveUsdcEvroPool"));
         curveUsdcEvroGauge = ILiquidityGaugeV6(json.readAddress(".governance.curveUsdcEvroGauge"));
@@ -101,6 +104,7 @@ contract UseDeployment is CommonBase {
 
         vm.label(address(collateralRegistry), "CollateralRegistry");
         vm.label(address(hintHelpers), "HintHelpers");
+        vm.label(address(exchangeHelpers), "ExchangeHelpers");
         vm.label(address(governance), "Governance");
         vm.label(address(curveUsdcEvro), "CurveStableSwapNG");
         vm.label(address(curveUsdcEvroGauge), "LiquidityGaugeV6");

@@ -1,12 +1,19 @@
 import type { FlowDeclaration } from "@/src/services/TransactionFlow";
+import type { TroveId } from "@/src/types";
 
 import { Amount } from "@/src/comps/Amount/Amount";
 import { ETH_GAS_COMPENSATION, MAX_UPFRONT_FEE } from "@/src/constants";
 import { WHITE_LABEL_CONFIG } from "@/src/white-label.config";
 import { dnum18 } from "@/src/dnum-utils";
 import { fmtnum } from "@/src/formatting";
-import { getOpenLeveragedTroveParams } from "@/src/liquity-leverage";
-import { getBranch, getCollToken, getTroveOperationHints, usePredictOpenTroveUpfrontFee } from "@/src/liquity-utils";
+import { useDelegateDisplayName } from "@/src/liquity-delegate";
+import {
+  getBranch,
+  getCollToken,
+  getPrefixedTroveId,
+  getTroveOperationHints,
+  usePredictOpenTroveUpfrontFee,
+} from "@/src/liquity-utils";
 import { AccountButton } from "@/src/screens/TransactionsScreen/AccountButton";
 import { LoanCard } from "@/src/screens/TransactionsScreen/LoanCard";
 import { TransactionDetailsRow } from "@/src/screens/TransactionsScreen/TransactionsScreen";
@@ -14,21 +21,24 @@ import { TransactionStatus } from "@/src/screens/TransactionsScreen/TransactionS
 import { usePrice } from "@/src/services/Prices";
 import { getIndexedTroveById } from "@/src/subgraph";
 import { noop, sleep } from "@/src/utils";
-import { vPositionLoanUncommited } from "@/src/valibot-utils";
+import { vDnum, vPositionLoanUncommited } from "@/src/valibot-utils";
 import { css } from "@/styled-system/css";
 import { ADDRESS_ZERO, InfoTooltip } from "@liquity2/uikit";
 import * as dn from "dnum";
 import * as v from "valibot";
 import { maxUint256, parseEventLogs } from "viem";
 import { readContract } from "wagmi/actions";
+import { useSlippageRefund } from "../liquity-leverage";
 import { createRequestSchema, verifyTransaction } from "./shared";
 
 const RequestSchema = createRequestSchema(
   "openLeveragePosition",
   {
     ownerIndex: v.number(),
-    leverageFactor: v.number(),
     loan: vPositionLoanUncommited(),
+    initialDeposit: vDnum(),
+    flashloanAmount: vDnum(),
+    boldAmount: vDnum(),
   },
 );
 
@@ -45,11 +55,12 @@ export const openLeveragePosition: FlowDeclaration<OpenLeveragePositionRequest> 
         loan={request.loan}
         onRetry={noop}
         txPreviewMode
+        displayAllDifferences={false}
       />
     );
   },
 
-  Details({ request }) {
+  Details({ request, account, steps }) {
     const { loan } = request;
     const collToken = getCollToken(loan.branchId);
     if (!collToken) {
@@ -57,30 +68,26 @@ export const openLeveragePosition: FlowDeclaration<OpenLeveragePositionRequest> 
     }
 
     const collPrice = usePrice(collToken.symbol);
-    const upfrontFee = usePredictOpenTroveUpfrontFee(
-      loan.branchId,
-      loan.borrowed,
-      loan.interestRate,
-    );
-
-    const initialDeposit = dn.div(loan.deposit, request.leverageFactor);
+    const upfrontFee = usePredictOpenTroveUpfrontFee(loan.branchId, loan.borrowed, loan.interestRate);
+    const delegateDisplayName = useDelegateDisplayName(loan.batchManager);
     const yearlyBoldInterest = dn.mul(loan.borrowed, loan.interestRate);
     const borrowedWithFee = upfrontFee.data && dn.add(loan.borrowed, upfrontFee.data);
+    const slippageRefund = useSlippageRefund(loan.branchId, account, steps);
 
     return (
       <>
         <TransactionDetailsRow
-          label="Initial deposit"
+          label="Deposit"
           value={[
-            `${fmtnum(initialDeposit)} ${collToken.name}`,
+            `${fmtnum(request.initialDeposit)} ${collToken.name}`,
             collPrice.data && fmtnum(
-              dn.mul(initialDeposit, collPrice.data),
+              dn.mul(request.initialDeposit, collPrice.data),
               { preset: "2z", prefix: "$" },
             ),
           ]}
         />
         <TransactionDetailsRow
-          label="Borrowed"
+          label="Debt"
           value={[
             `${fmtnum(borrowedWithFee)} ${WHITE_LABEL_CONFIG.tokens.mainToken.symbol}`,
             <div
@@ -110,7 +117,11 @@ export const openLeveragePosition: FlowDeclaration<OpenLeveragePositionRequest> 
             <TransactionDetailsRow
               label="Interest rate delegate"
               value={[
-                <AccountButton key="start" address={loan.batchManager} />,
+                <AccountButton
+                  key="start"
+                  address={loan.batchManager}
+                  displayName={delegateDisplayName}
+                />,
                 <div key="end">
                   {fmtnum(loan.interestRate, "pctfull")}% ({fmtnum(yearlyBoldInterest, {
                     digits: 4,
@@ -142,6 +153,41 @@ export const openLeveragePosition: FlowDeclaration<OpenLeveragePositionRequest> 
             "Only used in case of liquidation",
           ]}
         />
+        {slippageRefund.data && (
+          <TransactionDetailsRow
+            label={
+              <div
+                className={css({
+                  display: "flex",
+                  alignItems: "center",
+                  gap: 4,
+                })}
+              >
+                Slippage refund
+                <InfoTooltip heading="Slippage refund">
+                  Excess collateral was needed to create the desired exposure and accommodate for slippage. This is the
+                  left over amount that has been refunded to your wallet.
+                </InfoTooltip>
+              </div>
+            }
+            value={[
+              <Amount
+                key="start"
+                value={slippageRefund.data}
+                suffix={` ${collToken.name}`}
+                format="4z"
+              />,
+              collPrice.data && (
+                <Amount
+                  key="end"
+                  fallback="…"
+                  value={dn.mul(slippageRefund.data, collPrice.data)}
+                  prefix="$"
+                />
+              ),
+            ]}
+          />
+        )}
       </>
     );
   },
@@ -160,7 +206,6 @@ export const openLeveragePosition: FlowDeclaration<OpenLeveragePositionRequest> 
       ),
       async commit(ctx) {
         const { loan } = ctx.request;
-        const initialDeposit = dn.div(loan.deposit, ctx.request.leverageFactor);
         const branch = getBranch(loan.branchId);
         const { LeverageLSTZapper, CollToken } = branch.contracts;
         return ctx.writeContract({
@@ -170,7 +215,7 @@ export const openLeveragePosition: FlowDeclaration<OpenLeveragePositionRequest> 
             LeverageLSTZapper.address,
             ctx.preferredApproveMethod === "approve-infinite"
               ? maxUint256 // infinite approval
-              : initialDeposit[0], // exact amount
+              : dn.from(ctx.request.initialDeposit, 18)[0], // exact amount
           ],
         });
       },
@@ -185,16 +230,8 @@ export const openLeveragePosition: FlowDeclaration<OpenLeveragePositionRequest> 
 
       async commit(ctx) {
         const { loan } = ctx.request;
-        const initialDeposit = dn.div(loan.deposit, ctx.request.leverageFactor);
         const branch = getBranch(loan.branchId);
         const { LeverageLSTZapper, LeverageWETHZapper } = branch.contracts;
-
-        const openLeveragedParams = await getOpenLeveragedTroveParams(
-          loan.branchId,
-          initialDeposit[0],
-          ctx.request.leverageFactor,
-          ctx.wagmiConfig,
-        );
 
         const { upperHint, lowerHint } = await getTroveOperationHints({
           wagmiConfig: ctx.wagmiConfig,
@@ -206,9 +243,9 @@ export const openLeveragePosition: FlowDeclaration<OpenLeveragePositionRequest> 
         const txParams = {
           owner: loan.borrower,
           ownerIndex: BigInt(ctx.request.ownerIndex),
-          collAmount: initialDeposit[0],
-          flashLoanAmount: openLeveragedParams.flashLoanAmount,
-          boldAmount: openLeveragedParams.effectiveBoldAmount,
+          collAmount: dn.from(ctx.request.initialDeposit, 18)[0],
+          flashLoanAmount: dn.from(ctx.request.flashloanAmount, 18)[0],
+          boldAmount: dn.from(ctx.request.boldAmount, 18)[0],
           upperHint,
           lowerHint,
           annualInterestRate: loan.batchManager ? 0n : loan.interestRate[0],
@@ -225,7 +262,7 @@ export const openLeveragePosition: FlowDeclaration<OpenLeveragePositionRequest> 
             ...LeverageWETHZapper,
             functionName: "openLeveragedTroveWithRawETH",
             args: [txParams],
-            value: initialDeposit[0] + ETH_GAS_COMPENSATION[0],
+            value: dn.from(ctx.request.initialDeposit, 18)[0] + ETH_GAS_COMPENSATION[0],
           });
         }
 
@@ -256,12 +293,24 @@ export const openLeveragePosition: FlowDeclaration<OpenLeveragePositionRequest> 
           throw new Error("Failed to extract trove ID from transaction");
         }
 
+        const troveId: TroveId = `0x${troveOperation.args._troveId.toString(16)}`;
+        const prefixedTroveId = getPrefixedTroveId(branch.branchId, troveId);
+
+        // Workaround for https://github.com/liquity/bold/issues/1134:
+        // Explicitly save this as a Multiply position so it doesn't turn
+        // into a Borrow position when making a collateral-only adjustment
+        ctx.storedState.setState(({ loanModes }) => ({
+          loanModes: {
+            ...loanModes,
+            [prefixedTroveId]: "multiply",
+          },
+        }));
+
         // Wait for trove to appear in subgraph
+        // TODO: is this still needed? In `verifyTransaction` we wait for the
+        // subgraph to index up to the block in which the TX was included.
         while (true) {
-          const trove = await getIndexedTroveById(
-            branch.branchId,
-            `0x${troveOperation.args._troveId.toString(16)}`,
-          );
+          const trove = await getIndexedTroveById(branch.branchId, troveId);
           if (trove !== null) {
             break;
           }
@@ -296,8 +345,7 @@ export const openLeveragePosition: FlowDeclaration<OpenLeveragePositionRequest> 
 
     const steps: string[] = [];
 
-    const initialDeposit = dn.div(loan.deposit, ctx.request.leverageFactor);
-    if (dn.lt(allowance, initialDeposit)) {
+    if (dn.lt(allowance, ctx.request.initialDeposit)) {
       steps.push("approveLst");
     }
 

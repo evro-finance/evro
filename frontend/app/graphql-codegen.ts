@@ -1,31 +1,11 @@
 import type { CodegenConfig } from "@graphql-codegen/cli";
-import 'dotenv/config';
+import { loadEnvConfig } from "@next/env";
 
-function findSubgraphUrl(envFile: string) {
-  const fs = require("fs");
-  const path = require("path");
-  const envPath = path.resolve(process.cwd(), envFile);
-  
-  // Check if file exists before trying to read it
-  if (!fs.existsSync(envPath)) {
-    return null;
-  }
-  
-  try {
-    const envContent = fs.readFileSync(envPath, "utf-8");
-    for (const line of envContent.split("\n")) {
-      if (line.trim().startsWith("NEXT_PUBLIC_SUBGRAPH_URL=")) {
-        return line.slice("NEXT_PUBLIC_SUBGRAPH_URL=".length);
-      }
-    }
-  } catch (error) {
-    console.warn(`Could not read ${envFile}:`, (error as Error).message);
-  }
-  
-  return null;
-}
+const projectDir = process.cwd();
+loadEnvConfig(projectDir);
 
-const subgraphUrl = findSubgraphUrl(".env.local") ?? findSubgraphUrl(".env") ?? process.env.NEXT_PUBLIC_SUBGRAPH_URL;
+const subgraphUrl = process.env.NEXT_PUBLIC_SUBGRAPH_URL;
+const subgraphOrigin = process.env.NEXT_PUBLIC_SUBGRAPH_ORIGIN;
 
 if (!subgraphUrl) {
   throw new Error(
@@ -33,9 +13,23 @@ if (!subgraphUrl) {
   );
 }
 
-console.log("Using subgraph URL:", subgraphUrl, "\n");
+console.log("Using subgraph URL:", subgraphUrl);
+if (subgraphOrigin) console.log("Impersonating origin:", subgraphOrigin);
+console.log();
 
 const config: CodegenConfig = {
+  customFetch: subgraphOrigin
+    ? (url, options) => {
+      return fetch(url, {
+        ...options,
+        headers: {
+          ...options?.headers,
+          "Origin": subgraphOrigin,
+        },
+      });
+    }
+    : undefined,
+
   schema: subgraphUrl,
   documents: "src/**/*.{ts,tsx}",
   ignoreNoDocuments: true,

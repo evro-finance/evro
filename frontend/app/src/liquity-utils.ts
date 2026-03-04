@@ -8,7 +8,6 @@ import type {
   PositionLoanCommitted,
   PositionStake,
   PrefixedTroveId,
-  RiskLevel,
   Token,
   TokenSymbol,
   TroveId,
@@ -27,12 +26,15 @@ import {
   INTEREST_RATE_INCREMENT_PRECISE,
   INTEREST_RATE_PRECISE_UNTIL,
   INTEREST_RATE_START,
+  ONE_YEAR_D18,
   TROVE_STATUS_ZOMBIE,
 } from "@/src/constants";
 import { CONTRACTS, getBranchContract, getProtocolContract } from "@/src/contracts";
 import { dnum18, DNUM_0, dnumOrNull, jsonStringifyWithDnum } from "@/src/dnum-utils";
 import { CHAIN_BLOCK_EXPLORER, ENV_BRANCHES, LEGACY_CHECK, LIQUITY_STATS_URL } from "@/src/env";
 import { getRedemptionRisk } from "@/src/liquity-math";
+import { combineStatus } from "@/src/query-utils";
+import { useDebounced } from "@/src/react-utils";
 import { usePrice } from "@/src/services/Prices";
 import {
   getAllInterestRateBrackets,
@@ -51,7 +53,7 @@ import * as dn from "dnum";
 import { useMemo } from "react";
 import * as v from "valibot";
 import { encodeAbiParameters, erc20Abi, isAddressEqual, keccak256, parseAbiParameters, zeroAddress } from "viem";
-import { useBalance, useConfig as useWagmiConfig, useReadContract, useReadContracts } from "wagmi";
+import { useBalance, useConfig as useWagmiConfig, useReadContract, useReadContracts, useSimulateContract } from "wagmi";
 import { readContract, readContracts } from "wagmi/actions";
 
 function isLegacyCheckObject(check: typeof LEGACY_CHECK): check is { BRANCHES: Array<any>; [key: string]: any } {
@@ -130,6 +132,19 @@ export function getBranches(): Branch[] {
       strategies: branch.strategies,
     };
   });
+}
+
+export function getTokenDisplayName(symbol: TokenSymbol) {
+  const token = TOKENS_BY_SYMBOL[symbol];
+
+  switch (symbol) {
+    case "SBOLD":
+      return "sBOLD by K3 Capital";
+    case "YBOLD":
+      return "yBOLD by Yearn";
+    default:
+      return token?.name ?? symbol;
+  }
 }
 
 export function getBranchesCount(): number {
@@ -368,7 +383,7 @@ export function useEarnPositionsByAccount(account: null | Address) {
   });
 }
 
-export function useStakePosition(address: null | Address) {
+export function useStakePosition(address: null | Address, version: "v1" | "v2" = "v2") {
   const LqtyStaking = getProtocolContract("LqtyStaking");
   const LusdToken = getProtocolContract("LusdToken");
   const Governance = getProtocolContract("Governance");
@@ -389,23 +404,28 @@ export function useStakePosition(address: null | Address) {
     },
   });
 
+  let userStakingAddress = address ?? "0x";
+  if (version === "v2") {
+    userStakingAddress = userProxyAddress.data ?? "0x";
+  }
+
   return useReadContracts({
     contracts: [{
       ...LqtyStaking,
       functionName: "stakes",
-      args: [userProxyAddress.data ?? "0x"],
+      args: [userStakingAddress],
     }, {
       ...LqtyStaking,
       functionName: "getPendingETHGain",
-      args: [userProxyAddress.data ?? "0x"],
+      args: [userStakingAddress],
     }, {
       ...LqtyStaking,
       functionName: "getPendingLUSDGain",
-      args: [userProxyAddress.data ?? "0x"],
+      args: [userStakingAddress],
     }, {
       ...LusdToken,
       functionName: "balanceOf",
-      args: [userProxyAddress.data ?? "0x"],
+      args: [userStakingAddress],
     }],
     query: {
       enabled: Boolean(address) && userProxyAddress.isSuccess && userProxyBalance.isSuccess,
@@ -438,138 +458,157 @@ export function useStakePosition(address: null | Address) {
   });
 }
 
+export function useV1StabilityPoolLqtyGain(address: null | Address) {
+  const V1StabilityPool = getProtocolContract("V1StabilityPool");
+
+  return useReadContract({
+    ...V1StabilityPool,
+    functionName: "getDepositorLQTYGain",
+    args: [address ?? "0x"],
+    query: {
+      enabled: Boolean(address),
+      select: (result) => dnum18(result),
+    },
+  });
+}
+
 export function useTroveNftUrl(branchId: null | BranchId, troveId: null | TroveId) {
   const TroveNft = getBranchContract(branchId, "TroveNFT");
   return TroveNft && troveId && `${CHAIN_BLOCK_EXPLORER?.url}nft/${TroveNft.address}/${BigInt(troveId)}`;
 }
 
 export function useInterestRateBrackets(branchId: BranchId) {
-  const brackets = useAllInterestRateBrackets();
-  return useQuery({
-    queryKey: ["InterestRateBrackets", branchId],
-    enabled: brackets.status !== "pending",
-    queryFn: () => {
-      if (brackets.status === "error") {
-        throw brackets.error;
-      }
+  const { status, data } = useAllInterestRateBrackets();
 
-      if (brackets.status === "pending") {
-        throw new Error(); // should not reach
-      }
+  return useMemo(() => {
+    if (!data) return { status, data };
 
-      return brackets.data.filter((bracket) => bracket.branchId === branchId);
-    },
-  });
+    return {
+      status,
+      data: {
+        lastUpdatedAt: data.lastUpdatedAt,
+        brackets: data.brackets.filter((bracket) => bracket.branchId === branchId),
+      },
+    };
+  }, [branchId, status, data]);
 }
 
-export function useAllInterestRateBrackets() {
+function useAllInterestRateBrackets() {
   return useQuery({
     queryKey: ["AllInterestRateBrackets"],
-    queryFn: () => getAllInterestRateBrackets(),
+    queryFn: getAllInterestRateBrackets,
   });
 }
 
 export function useAverageInterestRate(branchId: BranchId) {
-  const brackets = useInterestRateBrackets(branchId);
+  const { status, data } = useInterestRateBrackets(branchId);
 
-  const data = useMemo(() => {
-    if (!brackets.isSuccess) {
-      return null;
-    }
+  return useMemo(() => {
+    if (!data) return { status, data };
 
     let totalDebt = DNUM_0;
     let totalWeightedRate = DNUM_0;
 
-    for (const bracket of brackets.data) {
-      totalDebt = dn.add(totalDebt, bracket.totalDebt);
-      totalWeightedRate = dn.add(
-        totalWeightedRate,
-        dn.mul(bracket.rate, bracket.totalDebt),
-      );
+    for (const bracket of data.brackets) {
+      totalDebt = dn.add(totalDebt, bracket.totalDebt(BigInt(Math.floor(Date.now() / 1000))));
+      totalWeightedRate = dn.add(totalWeightedRate, bracket.totalWeightedRate);
     }
 
-    return dn.eq(totalDebt, 0)
-      ? DNUM_0
-      : dn.div(totalWeightedRate, totalDebt);
-  }, [brackets.isSuccess, brackets.data]);
-
-  return {
-    ...brackets,
-    data,
-  };
+    return {
+      status,
+      data: dn.eq(totalDebt, 0)
+        ? DNUM_0
+        : dn.div(totalWeightedRate, totalDebt),
+    };
+  }, [status, data]);
 }
 
 export function useInterestRateChartData(branchId: BranchId, excludedLoan?: PositionLoanCommitted) {
-  const brackets = useInterestRateBrackets(branchId);
-  return useQuery({
-    queryKey: ["useInterestRateChartData", jsonStringifyWithDnum(brackets.data), excludedLoan?.troveId],
-    queryFn: () => {
-      if (!brackets.isSuccess) {
-        throw new Error(); // should never happen (see enabled)
-      }
+  const { status, data } = useInterestRateBrackets(branchId);
 
-      const debtByRate = new Map<string, Dnum>(
-        brackets.data
-          .filter(({ rate }) => dn.gte(rate, INTEREST_RATE_START) && dn.lte(rate, INTEREST_RATE_END))
-          .map((bracket) => [dn.toJSON(bracket.rate), bracket.totalDebt]),
+  return useMemo(() => {
+    if (!data) return { status, data };
+
+    // brackets or loan could have been updated in the "future", if client clock is running behind
+    // or the blockchain clock has been fast-forwarded, e.g. in case of Anvil
+    const timestamp = BigInt(
+      Math.floor(
+        Math.max(
+          Date.now(),
+          Number(data.lastUpdatedAt) * 1000,
+          ...(excludedLoan ? [excludedLoan.updatedAt] : []),
+        ) / 1000,
+      ),
+    );
+
+    const debtByRate = new Map<string, Dnum>(
+      data.brackets
+        .filter(({ rate }) => dn.gte(rate, INTEREST_RATE_START) && dn.lte(rate, INTEREST_RATE_END))
+        .map((bracket) => [dn.toJSON(bracket.rate), bracket.totalDebt(timestamp)]),
+    );
+
+    const chartData = [];
+    let currentRate = dn.from(INTEREST_RATE_START, 18);
+    let debtInFront = DNUM_0;
+    let highestDebt = DNUM_0;
+
+    while (dn.lte(currentRate, INTEREST_RATE_END)) {
+      const nextRate = dn.add(
+        currentRate,
+        dn.lt(currentRate, INTEREST_RATE_PRECISE_UNTIL)
+          ? INTEREST_RATE_INCREMENT_PRECISE
+          : INTEREST_RATE_INCREMENT_NORMAL,
       );
 
-      const chartData = [];
-      let currentRate = dn.from(INTEREST_RATE_START, 18);
-      let debtInFront = DNUM_0;
-      let highestDebt = DNUM_0;
-
-      while (dn.lte(currentRate, INTEREST_RATE_END)) {
-        const nextRate = dn.add(
-          currentRate,
-          dn.lt(currentRate, INTEREST_RATE_PRECISE_UNTIL)
-            ? INTEREST_RATE_INCREMENT_PRECISE
-            : INTEREST_RATE_INCREMENT_NORMAL,
+      let aggregatedDebt = DNUM_0; // debt between currentRate and nextRate
+      let stepRate = currentRate;
+      while (dn.lt(stepRate, nextRate)) {
+        aggregatedDebt = dn.add(
+          aggregatedDebt,
+          debtByRate.get(dn.toJSON(stepRate)) ?? DNUM_0,
         );
-
-        let aggregatedDebt = DNUM_0; // debt between currentRate and nextRate
-        let stepRate = currentRate;
-        while (dn.lt(stepRate, nextRate)) {
-          aggregatedDebt = dn.add(
-            aggregatedDebt,
-            debtByRate.get(dn.toJSON(stepRate)) ?? DNUM_0,
-          );
-          stepRate = dn.add(stepRate, INTEREST_RATE_INCREMENT_PRECISE);
-        }
-
-        // exclude own debt from debt-in front calculation
-        if (
-          excludedLoan
-          && dn.gte(excludedLoan.interestRate, currentRate)
-          && dn.lt(excludedLoan.interestRate, nextRate)
-        ) {
-          aggregatedDebt = dn.sub(aggregatedDebt, excludedLoan.indexedDebt);
-        }
-
-        chartData.push({
-          debt: aggregatedDebt,
-          debtInFront,
-          rate: currentRate,
-          size: dn.toNumber(aggregatedDebt),
-        });
-
-        debtInFront = dn.add(debtInFront, aggregatedDebt);
-        currentRate = nextRate;
-        if (dn.gt(aggregatedDebt, highestDebt)) highestDebt = aggregatedDebt;
+        stepRate = dn.add(stepRate, INTEREST_RATE_INCREMENT_PRECISE);
       }
 
-      // normalize size between 0 and 1
-      if (highestDebt[0] !== 0n) {
-        const divisor = dn.toNumber(highestDebt);
-        for (const datum of chartData) {
-          datum.size /= divisor;
-        }
+      // exclude own debt from debt-in front calculation
+      if (
+        excludedLoan
+        && dn.gte(excludedLoan.interestRate, currentRate)
+        && dn.lt(excludedLoan.interestRate, nextRate)
+      ) {
+        const updatedAt = BigInt(excludedLoan.updatedAt / 1000); // should be divisible by 1000
+        const pendingDebt = dnum18(
+          dn.from(excludedLoan.recordedDebt, 18)[0]
+            * dn.from(excludedLoan.interestRate, 18)[0]
+            * (timestamp - updatedAt)
+            / ONE_YEAR_D18,
+        );
+        const excludedDebt = dn.add(excludedLoan.recordedDebt, pendingDebt);
+        aggregatedDebt = dn.sub(aggregatedDebt, excludedDebt);
       }
 
-      return chartData;
-    },
-    enabled: brackets.isSuccess,
-  });
+      chartData.push({
+        debt: aggregatedDebt,
+        debtInFront,
+        rate: currentRate,
+        size: dn.toNumber(aggregatedDebt),
+      });
+
+      debtInFront = dn.add(debtInFront, aggregatedDebt);
+      currentRate = nextRate;
+      if (dn.gt(aggregatedDebt, highestDebt)) highestDebt = aggregatedDebt;
+    }
+
+    // normalize size between 0 and 1
+    if (highestDebt[0] !== 0n) {
+      const divisor = dn.toNumber(highestDebt);
+      for (const datum of chartData) {
+        datum.size /= divisor;
+      }
+    }
+
+    return { status, data: chartData };
+  }, [status, data]);
 }
 
 export function findClosestRateIndex(
@@ -743,11 +782,6 @@ export const StatsSchema = v.pipe(
       v.string(),
     ),
     boldYield: v.optional(v.nullable(v.array(BoldYieldItem))),
-    // TODO: phase out in the future, once all frontends update to the "safe" (losely-typed) `prices` schema
-    otherPrices: v.optional(v.record(
-      v.string(),
-      v.string(),
-    )),
     branch: v.record(
       v.string(),
       v.object({
@@ -766,6 +800,14 @@ export const StatsSchema = v.pipe(
         value_locked: v.string(),
       }),
     ),
+    yBOLD: v.nullish(v.object({
+      protocol: v.string(),
+      asset: v.string(),
+      link: v.string(),
+      weekly_apr: v.number(),
+      total_apr: v.string(),
+      tvl: v.number(),
+    })),
   }),
   v.transform((value) => ({
     totalBoldSupply: dnumOrNull(value.total_bold_supply, 18),
@@ -796,11 +838,7 @@ export const StatsSchema = v.pipe(
       }),
     ),
     prices: Object.fromEntries(
-      [
-        ...Object.entries(value.prices),
-        // TODO: phase out in the future, once all frontends update to the "safe" (losely-typed) `prices` schema
-        ...Object.entries(value.otherPrices ?? {}),
-      ].map(([symbol, price]) => [
+      Object.entries(value.prices).map(([symbol, price]) => [
         symbol,
         dnumOrNull(price, 18),
       ]),
@@ -812,6 +850,14 @@ export const StatsSchema = v.pipe(
       link: i.link,
       protocol: i.protocol,
     })),
+    yBOLD: value.yBOLD && {
+      protocol: value.yBOLD.protocol,
+      asset: value.yBOLD.asset,
+      link: value.yBOLD.link,
+      weeklyApr: dnumOrNull(value.yBOLD.weekly_apr, 18),
+      totalApr: value.yBOLD.total_apr,
+      tvl: dnumOrNull(value.yBOLD.tvl, 18),
+    },
   })),
 );
 
@@ -906,9 +952,8 @@ export function useLoan(branchId: BranchId, troveId: TroveId): UseQueryResult<Po
 
   return useQuery<PositionLoanCommitted | null>({
     queryKey: ["TroveById", id],
-    queryFn: () => (
-      id ? fetchLoanById(wagmiConfig, id) : null
-    ),
+    queryFn: () => id ? fetchLoanById(wagmiConfig, id) : null,
+    refetchInterval: 60_000,
   });
 }
 
@@ -1043,7 +1088,8 @@ export async function fetchLoanById(
     branchId,
     createdAt: indexedTrove.createdAt,
     lastUserActionAt: indexedTrove.lastUserActionAt,
-    indexedDebt: indexedTrove.debt,
+    updatedAt: indexedTrove.updatedAt,
+    recordedDebt: indexedTrove.debt,
     deposit: dnum18(troveData.entireColl),
     interestRate: dnum18(troveData.annualInterestRate),
     status: indexedTrove.status,
@@ -1052,6 +1098,10 @@ export async function fetchLoanById(
     redemptionCount: indexedTrove.redemptionCount,
     redeemedColl: indexedTrove.redeemedColl,
     redeemedDebt: indexedTrove.redeemedDebt,
+    liquidatedColl: indexedTrove.liquidatedColl,
+    liquidatedDebt: indexedTrove.liquidatedDebt,
+    collSurplus: indexedTrove.collSurplus,
+    priceAtLiquidation: indexedTrove.priceAtLiquidation,
   };
 }
 
@@ -1307,59 +1357,285 @@ export function useNextOwnerIndex(
   });
 }
 
-export function useDebtPositioning(branchId: BranchId, interestRate: Dnum | null) {
-  const chartData = useInterestRateChartData(branchId);
+const interestRateFloor = (rate: Dnum) =>
+  dn.mul(
+    dn.floor(
+      dn.div(
+        rate,
+        INTEREST_RATE_INCREMENT_PRECISE,
+      ),
+    ),
+    INTEREST_RATE_INCREMENT_PRECISE,
+  );
+
+function useDebtInFrontOfBracket(branchId: BranchId, bracketRate: Dnum) {
+  const { status, data } = useInterestRateBrackets(branchId);
 
   return useMemo(() => {
-    if (!chartData.data || !interestRate) {
-      return { debtInFront: null, totalDebt: null };
-    }
-
-    // find the bracket that contains this interest rate
-    const bracket = chartData.data.find((item) =>
-      dn.lte(item.rate, interestRate)
-      && dn.lt(
-        interestRate,
-        dn.add(
-          item.rate,
-          dn.lt(item.rate, INTEREST_RATE_PRECISE_UNTIL)
-            ? INTEREST_RATE_INCREMENT_PRECISE
-            : INTEREST_RATE_INCREMENT_NORMAL,
-        ),
-      )
-    );
-
-    if (!bracket) {
-      return { debtInFront: null, totalDebt: null };
-    }
-
-    // calculate total debt from all brackets
-    const totalDebt = chartData.data.reduce(
-      (sum, item) => dn.add(sum, item.debt),
-      DNUM_0,
-    );
+    if (!data) return { status, data };
 
     return {
-      debtInFront: bracket.debtInFront,
-      totalDebt,
+      status,
+
+      data: data && ((timestamp: bigint) => {
+        const brackets = data.brackets.map(
+          ({ rate, totalDebt }) => ({
+            rate,
+            totalDebt: totalDebt(timestamp),
+          }),
+        );
+
+        const bracketsInFront = brackets.filter(
+          (bracket) => dn.lt(bracket.rate, bracketRate),
+        );
+
+        return {
+          debtInFront: bracketsInFront.map((bracket) => bracket.totalDebt).reduce((a, b) => dn.add(a, b), DNUM_0),
+          totalDebt: brackets.map((bracket) => bracket.totalDebt).reduce((a, b) => dn.add(a, b), DNUM_0),
+        };
+      }),
     };
-  }, [chartData.data, interestRate]);
+  }, [status, data, bracketRate]);
 }
 
-export function useRedemptionRisk(
-  branchId: BranchId,
-  interestRate: Dnum | null,
-): UseQueryResult<RiskLevel | null> {
-  const debtPositioning = useDebtPositioning(branchId, interestRate);
+export type UseDebtInFrontOfLoanParams = Readonly<
+  Pick<
+    PositionLoanCommitted,
+    | "branchId"
+    | "troveId"
+    | "interestRate"
+    | "status"
+    | "isZombie"
+  >
+>;
 
-  return useQuery({
-    queryKey: ["useRedemptionRisk", branchId, jsonStringifyWithDnum(interestRate)],
-    queryFn: () => {
-      if (!debtPositioning.debtInFront || !debtPositioning.totalDebt) {
-        return null;
+export const EMPTY_LOAN: UseDebtInFrontOfLoanParams = {
+  branchId: 0,
+  troveId: "0x0",
+  interestRate: DNUM_0,
+  status: "closed",
+  isZombie: true,
+};
+
+export function useDebtInFrontOfLoan(loan: UseDebtInFrontOfLoanParams) {
+  const redeemable = (loan.status === "active" || loan.status === "redeemed") && !loan.isZombie;
+  const ownBracket = interestRateFloor(loan.interestRate);
+  const debtInFrontOfOwnBracket = useDebtInFrontOfBracket(loan.branchId, ownBracket);
+  const { contracts: { SortedTroves } } = getBranch(loan.branchId);
+  const numTroves = useReadContract({ ...SortedTroves, functionName: "getSize", query: { enabled: redeemable } });
+  const DebtInFrontHelper = getProtocolContract("DebtInFrontHelper");
+
+  const debtInFrontOfLoanWithinOwnBracket = useReadContract({
+    ...DebtInFrontHelper,
+    query: { enabled: redeemable && numTroves.data !== undefined },
+    functionName: "getDebtBetweenInterestRateAndTrove",
+    args: [
+      BigInt(loan.branchId), // _collIndex
+      dn.from(ownBracket, 18)[0], // _interestRateLo
+      dn.add(ownBracket, INTEREST_RATE_INCREMENT_PRECISE, 18)[0], // _interestRateHi
+      BigInt(loan.troveId), // _troveIdToStopAt
+      0n, // _hintId
+      BigInt(Math.round(Math.sqrt(Number(numTroves.data ?? 0)))), // _numTrials
+    ],
+  });
+
+  const status = redeemable
+    ? combineStatus(debtInFrontOfOwnBracket.status, debtInFrontOfLoanWithinOwnBracket.status)
+    : debtInFrontOfOwnBracket.status;
+
+  return useMemo(() => {
+    if (redeemable) {
+      if (!debtInFrontOfOwnBracket.data || !debtInFrontOfLoanWithinOwnBracket.data) {
+        return { status, data: undefined };
       }
-      return getRedemptionRisk(debtPositioning.debtInFront, debtPositioning.totalDebt);
+
+      const timestamp = debtInFrontOfLoanWithinOwnBracket.data[1];
+      const { debtInFront, totalDebt } = debtInFrontOfOwnBracket.data(timestamp);
+
+      return {
+        status,
+        data: {
+          debtInFront: dn.add(debtInFront, dnum18(debtInFrontOfLoanWithinOwnBracket.data[0])),
+          totalDebt,
+        },
+      };
+    } else {
+      if (!debtInFrontOfOwnBracket.data) return { status, data: undefined };
+
+      return {
+        status,
+        data: {
+          debtInFront: null,
+          totalDebt: debtInFrontOfOwnBracket.data(BigInt(Math.floor(Date.now() / 1000))).totalDebt,
+        },
+      };
+    }
+  }, [redeemable, status, debtInFrontOfOwnBracket.data, debtInFrontOfLoanWithinOwnBracket.data]);
+}
+
+export function useDebtInFrontOfInterestRate(
+  branchId: BranchId,
+  interestRate: Dnum,
+  excludedLoan?: PositionLoanCommitted,
+) {
+  const ownBracket = interestRateFloor(interestRate);
+  const debtInFrontOfOwnBracket = useDebtInFrontOfBracket(branchId, ownBracket);
+  const { contracts: { SortedTroves } } = getBranch(branchId);
+  const atBottom = dn.eq(interestRate, ownBracket);
+  const numTroves = useReadContract({ ...SortedTroves, functionName: "getSize", query: { enabled: !atBottom } });
+  const DebtInFrontHelper = getProtocolContract("DebtInFrontHelper");
+
+  const debtInFrontOfLoanWithinOwnBracket = useReadContract({
+    ...DebtInFrontHelper,
+    query: { enabled: !atBottom && numTroves.data !== undefined },
+    functionName: "getDebtBetweenInterestRates",
+    args: [
+      BigInt(branchId), // _collIndex
+      dn.from(ownBracket, 18)[0], // _interestRateLo
+      dn.from(interestRate, 18)[0], // _interestRateHi
+      BigInt(excludedLoan?.troveId ?? 0), // _excludedTroveId
+      0n, // _hintId
+      BigInt(Math.round(Math.sqrt(Number(numTroves.data ?? 0)))), // _numTrials
+    ],
+  });
+
+  const status = atBottom
+    ? debtInFrontOfOwnBracket.status
+    : combineStatus(debtInFrontOfLoanWithinOwnBracket.status, debtInFrontOfOwnBracket.status);
+
+  return useMemo(() => {
+    if (atBottom) {
+      if (!debtInFrontOfOwnBracket.data) return { status, data: undefined };
+
+      return {
+        status,
+        data: debtInFrontOfOwnBracket.data(BigInt(Math.floor(Date.now() / 1000))),
+      };
+    } else {
+      if (!debtInFrontOfOwnBracket.data || !debtInFrontOfLoanWithinOwnBracket.data) {
+        return { status, data: undefined };
+      }
+
+      const timestamp = debtInFrontOfLoanWithinOwnBracket.data[1];
+      const { debtInFront, totalDebt } = debtInFrontOfOwnBracket.data(timestamp);
+
+      return {
+        status,
+        data: {
+          debtInFront: dn.add(debtInFront, dnum18(debtInFrontOfLoanWithinOwnBracket.data[0])),
+          totalDebt,
+        },
+      };
+    }
+  }, [atBottom, status, debtInFrontOfOwnBracket.data, debtInFrontOfLoanWithinOwnBracket.data]);
+}
+
+// TODO add the ability to disable `useDebtInFrontOfLoan()` and disable it Trove is a zombie (return "not-applicable")
+export function useRedemptionRiskOfLoan(loan: UseDebtInFrontOfLoanParams) {
+  const { status, data } = useDebtInFrontOfLoan(loan);
+
+  return useMemo(() => {
+    if (!data) return { status, data };
+    if (data.debtInFront === null) return { status, data: "not-applicable" as const };
+    return { status, data: getRedemptionRisk(data.debtInFront, data.totalDebt) };
+  }, [status, data]);
+}
+
+export function useCollateralSurplus(accountAddress: Address | null, branchId: BranchId) {
+  return useReadContract({
+    ...getBranchContract(branchId, "CollSurplusPool"),
+    functionName: "getCollateral",
+    args: [accountAddress ?? zeroAddress],
+    query: {
+      enabled: Boolean(accountAddress),
+      select: dnum18,
     },
-    enabled: debtPositioning.debtInFront !== null && debtPositioning.totalDebt !== null,
+  });
+}
+
+export function useCollateralSurplusByBranches(
+  accountAddress: Address | null,
+  liquidatedBranchIds: BranchId[],
+) {
+  return useReadContracts({
+    contracts: liquidatedBranchIds.map((branchId) => {
+      const branch = CONTRACTS.branches[branchId];
+      if (!branch) {
+        throw new Error(`Invalid branch ID: ${branchId}`);
+      }
+      return {
+        ...branch.contracts.CollSurplusPool,
+        functionName: "getCollateral" as const,
+        args: [accountAddress ?? zeroAddress],
+      };
+    }),
+    query: {
+      enabled: Boolean(accountAddress) && liquidatedBranchIds.length > 0,
+      select: (results) => {
+        return results.map((result, index) => {
+          const branchId = liquidatedBranchIds[index];
+          if (branchId === undefined) {
+            throw new Error(`Branch ID at index ${index} not found`);
+          }
+          const surplus = result.result ? dnum18(result.result) : DNUM_0;
+          return {
+            branchId,
+            surplus,
+          };
+        });
+      },
+    },
+  });
+}
+
+export function useRedemptionRiskOfInterestRate(
+  branchId: BranchId,
+  interestRate: Dnum,
+  excludedLoan?: PositionLoanCommitted,
+) {
+  const { status, data } = useDebtInFrontOfInterestRate(branchId, interestRate, excludedLoan);
+
+  return useMemo(() => {
+    if (!data) return { status, data };
+    return { status, data: getRedemptionRisk(data.debtInFront, data.totalDebt) };
+  }, [status, data]);
+}
+
+export interface RedemptionSimulationParams {
+  boldAmount: Dnum;
+  maxIterationsPerCollateral: number;
+}
+
+export function useRedemptionSimulation(params: RedemptionSimulationParams) {
+  const boldAmount = dn.from(params.boldAmount, 18)[0];
+  const maxIterationsPerCollateral = BigInt(params.maxIterationsPerCollateral);
+
+  const values = useMemo(() => ({
+    boldAmount,
+    maxIterationsPerCollateral,
+  }), [boldAmount, maxIterationsPerCollateral]);
+
+  const [debounced, bouncing] = useDebounced(values);
+  const RedemptionHelper = getProtocolContract("RedemptionHelper");
+
+  // We'd love to use `useReadContract()` for this, but wagmi/viem won't let us
+  // do that for mutating functions, even though it's a perfectly valid use case.
+  // We could hack the ABI, but that's yucky.
+  return useSimulateContract({
+    ...RedemptionHelper,
+    functionName: "truncateRedemption",
+    args: [debounced.boldAmount, debounced.maxIterationsPerCollateral],
+
+    query: {
+      refetchInterval: 12_000,
+      enabled: !bouncing,
+
+      select: ({ result: [truncatedBold, feePct, output] }) => ({
+        bouncing,
+        truncatedBold: dnum18(truncatedBold),
+        feePct: dnum18(feePct),
+        collRedeemed: output.map(({ coll }) => dnum18(coll)),
+      }),
+    },
   });
 }

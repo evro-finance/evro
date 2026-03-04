@@ -1,14 +1,13 @@
-import { Provider as PanelVotingProvider } from "./providers/PanelVotingProvider";
 import { useVotingState } from "@/src/screens/StakeScreen/components/PanelVoting/providers/PanelVotingProvider/hooks";
-import { Loader } from "./components/Loader";
 import { css } from "@/styled-system/css";
-import { Header } from "./components/Header";
-import { VotingRoundTimer } from "./components/VotingRoundTimer";
+import { CastVotes } from "./components/CastVotes";
 import { CutoffWarning } from "./components/CutoffWarning";
 import { EpochInitiativesTable } from "./components/EpochInitiativesTable";
-import { BribeMarketsInfo } from "./components/BribeMarketsInfo";
 import { EpochVotingStatus } from "./components/EpochVotingStatus";
-import { CastVotes } from "./components/CastVotes";
+import { Header } from "./components/Header";
+import { Loader } from "./components/Loader";
+import { VotingRoundTimer } from "./components/VotingRoundTimer";
+import { Provider as PanelVotingProvider } from "./providers/PanelVotingProvider";
 
 import type { FC } from "react";
 
@@ -35,7 +34,6 @@ export const PanelVoting: FC = () => {
         <VotingRoundTimer />
         <CutoffWarning />
         <EpochInitiativesTable />
-        <BribeMarketsInfo />
         <EpochVotingStatus />
         <CastVotes />
       </section>

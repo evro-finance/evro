@@ -125,39 +125,17 @@ export default {
 		},
 	},
 
-	interestRateField: {
-		delegateModes: {
-			manual: {
-				label: "Manual",
-				secondary: <>The interest rate is set manually and can be updated at any time.</>,
-			},
-			delegate: {
-				label: "Delegated",
-				secondary: <>The interest rate is set and updated by a third party of your choice. They may charge a fee.</>,
-			},
-			strategy: {
-				label: "Autonomous Rate Manager",
-				secondary: (
-					<>
-						The interest rate is set and updated by an automated strategy running on the Internet Computer (ICP).
-					</>
-				),
-			},
-		},
-
-		icStrategyModal: {
-			title: (
-				<>
-					Autonomous Rate Manager (ARM)
-				</>
-			),
-			intro: (
-				<>
-					These strategies are run on the Internet Computer (ICP). They are automated and decentralized. More strategies
-					may be added over time.
-				</>
-			),
-		},
+  interestRateField: {
+    delegateModes: {
+      manual: {
+        label: "Manual",
+        secondary: <>The interest rate is set manually and can be updated at any time.</>,
+      },
+      delegate: {
+        label: "Delegated",
+        secondary: <>The interest rate is set and updated by a third party of your choice. They may charge a fee.</>,
+      },
+    },
 
 		delegatesModal: {
 			title: "Set a delegate",
@@ -169,26 +147,26 @@ export default {
 		},
 	},
 
-	closeLoan: {
-		claimOnly: (
-			<>
-				You are reclaiming your collateral and closing the position. The deposit will be returned to your wallet.
-			</>
-		),
-		repayWithBoldMessage: (
-			<>
-				You are repaying your debt and closing the position. The deposit will be returned to your wallet.
-			</>
-		),
-		repayWithCollateralMessage: (
-			<>
-				To close your position, a part of your collateral will be sold to pay back the debt. The rest of your collateral
-				will be returned to your wallet.
-			</>
-		),
-		buttonRepayAndClose: "Repay & close",
-		buttonReclaimAndClose: "Reclaim & close",
-	},
+  closeLoan: {
+    claimOnly: (
+      <>
+        You are reclaiming your collateral and closing the position. The deposit will be returned to your wallet.
+      </>
+    ),
+    repayWithBoldMessage: (
+      <>
+        You are repaying your debt and closing the position. The deposit will be returned to your wallet.
+      </>
+    ),
+    repayWithCollateralMessage: (collateralName: string) => (
+      <>
+        To close your position, part of your {collateralName}{" "}
+        will be sold to pay back the debt. The rest will be returned to your wallet.
+      </>
+    ),
+    buttonRepayAndClose: "Repay & close",
+    buttonReclaimAndClose: "Reclaim & close",
+  },
 
 	// Home screen
 	home: {
@@ -246,71 +224,68 @@ export default {
 		},
 	},
 
-	// Borrow screen
-	borrowScreen: {
-		headline: (eth: N, bold: N) => (
-			<>
-				Borrow {bold} with {eth}
-			</>
-		),
-		depositField: {
-			label: "Collateral",
-		},
-		borrowField: {
-			label: "Loan",
-		},
-		liquidationPriceField: {
-			label: "ETH liquidation price",
-		},
-		interestRateField: {
-			label: "Interest rate",
-		},
-		action: "Next: Summary",
-		infoTooltips: {
-			interestRateSuggestions: [
-				`Positions with lower interest rates are the first to be redeemed by ${WHITE_LABEL_CONFIG.tokens.mainToken.symbol} holders.`,
-			],
-		},
-	},
+  // Borrow screen
+  borrowScreen: {
+    headline: (eth: N, bold: N) => (
+      <>
+        Borrow {bold} with {eth}
+      </>
+    ),
+    depositField: {
+      label: "Collateral",
+    },
+    borrowField: {
+      label: "Loan",
+    },
+    interestRateField: {
+      label: "Interest rate",
+    },
+    action: "Next: Summary",
+    infoTooltips: {
+      interestRateSuggestions: [
+        "Positions with lower interest rates are the first to be redeemed by ${WHITE_LABEL_CONFIG.tokens.mainToken.symbol} holders.",
+      ],
+    },
+  },
 
-	// Multiply screen
-	leverageScreen: {
-		headline: (tokensIcons: N) => (
-			<>
-				Multiply your exposure to {tokensIcons}
-			</>
-		),
-		depositField: {
-			label: "You deposit",
-		},
-		liquidationPriceField: {
-			label: "ETH liquidation price",
-		},
-		interestRateField: {
-			label: "Interest rate",
-		},
-		action: "Next: Summary",
-		infoTooltips: {
-			leverageLevel: [
-				"Multiply level",
-				<>
-					Choose the amplification of your exposure. Note that a higher level means higher liquidation risk. You are
-					responsible for your own assessment of what a suitable level is.
-				</>,
-			],
-			interestRateSuggestions: [
-				<>
-					Positions with lower interest rates are the first to be redeemed by {WHITE_LABEL_CONFIG.tokens.mainToken.symbol} holders.
-				</>,
-			],
-			exposure: [
-				"Exposure",
-				<>
-					Your total exposure to the collateral asset after amplification.
-				</>,
-			],
-		},
-	},
+  // Multiply screen
+  leverageScreen: {
+    headline: (tokensIcons: N) => (
+      <>
+        Multiply your exposure to {tokensIcons}
+      </>
+    ),
+    depositField: {
+      label: "Deposit",
+    },
+    liquidationPriceField: {
+      label: "Liquidation price",
+    },
+    interestRateField: {
+      label: "Interest rate",
+    },
+    action: "Next: Summary",
+    infoTooltips: {
+      leverageLevel: [
+        "Multiply level",
+        <>
+          Choose the amplification of your exposure. Note that a higher level means higher liquidation risk. You are
+          responsible for your own assessment of what a suitable level is.
+        </>,
+      ],
+      interestRateSuggestions: [
+        <>
+          Positions with lower interest rates are the first to be redeemed by ${WHITE_LABEL_CONFIG.tokens.mainToken.symbol} holders.
+        </>,
+      ],
+      exposure: [
+        "Exposure",
+        <>
+          Your total exposure to the collateral asset after amplification.
+        </>,
+      ],
+    },
+  },
 
 	// Earn home screen
 	earnHome: {
@@ -340,175 +315,290 @@ export default {
 		},
 	},
 
-	// Earn screen
-	earnScreen: {
-		backButton: "See all pools",
-		headerPool: (pool: N) => <>{pool} pool</>,
-		headerTvl: (tvl: N) => (
-			<>
-				<abbr title="Total Value Locked">TVL</abbr> {tvl}
-			</>
-		),
-		headerApr: () => (
-			<>
-				Current <abbr title="Annual percentage rate">APR</abbr>
-			</>
-		),
-		accountPosition: {
-			depositLabel: "My deposit",
-			shareLabel: "Pool share",
-			rewardsLabel: "My rewards",
-		},
-		tabs: {
-			deposit: "Deposit",
-			claim: "Claim rewards",
-		},
-		depositPanel: {
-			label: "Increase deposit",
-			shareLabel: "Pool share",
-			claimCheckbox: "Claim rewards",
-			action: "Next: Summary",
-		},
-		withdrawPanel: {
-			label: "Decrease deposit",
-			claimCheckbox: "Claim rewards",
-			action: "Next: Summary",
-		},
-		rewardsPanel: {
-			boldRewardsLabel: "Your earnings from protocol revenue distributions to this stability pool",
-			collRewardsLabel: "Your proceeds from liquidations conducted by this stability pool",
-			totalUsdLabel: "Total in EUR",
-			expectedGasFeeLabel: "Expected gas fee",
-			action: "Next: Summary",
-		},
-		infoTooltips: {
-			tvl: (collateral: N) => [
-				<>Total {WHITE_LABEL_CONFIG.tokens.mainToken.symbol} covering {collateral}-backed position liquidations.</>,
-			],
-			depositPoolShare: [
-				`Percentage of your ${WHITE_LABEL_CONFIG.tokens.mainToken.symbol} deposit compared to the total deposited in this stability pool.`,
-			],
-			alsoClaimRewardsDeposit: [
-				<>
-					If checked, rewards are paid out as part of the update transaction. Otherwise rewards will be compounded into
-					your deposit.
-				</>,
-			],
-			alsoClaimRewardsWithdraw: [
-				<>
-					If checked, rewards are paid out as part of the update transaction.<br />
-					Note: This needs to be checked to fully withdraw from the Stability Pool.
-				</>,
-			],
-			currentApr: [
-				`Average annualized return for ${WHITE_LABEL_CONFIG.tokens.mainToken.symbol} deposits over the past 7 days.`,
-			],
-			rewardsEth: [
-				"ETH rewards",
-				"Your proceeds from liquidations conducted by this stability pool.",
-			],
-			rewardsBold: [
-				`${WHITE_LABEL_CONFIG.tokens.mainToken.symbol} rewards`,
-				"Your earnings from protocol revenue distributions to this stability pool.",
-			],
-		},
-	},
+  // Earn screen
+  earnScreen: {
+    backButton: "See all pools",
+    headerPool: (pool: N) => <>{pool} pool</>,
+    headerTvl: (tvl: N) => (
+      <>
+        <abbr title="Total Value Locked">TVL</abbr> {tvl}
+      </>
+    ),
+    headerApr: () => (
+      <>
+        Current <abbr title="Annual percentage rate">APR</abbr>
+      </>
+    ),
+    accountPosition: {
+      depositLabel: "My deposit",
+      shareLabel: "Pool share",
+      rewardsLabel: "My rewards",
+    },
+    tabs: {
+      deposit: "Update",
+      claim: "Claim rewards",
+      compound: "Compound",
+    },
+    depositPanel: {
+      label: "Increase deposit",
+      shareLabel: "Pool share",
+      claimCheckbox: "Claim rewards",
+      action: "Next: Summary",
+    },
+    withdrawPanel: {
+      label: "Decrease deposit",
+      action: "Next: Summary",
+    },
+    rewardsPanel: {
+      boldRewardsLabel: `Your ${WHITE_LABEL_CONFIG.tokens.mainToken.symbol} rewards will be paid out`,
+      collRewardsLabel: (collateral: N) => <>Your {collateral} rewards will be paid out</>,
+      expectedGasFeeLabel: "Expected gas fee",
+      action: "Next: Summary",
+    },
+    compoundPanel: {
+      boldRewardsLabel: `Your ${WHITE_LABEL_CONFIG.tokens.mainToken.symbol} rewards will be used to top-up your deposit`,
+      collRewardsLabel: (collateral: N) => <>Your {collateral} rewards will remain in your deposit</>,
+      expectedGasFeeLabel: "Expected gas fee",
+      action: "Next: Summary",
+    },
+    infoTooltips: {
+      tvl: (collateral: N) => [
+        <>Total {WHITE_LABEL_CONFIG.tokens.mainToken.symbol} covering {collateral}-backed position liquidations.</>,
+      ],
+      depositPoolShare: [
+        `Percentage of your ${WHITE_LABEL_CONFIG.tokens.mainToken.symbol} deposit compared to the total deposited in this stability pool.`,
+      ],
+      alsoClaimRewardsDeposit: (collateral: N) => [
+        <>
+          If checked, rewards will be paid out as part of the deposit transaction. Otherwise, ${WHITE_LABEL_CONFIG.tokens.mainToken.symbol} rewards will be
+          compounded and {collateral} rewards will remain claimable.
+        </>,
+      ],
+      alsoClaimRewardsWithdraw: (collateral: N) => [
+        <>
+          <div>
+            If checked, rewards will be paid out as part of the withdrawal transaction. Otherwise, ${WHITE_LABEL_CONFIG.tokens.mainToken.symbol} rewards will be
+            compounded and {collateral} rewards will remain claimable.
+          </div>
+          <div className={css({ color: "content" })}>
+            Rewards will always be claimed when fully withdrawing from the Stability Pool.
+          </div>
+        </>,
+      ],
+      currentApr: [
+        `Average annualized return for ${WHITE_LABEL_CONFIG.tokens.mainToken.symbol} deposits over the past 7 days.`,
+      ],
+      rewardsEth: [
+        "ETH rewards",
+        "Your proceeds from liquidations conducted by this stability pool.",
+      ],
+      rewardsBold: [
+        `${WHITE_LABEL_CONFIG.tokens.mainToken.symbol} rewards`,
+        "Your earnings from protocol revenue distributions to this stability pool.",
+      ],
+    },
+  },
 
-	// Stake screen
-	stakeScreen: {
-		headline: (lqtyIcon: N) => (
-			<>
-				<span>Stake</span>
-				{lqtyIcon} <span>{WHITE_LABEL_CONFIG.tokens.governanceToken.symbol} & get</span>
-				<span>voting power</span>
-			</>
-		),
-		subheading: (
-			<>
-				By staking {WHITE_LABEL_CONFIG.tokens.governanceToken.symbol} you can vote on incentives for {WHITE_LABEL_CONFIG.branding.appName}, while still earning {WHITE_LABEL_CONFIG.branding.brandName} V1 fees.
-			</>
-		),
-		learnMore: [
-			WHITE_LABEL_CONFIG.branding.links.docs.staking,
-			"Learn more",
-		],
-		accountDetails: {
-			myDeposit: "My deposit",
-			votingPower: "Voting power",
-			votingPowerHelp: (
-				<>
-					Voting power is the percentage of the total staked {WHITE_LABEL_CONFIG.tokens.governanceToken.symbol} that you own.
-				</>
-			),
-			unclaimed: "Unclaimed rewards",
-		},
-		tabs: {
-			deposit: "Staking",
-			rewards: "Rewards",
-			voting: "Voting",
-		},
-		depositPanel: {
-			label: "Deposit",
-			shareLabel: "Pool share",
-			rewardsLabel: "Available rewards",
-			action: "Next: Summary",
-		},
-		rewardsPanel: {
-			label: "You claim",
-			details: (eurAmount: N, fee: N) => (
-				<>
-					~€{eurAmount} • Expected gas fee ~€{fee}
-				</>
-			),
-			action: "Next: Summary",
-		},
-		votingPanel: {
-			title: "Allocate your voting power",
-			intro: (
-				<>
-					Direct incentives from {WHITE_LABEL_CONFIG.branding.appName} protocol revenues towards liquidity providers for {WHITE_LABEL_CONFIG.tokens.mainToken.symbol}. Upvote from Thursday
-					to Tuesday. Downvote all week. <Link href={WHITE_LABEL_CONFIG.branding.links.docs.staking}>Learn more</Link>
-				</>
-			),
-		},
-		infoTooltips: {
-			alsoClaimRewardsDeposit: [
-				<>
-					Rewards will be paid out as part of the update transaction.
-				</>,
-			],
-			votingShare: (
-				<>
-					Your voting share is the amount of {WHITE_LABEL_CONFIG.tokens.governanceToken.symbol} you have staked and that is available to vote, divided by the total
-					amount of {WHITE_LABEL_CONFIG.tokens.governanceToken.symbol} staked via the governance contract.
-				</>
-			),
-			votingPower: (
-				<>
-					Your relative voting power changes over time, depending on your and others allocations of {WHITE_LABEL_CONFIG.tokens.governanceToken.symbol}.
-				</>
-			),
-		},
-	},
+  // Stake screen
+  stakeScreen: {
+    headline: (lqtyIcon: N) => (
+      <>
+        <span>Stake</span>
+        {lqtyIcon} <span>{WHITE_LABEL_CONFIG.tokens.governanceToken.symbol} & get</span>
+        <span>voting power</span>
+      </>
+    ),
+    subheading: (
+      <>
+        By staking ${WHITE_LABEL_CONFIG.tokens.governanceToken.symbol} you can vote on incentives for ${WHITE_LABEL_CONFIG.branding.appName}, while still earning ${WHITE_LABEL_CONFIG.branding.brandName} V1 fees.
+      </>
+    ),
+    learnMore: [
+      WHITE_LABEL_CONFIG.branding.links.docs.staking,
+      "Learn more",
+    ],
+    accountDetails: {
+      myDeposit: "My deposit",
+      votingPower: "Voting power",
+      votingPowerHelp: (
+        <>
+          Voting power is the percentage of the total staked {WHITE_LABEL_CONFIG.tokens.governanceToken.symbol} that you own.
+        </>
+      ),
+      unclaimed: "Unclaimed rewards",
+    },
+    tabs: {
+      deposit: "Staking",
+      rewards: "Rewards",
+      voting: "Voting",
+    },
+    depositPanel: {
+      label: "Deposit",
+      shareLabel: "Pool share",
+      rewardsLabel: "Available rewards",
+      action: "Next: Summary",
+    },
+    rewardsPanel: {
+      label: "You claim",
+      details: (usdAmount: N, fee: N) => (
+        <>
+          ~${usdAmount} • Expected gas fee ~${fee}
+        </>
+      ),
+      action: "Next: Summary",
+    },
+    votingPanel: {
+      title: "Allocate your voting power",
+      intro: (
+        <>
+          Vote on initiatives and direct incentives from {WHITE_LABEL_CONFIG.branding.appName} protocol revenues towards liquidity venues for {WHITE_LABEL_CONFIG.tokens.mainToken.symbol}.
+          Upvote from Thursday to Tuesday. Downvote all week. Get and claim bribes for some of them.
+        </>
+      ),
+      resources: {
+        overview: {
+          description: "Learn more about voting accrual, initiative and protocol incentivized liquidity (PIL).",
+          linkText: "LQTY Voting & Staking in V2",
+          linkUrl: "https://docs.liquity.org/v2-faq/lqty-staking",
+        },
+        discuss: {
+          description: "Overview over the PIL initiatives – propose and discuss initiatives.",
+          linkText: "Protocol Incentivized Liquidy (PIL) Initiatives",
+          linkUrl: "https://voting.liquity.org/",
+        },
+        dashboard: {
+          description: "Check Dune Dash for the weekly voting and reward distributions.",
+          linkText: "Voting stats",
+          linkUrl: "https://dune.com/liquity/protocol-incentivized-liquidity",
+        },
+        bribes: {
+          description:
+            "Initiatives can offer Bribes. Active bribing campaigns are visible below and can be claimed weekly.",
+          linkText: "Bribing Markets",
+          linkUrl: "https://www.liquity.org/blog/bribe-markets-in-liquity-v2-strategic-value-for-lqty-stakers",
+        },
+      },
+    },
+    infoTooltips: {
+      alsoClaimRewardsDeposit: [
+        <>
+          Rewards will be paid out as part of the update transaction.
+        </>,
+      ],
+      votingShare: (
+        <>
+          Your voting share is the amount of {WHITE_LABEL_CONFIG.tokens.governanceToken.symbol} you have staked and that is available to vote, divided by the total
+          amount of {WHITE_LABEL_CONFIG.tokens.governanceToken.symbol} staked via the governance contract.
+        </>
+      ),
+      votingPower: (
+        <>
+          Your relative voting power changes over time, depending on your and others allocations of {WHITE_LABEL_CONFIG.tokens.governanceToken.symbol}.
+        </>
+      ),
+    },
+  },
+  atRiskWarning: {
+    delegated: (maxLtvAllowed: string) => (
+      <div>
+        When you delegate your interest rate management, your <abbr title="Loan-to-value ratio">LTV</abbr> must be below
+        {" "}
+        {maxLtvAllowed}. Please reduce your loan or add more collateral to proceed.
+      </div>
+    ),
+    manual: (ltv: string, maxLtv: string) => ({
+      message: (
+        <div>
+          Your position's <abbr title="Loan-to-value ratio">LTV</abbr> is {ltv}, which is close to the maximum of{" "}
+          {maxLtv}. You are at high risk of liquidation.
+        </div>
+      ),
+      checkboxLabel: "I understand. Let's continue.",
+    }),
+  },
+  ccrWarning: {
+    title: "Borrowing Restrictions Apply",
+    learnMoreUrl:
+      "https://docs.liquity.org/v2-faq/borrowing-and-liquidations#docs-internal-guid-fee4cc44-7fff-c866-9ccf-bac2da1b5222",
+    learnMoreLabel: "Learn more about borrowing restrictions",
+    openPosition: (params: { tcr: N; ccr: N; newTcr: N; isOldTcrLtCcr: boolean }) => (
+      <>
+        {params.isOldTcrLtCcr && (
+          <>
+            The branch <abbr title="Total Collateral Ratio">TCR</abbr> of {params.tcr} is currently below the{" "}
+            <abbr title="Critical Collateral Ratio">CCR</abbr> of {params.ccr}.{" "}
+          </>
+        )}
+        Opening a position must bring the branch <abbr title="Total Collateral Ratio">TCR</abbr> {params.isOldTcrLtCcr
+          ? <>above {params.ccr}.</>
+          : (
+            <>
+              above the <abbr title="Critical Collateral Ratio">CCR</abbr> of {params.ccr}.
+            </>
+          )} Opening this loan would result in a <abbr title="Total Collateral Ratio">TCR</abbr> of{" "}
+        {params.newTcr}. Please reduce your loan amount or increase your collateral to proceed.
+      </>
+    ),
+    updatePushBelow: (params: { newTcr: N; ccr: N }) => (
+      <>
+        This update to your existing loan would bring the branch <abbr title="Total Collateral Ratio">TCR</abbr> to{" "}
+        {params.newTcr}, which is below the <abbr title="Critical Collateral Ratio">CCR</abbr> of{" "}
+        {params.ccr}. Please reduce your loan amount or increase your collateral to proceed.
+      </>
+    ),
+    updateBorrowMore: (params: { tcr: N; ccr: N; newTcr: N; isNewTcrLteCcr: boolean }) => (
+      <>
+        The branch <abbr title="Total Collateral Ratio">TCR</abbr> of {params.tcr} is currently below the{" "}
+        <abbr title="Critical Collateral Ratio">CCR</abbr> of {params.ccr}. {params.isNewTcrLteCcr
+          ? (
+            <>
+              New borrowing must bring the <abbr title="Total Collateral Ratio">TCR</abbr> above{" "}
+              {params.ccr}. Your current loan update would result in a <abbr title="Total Collateral Ratio">TCR</abbr>
+              {" "}
+              of {params.newTcr}.
+            </>
+          )
+          : <>When borrowing, your collateral increase must exceed your debt increase.</>}{" "}
+        Please reduce your loan amount or increase your collateral to proceed.
+      </>
+    ),
+    updateWithdrawColl: (params: { tcr: N; ccr: N }) => (
+      <>
+        The branch <abbr title="Total Collateral Ratio">TCR</abbr> of {params.tcr} is currently below the{" "}
+        <abbr title="Critical Collateral Ratio">CCR</abbr> of{" "}
+        {params.ccr}. Collateral withdrawal must be matched by debt repayment. Please repay debt equal to or greater
+        than the collateral value you wish to withdraw.
+      </>
+    ),
+    interestRateAdjustment: (params: { tcr: N; ccr: N; cooldownDays: number }) => (
+      <>
+        The branch <abbr title="Total Collateral Ratio">TCR</abbr> of {params.tcr} is currently below the{" "}
+        <abbr title="Critical Collateral Ratio">CCR</abbr> of{" "}
+        {params.ccr}. Interest rate adjustments are restricted until either the{" "}
+        <abbr title="Total Collateral Ratio">TCR</abbr> rises above {params.ccr}, or {params.cooldownDays}{" "}
+        days have passed since your last adjustment.
+      </>
+    ),
+  },
 } as const;
 
-function Link({
-	href,
-	children,
-}: {
-	href: string;
-	children: N;
-}) {
-	const props = !href.startsWith("http") ? {} : {
-		target: "_blank",
-		rel: "noopener noreferrer",
-	};
-	return (
-		<a href={href} {...props}>
-			{children}
-		</a>
-	);
-}
+// function Link({
+//   href,
+//   children,
+// }: {
+//   href: string;
+//   children: N;
+// }) {
+//   const props = !href.startsWith("http") ? {} : {
+//     target: "_blank",
+//     rel: "noopener noreferrer",
+//   };
+//   return (
+//     <a href={href} {...props}>
+//       {children}
+//     </a>
+//   );
+// }
 
 function NoWrap({
 	children,

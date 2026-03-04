@@ -12,10 +12,10 @@ const diffSpringConfig = {
 	friction: 120,
 };
 
-type Drawer = {
-	mode: "error" | "loading" | "success" | "warning";
-	message: ReactNode;
-	autoClose?: number;
+export type Drawer = {
+  mode: "error" | "loading" | "success" | "warning";
+  message: ReactNode;
+  autoClose?: number;
 };
 
 function InputField({

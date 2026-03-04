@@ -1,13 +1,14 @@
-import { useMemo } from "react";
 import { getLoanDetails } from "@/src/liquity-math";
 import { getCollToken } from "@/src/liquity-utils";
-import { usePrice } from "@/src/services/Prices";
 import { ClosedLoan } from "@/src/screens/TransactionsScreen/LoanCard/components/ClosedLoan";
-import { OpenLoan } from "@/src/screens/TransactionsScreen/LoanCard/components/OpenLoan";
 import { LoadingCard } from "@/src/screens/TransactionsScreen/LoanCard/components/LoadingCard";
+import { OpenLoan } from "@/src/screens/TransactionsScreen/LoanCard/components/OpenLoan";
+import { usePrice } from "@/src/services/Prices";
+import { useMemo } from "react";
 
 import type { LoadingState } from "@/src/screens/TransactionsScreen/TransactionsScreen.tsx";
-import type { PositionLoan } from "@/src/types";
+import { useTransactionFlow } from "@/src/services/TransactionFlow";
+import type { PositionLoan, PositionLoanCommitted } from "@/src/types";
 
 const LOAN_CARD_HEIGHT = 290;
 const LOAN_CARD_HEIGHT_REDUCED = 176;
@@ -19,16 +20,27 @@ export function LoanCard({
   onRetry,
   prevLoan,
   txPreviewMode = false,
+  displayAllDifferences = true,
 }: {
   leverageMode: boolean;
   loadingState: LoadingState;
   loan: PositionLoan | null;
   onRetry: () => void;
-  prevLoan?: PositionLoan | null;
+  prevLoan?: PositionLoanCommitted | null;
   txPreviewMode?: boolean;
+  displayAllDifferences?: boolean;
 }) {
   const branchId = loan?.branchId ?? prevLoan?.branchId ?? null;
   const collToken = getCollToken(branchId);
+
+  const {
+    currentStep: step,
+    currentStepIndex,
+    flow,
+  } = useTransactionFlow();
+
+  const isLastStep = flow?.steps && currentStepIndex === flow.steps.length - 1;
+  const isSuccess = isLastStep && step?.status === "confirmed";
 
   if (!collToken) {
     throw new Error(`Collateral token not found: ${branchId}`);
@@ -38,9 +50,8 @@ export function LoanCard({
 
   const isLoanClosing = prevLoan && !loan;
 
-  const loanDetails =
-    loan &&
-    getLoanDetails(
+  const loanDetails = loan
+    && getLoanDetails(
       loan.deposit,
       loan.borrowed,
       loan.interestRate,
@@ -48,9 +59,8 @@ export function LoanCard({
       collPriceUsd.data ?? null,
     );
 
-  const prevLoanDetails =
-    prevLoan &&
-    getLoanDetails(
+  const prevLoanDetails = prevLoan
+    && getLoanDetails(
       prevLoan.deposit,
       prevLoan.borrowed,
       prevLoan.interestRate,
@@ -66,10 +76,10 @@ export function LoanCard({
   } = loanDetails || {};
 
   const loanDetailsFilled = Boolean(
-    typeof leverageFactor === "number" &&
-      depositPreLeverage &&
-      liquidationRisk &&
-      liquidationPrice,
+    typeof leverageFactor === "number"
+      && depositPreLeverage
+      && liquidationRisk
+      && liquidationPrice,
   );
 
   const loadingStatus = useMemo(() => {
@@ -78,8 +88,8 @@ export function LoanCard({
     }
 
     if (
-      collPriceUsd.status === "pending" ||
-      (!isLoanClosing && !loanDetailsFilled)
+      collPriceUsd.status === "pending"
+      || (!isLoanClosing && !loanDetailsFilled)
     ) {
       return "loading";
     }
@@ -101,6 +111,7 @@ export function LoanCard({
           leverageMode={leverageMode}
           collToken={collToken}
           loanDetails={loanDetails}
+          isSuccess={!displayAllDifferences && Boolean(isSuccess)}
         />
       );
     }
@@ -108,12 +119,15 @@ export function LoanCard({
     return null;
   }, [
     isLoanClosing,
-    prevLoan,
-    collToken,
     loan,
     loanDetails,
     loanDetailsFilled,
+    prevLoan,
+    collToken,
+    prevLoanDetails,
     leverageMode,
+    displayAllDifferences,
+    isSuccess,
   ]);
 
   return (
@@ -123,6 +137,7 @@ export function LoanCard({
       loadingState={loadingStatus}
       onRetry={onRetry}
       txPreviewMode={txPreviewMode}
+      isSuccess={!displayAllDifferences && Boolean(isSuccess)}
     >
       {content}
     </LoadingCard>

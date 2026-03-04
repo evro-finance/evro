@@ -22,25 +22,27 @@ const HEIGHT = 60;
 const GRADIENT_TRANSITION_BLUR = 4;
 
 export function Slider({
-	chart,
-	disabled,
-	gradient,
-	gradientMode = "low-to-high",
-	keyboardStep,
-	onChange,
-	onDragEnd,
-	onDragStart,
-	value,
+  chart,
+  disabled,
+  gradient,
+  gradientMode = "low-to-high",
+  handleColor,
+  keyboardStep,
+  onChange,
+  onDragEnd,
+  onDragStart,
+  value,
 }: {
-	disabled?: boolean;
-	gradient?: [number, number];
-	gradientMode?: GradientMode;
-	chart?: Chart;
-	keyboardStep?: (value: number, direction: Direction) => number;
-	onChange: (value: number) => void;
-	onDragEnd?: () => void;
-	onDragStart?: () => void;
-	value: number;
+  disabled?: boolean;
+  gradient?: [number, number];
+  gradientMode?: GradientMode;
+  handleColor?: 0 | 1 | 2;
+  chart?: Chart;
+  keyboardStep?: (value: number, direction: Direction) => number;
+  onChange: (value: number) => void;
+  onDragEnd?: () => void;
+  onDragStart?: () => void;
+  value: number;
 }) {
 	keyboardStep ??= chart
 		? (value, dir) => (value * chart.length + dir) * 1 / chart.length
@@ -55,8 +57,8 @@ export function Slider({
 	const mainElement = useRef<HTMLElement | null>(null);
 	const document = useRef<Document | null>(null);
 
-	const getRect = useCallback(() => {
-		const now = Date.now();
+  const getRect /* LOL */ = useCallback(() => {
+    const now = Date.now();
 
 		// Cache the rect if the last poll was less than a second ago
 		if (lastRect.current && now - lastRectTime.current < 1000) {
@@ -130,24 +132,26 @@ export function Slider({
 
 	const gradientColors = useMemo(() => getGradientColors(gradientMode), [gradientMode]);
 
-	const moveSpring = useSpring({
-		config: {
-			mass: 1,
-			tension: 1800,
-			friction: 80,
-			precision: 0.001,
-		},
-		to: {
-			value,
-			handleColor: gradient && chart
-				? value <= gradient[0]
-					? gradientColors[0]
-					: value <= gradient[1]
-						? gradientColors[2]
-						: gradientColors[4]
-				: token("colors.controlSurface"),
-		},
-	});
+  const moveSpring = useSpring({
+    config: {
+      mass: 1,
+      tension: 1800,
+      friction: 80,
+      precision: 0.001,
+    },
+    to: {
+      value,
+      handleColor: gradient && chart
+        ? handleColor !== undefined
+          ? gradientColors[handleColor * 2]
+          : (value <= gradient[0]
+            ? gradientColors[0]
+            : value <= gradient[1]
+            ? gradientColors[2]
+            : gradientColors[4])
+        : token("colors.controlSurface"),
+    },
+  });
 
 	const [focused, setFocused] = useState(false);
 

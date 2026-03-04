@@ -4,6 +4,9 @@ import type { ReactNode } from "react";
 
 import { Banner } from "@/Banner";
 import { ProtocolStats } from "./ProtocolStats";
+import { V1StabilityPoolBanner } from "@/src/comps/V1StabilityPoolBanner/V1StabilityPoolBanner";
+import { V1StakingBanner } from "@/src/comps/V1StakingBanner/V1StakingBanner";
+import { V1_STABILITY_POOL_CHECK, V1_STAKING_CHECK } from "@/src/env";
 import { TopBar } from "./TopBar";
 import { css } from "@/styled-system/css";
 import { useSubgraphStatus } from "@/src/services/SubgraphStatus";
@@ -32,6 +35,8 @@ export function AppLayout({ children }: { children: ReactNode }) {
           maxWidth: `${LAYOUT_WIDTH + 24 * 2}px`,
         }}
       >
+        {V1_STAKING_CHECK && <V1StakingBanner />}
+        {V1_STABILITY_POOL_CHECK && <V1StabilityPoolBanner />}
         <div
           className={css({
             width: "100%",

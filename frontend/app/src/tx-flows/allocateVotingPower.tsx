@@ -262,43 +262,43 @@ function VoteAllocation({
 	vote: VoteAllocation;
 	stakedLQTY: bigint;
 }) {
-	const lqtyAllocation = dn.mul([stakedLQTY, 18], vote.value);
-	return (
-		<TransactionDetailsRow
-			label={[
-				initiative.name ?? "Initiative",
-				<div
-					key="end"
-					title={initiative.address}
-				>
-					{initiative.protocol ?? <AddressLink address={initiative.address} />}
-				</div>,
-			]}
-			value={[
-				<div
-					key="start"
-					className={css({
-						display: "flex",
-						gap: 4,
-						alignItems: "center",
-					})}
-				>
-					<Amount percentage value={vote.value} />
-					{vote.vote === "for"
-						? <IconUpvote size={24} />
-						: <IconDownvote size={24} />}
-				</div>,
-				<div
-					key="end"
-					className={css({
-						display: "flex",
-						gap: 4,
-						alignItems: "center",
-					})}
-				>
-					{vote.vote === "for" ? "Upvote" : "Downvote"} with <Amount value={lqtyAllocation} /> {WHITE_LABEL_CONFIG.tokens.governanceToken.symbol}
-				</div>,
-			]}
-		/>
-	);
+  const lqtyAllocation = dn.mul([stakedLQTY, 18], vote.value);
+  return (
+    <TransactionDetailsRow
+      label={[
+        initiative.name ?? "Initiative",
+        <div
+          key="end"
+          title={initiative.address}
+        >
+          {initiative.group ?? <AddressLink address={initiative.address} />}
+        </div>,
+      ]}
+      value={[
+        <div
+          key="start"
+          className={css({
+            display: "flex",
+            gap: 4,
+            alignItems: "center",
+          })}
+        >
+          <Amount percentage value={vote.value} />
+          {vote.vote === "for"
+            ? <IconUpvote size={24} />
+            : <IconDownvote size={24} />}
+        </div>,
+        <div
+          key="end"
+          className={css({
+            display: "flex",
+            gap: 4,
+            alignItems: "center",
+          })}
+        >
+          {vote.vote === "for" ? "Upvote" : "Downvote"} with <Amount value={lqtyAllocation} /> {WHITE_LABEL_CONFIG.tokens.governanceToken.symbol}
+        </div>,
+      ]}
+    />
+  );
 }

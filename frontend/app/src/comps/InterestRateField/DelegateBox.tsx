@@ -2,12 +2,12 @@ import type { BranchId, Delegate } from "@/src/types";
 
 import { Amount } from "@/src/comps/Amount/Amount";
 import { WHITE_LABEL_CONFIG } from "@/src/white-label.config";
+import { LinkTextButton } from "@/src/comps/LinkTextButton/LinkTextButton";
 import { fmtnum, formatDuration, formatRedemptionRisk } from "@/src/formatting";
-import { getRedemptionRisk } from "@/src/liquity-math";
-import { useDebtPositioning } from "@/src/liquity-utils";
+import { useRedemptionRiskOfInterestRate } from "@/src/liquity-utils";
 import { riskLevelToStatusMode } from "@/src/uikit-utils";
 import { css } from "@/styled-system/css";
-import { Button, IconCopy, StatusDot, TextButton } from "@liquity2/uikit";
+import { Button, IconCopy, IconExternal, StatusDot, TextButton } from "@liquity2/uikit";
 import { MiniChart } from "./MiniChart";
 import { ShadowBox } from "./ShadowBox";
 
@@ -16,14 +16,18 @@ export function DelegateBox({
   delegate,
   onSelect,
   selectLabel = "Select",
+  url,
 }: {
   branchId: BranchId;
   delegate: Delegate;
   onSelect: (delegate: Delegate) => void;
   selectLabel: string;
+  url?: string;
 }) {
-  const debtPositioning = useDebtPositioning(branchId, delegate.interestRate);
-  const delegationRisk = getRedemptionRisk(debtPositioning.debtInFront, debtPositioning.totalDebt);
+  // TODO further improve risk calculation by getting the bottom Trove within the batch (if any)
+  // and using its risk level with `useRedemptionRiskOfLoan()`
+  const delegationRisk = useRedemptionRiskOfInterestRate(branchId, delegate.interestRate);
+
   return (
     <ShadowBox key={delegate.id}>
       <section
@@ -56,7 +60,30 @@ export function DelegateBox({
             })}
           >
             <h1 title={`${delegate.name} (${delegate.address})`}>
-              {delegate.name}
+              {url
+                ? (
+                  <LinkTextButton
+                    href={url}
+                    rel="noopener noreferrer"
+                    target="_blank"
+                    label={
+                      <span
+                        className={css({
+                          display: "flex",
+                          alignItems: "center",
+                          gap: 4,
+                          color: "accent",
+                        })}
+                      >
+                        <span>
+                          {delegate.name}
+                        </span>
+                        <IconExternal size={16} />
+                      </span>
+                    }
+                  />
+                )
+                : <span>{delegate.name}</span>}
             </h1>
             <div
               className={css({
@@ -66,7 +93,7 @@ export function DelegateBox({
               })}
             >
               <MiniChart />
-              {fmtnum(delegate.interestRate, "pct1z")}%
+              {fmtnum(delegate.interestRate, "pct2z")}%
             </div>
           </div>
           <div
@@ -98,8 +125,8 @@ export function DelegateBox({
                 alignItems: "center",
               })}
             >
-              <StatusDot mode={riskLevelToStatusMode(delegationRisk)} />
-              {formatRedemptionRisk(delegationRisk)}
+              <StatusDot mode={riskLevelToStatusMode(delegationRisk.data)} />
+              {formatRedemptionRisk(delegationRisk.data ?? null)}
             </div>
           </div>
         </div>
@@ -189,6 +216,9 @@ export function DelegateBox({
               className={css({
                 fontSize: 14,
               })}
+              onClick={() => {
+                navigator.clipboard.writeText(delegate.address);
+              }}
             />
           </div>
           <div>

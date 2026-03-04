@@ -1,7 +1,7 @@
 import type { Address } from "@liquity2/uikit";
 import { createPublicClient, hexToBigInt, http, toHex, isAddressEqual, zeroAddress } from "viem";
 import { CONTRACTS } from "./contracts";
-import { BranchId, CombinedTroveData, DebtPerInterestRate, PrefixedTroveId, ReturnCombinedTroveReadCallData, ReturnTroveReadCallData, Trove, TroveStatus } from "./types";
+import { BranchId, CombinedTroveData, DebtPerInterestRate, PrefixedTroveId, ReturnCombinedTroveReadCallData, ReturnTroveReadCallData, Trove, TroveStatusEnum } from "./types";
 import { CHAIN_RPC_URL, CHAIN_ID, CHAIN_NAME, CHAIN_CURRENCY } from "./env";
 import { getCollToken, getPrefixedTroveId, parsePrefixedTroveId } from "./liquity-utils";
 
@@ -209,7 +209,7 @@ export async function getTrovesByAccount(account: Address): Promise<ReturnCombin
           debt: trove.entireDebt,
           deposit: trove.entireColl,
           interestRate: trove.annualInterestRate,
-          status: troves[index]?.status ?? TroveStatus.nonExistent,
+          status: troves[index]?.status ?? TroveStatusEnum.nonExistent,
           collateral: {
             id: trove.branch.id.toString(),
             token: {
