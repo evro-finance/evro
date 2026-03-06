@@ -33,7 +33,6 @@ contract CollateralRegistry is ICollateralRegistry, Ownable {
     event NewBranchAdded(IERC20Metadata _token, ITroveManager _troveManager);
     constructor(IEvroToken _evroToken, IERC20Metadata[] memory _tokens, ITroveManager[] memory _troveManagers, address _governor, address _collateralGovernor) Ownable(_governor) {
         require(_evroToken != IEvroToken(address(0)), "Evro token cannot be zero address");
-        require(_tokens.length > 0, "Collateral list cannot be empty");
         require(_troveManagers.length > 0, "Trove manager list cannot be empty");
         require(_collateralGovernor != address(0), "Collateral governor cannot be zero address");
         require(_governor != address(0), "Governor cannot be zero address");
@@ -41,7 +40,6 @@ contract CollateralRegistry is ICollateralRegistry, Ownable {
         uint256 numTokens = _tokens.length;
         require(numTokens > 0, "Collateral list cannot be empty");
         require(numTokens <= 10, "Collateral list too long");
-        // totalCollaterals = numTokens;
 
         evroToken = _evroToken;
 
