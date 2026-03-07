@@ -254,13 +254,14 @@ contract CollateralRegistry is ICollateralRegistry, Ownable {
 
     function getToken(uint256 _index) external view returns (IERC20Metadata) {
         return tokens[_index];
-        if(_index >= tokens.length) {
-            return IERC20Metadata(address(0));
-        }
     }
 
     function getTroveManager(uint256 _index) public view returns (ITroveManager) {
         return troveManagers[_index];
+    }
+
+    function transferOwnership(address newOwner) external onlyOwner {
+        _transferOwnership(newOwner);
     }
 
     // require functions
