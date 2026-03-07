@@ -31,6 +31,7 @@ contract CollateralRegistry is ICollateralRegistry, Ownable {
     event LastFeeOpTimeUpdated(uint256 _lastFeeOpTime);
     event CollateralGovernorUpdated(address _collateralGovernor);
     event NewBranchAdded(IERC20Metadata _token, ITroveManager _troveManager);
+
     constructor(IEvroToken _evroToken, IERC20Metadata[] memory _tokens, ITroveManager[] memory _troveManagers, address _governor, address _collateralGovernor) Ownable(_governor) {
         require(_evroToken != IEvroToken(address(0)), "Evro token cannot be zero address");
         require(_troveManagers.length > 0, "Trove manager list cannot be empty");
@@ -252,11 +253,14 @@ contract CollateralRegistry is ICollateralRegistry, Ownable {
     // getters
 
     function getToken(uint256 _index) external view returns (IERC20Metadata) {
- return tokens[_index];
+        return tokens[_index];
+        if(_index >= tokens.length) {
+            return IERC20Metadata(address(0));
+        }
     }
 
     function getTroveManager(uint256 _index) public view returns (ITroveManager) {
- return troveManagers[_index];
+        return troveManagers[_index];
     }
 
     // require functions
@@ -296,7 +300,6 @@ contract CollateralRegistry is ICollateralRegistry, Ownable {
         require(_token.decimals() > 0, "CR: Token decimals cannot be zero");
 
         require(tokens.length < 10, "CR: Max 10 redeemable branches");
-        require(troveManagers.length < 10, "CR: Max 10 trove managers");
 
         for (uint256 i = 0; i < tokens.length; i++) {
             require(address(tokens[i]) != address(_token), "CR: Token already exists");
