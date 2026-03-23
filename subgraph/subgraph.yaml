@@ -6,7 +6,7 @@ dataSources:
     name: EvroToken
     source:
       abi: EvroToken
-      address: "0x091b87551e14fc1b82367ce8908739e89d63f13d"
+      address: "0xdaca5f19e7a33277dc7477067f200ea735dc6982"
       startBlock: 42520891
     mapping:
       kind: ethereum/events
@@ -37,7 +37,7 @@ dataSources:
     name: Governance
     source:
       abi: Governance
-      address: "0x09d5bd4a4f1da1a965fe24ea54bce3d37661e056"
+      address: "0xdd100e25ef57fb43fd17a14ae62b273e9cc0d890"
       startBlock: 42520891
     mapping:
       kind: ethereum/events
