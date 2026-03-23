@@ -280,7 +280,7 @@ function earnPositionsContractsReadSetup(branchId: BranchId, account: Address | 
   return {
     contracts: [{
       ...StabilityPool,
-      functionName: "getCompoundedBoldDeposit",
+      functionName: "getCompoundedEvroDeposit",
       args: [account ?? "0x"],
     }, {
       ...StabilityPool,
@@ -1183,7 +1183,7 @@ export function useLegacyPositions(account: Address | null): UseQueryResult<{
         ...LEGACY_CHECK.BRANCHES.map(({ STABILITY_POOL }) => ({
           abi: StabilityPool,
           address: STABILITY_POOL,
-          functionName: "getCompoundedBoldDeposit" as const,
+          functionName: "getCompoundedEvroDeposit" as const,
           args: [account],
         })),
         ...LEGACY_CHECK.BRANCHES.map(({ STABILITY_POOL }) => ({

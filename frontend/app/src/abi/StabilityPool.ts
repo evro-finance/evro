@@ -105,7 +105,7 @@ export const StabilityPool = [
   },
   {
     "type": "function",
-    "name": "getCompoundedBoldDeposit",
+    "name": "getCompoundedEvroDeposit",
     "inputs": [{ "name": "_depositor", "type": "address", "internalType": "address" }],
     "outputs": [{ "name": "compoundedDeposit", "type": "uint256", "internalType": "uint256" }],
     "stateMutability": "view",
