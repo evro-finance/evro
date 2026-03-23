@@ -23,6 +23,14 @@ export type Scalars = {
   Timestamp: { input: string; output: string; }
 };
 
+/** Indicates whether the current, partially filled bucket should be included in the response. Defaults to `exclude` */
+export enum Aggregation_Current {
+  /** Exclude the current, partially filled bucket from the response */
+  Exclude = 'exclude',
+  /** Include the current, partially filled bucket in the response */
+  Include = 'include'
+}
+
 export enum Aggregation_Interval {
   Day = 'day',
   Hour = 'hour'
@@ -60,18 +68,14 @@ export type BorrowerInfo_Filter = {
   id_not_in?: InputMaybe<Array<Scalars['ID']['input']>>;
   nextOwnerIndexes?: InputMaybe<Array<Scalars['Int']['input']>>;
   nextOwnerIndexes_contains?: InputMaybe<Array<Scalars['Int']['input']>>;
-  nextOwnerIndexes_contains_nocase?: InputMaybe<Array<Scalars['Int']['input']>>;
   nextOwnerIndexes_not?: InputMaybe<Array<Scalars['Int']['input']>>;
   nextOwnerIndexes_not_contains?: InputMaybe<Array<Scalars['Int']['input']>>;
-  nextOwnerIndexes_not_contains_nocase?: InputMaybe<Array<Scalars['Int']['input']>>;
   or?: InputMaybe<Array<InputMaybe<BorrowerInfo_Filter>>>;
   troves?: InputMaybe<Scalars['Int']['input']>;
   trovesByCollateral?: InputMaybe<Array<Scalars['Int']['input']>>;
   trovesByCollateral_contains?: InputMaybe<Array<Scalars['Int']['input']>>;
-  trovesByCollateral_contains_nocase?: InputMaybe<Array<Scalars['Int']['input']>>;
   trovesByCollateral_not?: InputMaybe<Array<Scalars['Int']['input']>>;
   trovesByCollateral_not_contains?: InputMaybe<Array<Scalars['Int']['input']>>;
-  trovesByCollateral_not_contains_nocase?: InputMaybe<Array<Scalars['Int']['input']>>;
   troves_gt?: InputMaybe<Scalars['Int']['input']>;
   troves_gte?: InputMaybe<Scalars['Int']['input']>;
   troves_in?: InputMaybe<Array<Scalars['Int']['input']>>;
