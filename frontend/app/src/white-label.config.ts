@@ -139,7 +139,7 @@ export const WHITE_LABEL_CONFIG = {
         maxLTV: 0.8696, // 86.96% max LTV
         deployments: {
           100: {
-            collToken: "0xcfa17d000980085f13ae66beb68a3fee48fab8ec",
+            collToken: "0x8e5bbbb09ed1ebde8674cda39a0c169401db4252",
             leverageZapper: "0xdf5f4c29187f3ef222b6a734ef1d2860a43e9585",
             stabilityPool: "0xe7f7e850e7b211d41e29a31a9e7938dfcd934539",
             troveManager: "0x83571b02fb04a92ba505843c07aa865c5ec1b131",
