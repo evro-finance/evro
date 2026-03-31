@@ -147,7 +147,7 @@ export const StabilityPool = [
   },
   {
     "type": "function",
-    "name": "getTotalBoldDeposits",
+    "name": "getTotalEvroDeposits",
     "inputs": [],
     "outputs": [{ "name": "", "type": "uint256", "internalType": "uint256" }],
     "stateMutability": "view",
