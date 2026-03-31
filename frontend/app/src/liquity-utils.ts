@@ -167,10 +167,12 @@ export type BoldYield = {
 };
 
 export function useBoldYieldSources() {
-  const { data, isLoading, error } = useLiquityStats();
+  const { /* data, */ isLoading, error } = useLiquityStats();
 
   return {
-    data: data?.boldYield as BoldYield[],
+    // data: data?.boldYield as BoldYield[],
+    // TODO: This is not being used, so we are returning an empty array for now
+    data: [] as BoldYield[],
     isLoading,
     error,
   };
@@ -204,15 +206,15 @@ export function useEarnPool(branchId: BranchId | null) {
       if (branchId === null) {
         return null;
       }
-      const totalBoldDeposits = await readContract(wagmiConfig, {
+      const totalEvroDeposits = await readContract(wagmiConfig, {
         ...getBranchContract(branchId, "StabilityPool"),
-        functionName: "getTotalBoldDeposits",
+        functionName: "getTotalEvroDeposits",
       });
       return {
         apr: spApyAvg1d,
         apr7d: spApyAvg7d,
         collateral,
-        totalDeposited: dnum18(totalBoldDeposits),
+        totalDeposited: dnum18(totalEvroDeposits),
       };
     },
     enabled: stats.isSuccess,
@@ -244,7 +246,7 @@ export function useEarnPools(branchIds: (BranchId | null)[]) {
           try {
             const totalBoldDeposits = await readContract(wagmiConfig, {
               ...getBranchContract(branchId, "StabilityPool"),
-              functionName: "getTotalBoldDeposits",
+              functionName: "getTotalEvroDeposits",
             });
             
             poolsMap[branchId] = {
@@ -722,15 +724,7 @@ export async function getTroveOperationHints({
   return { upperHint, lowerHint };
 }
 
-const BoldYieldItem = v.object({
-  asset: v.string(),
-  weekly_apr: v.union([v.number(), v.string()]),
-  tvl: v.union([v.number(), v.string()]),
-  link: v.string(),
-  protocol: v.string(),
-});
-
-export const StatsSchema = v.pipe(
+const StatsSchema = v.pipe(
   v.object({
     total_bold_supply: v.string(),
     total_debt_pending: v.string(),
@@ -738,16 +732,6 @@ export const StatsSchema = v.pipe(
     total_sp_deposits: v.string(),
     total_value_locked: v.string(),
     max_sp_apy: v.string(),
-    prices: v.record(
-      v.string(),
-      v.string(),
-    ),
-    boldYield: v.optional(v.nullable(v.array(BoldYieldItem))),
-    // TODO: phase out in the future, once all frontends update to the "safe" (losely-typed) `prices` schema
-    otherPrices: v.optional(v.record(
-      v.string(),
-      v.string(),
-    )),
     branch: v.record(
       v.string(),
       v.object({
@@ -795,23 +779,6 @@ export const StatsSchema = v.pipe(
         }];
       }),
     ),
-    prices: Object.fromEntries(
-      [
-        ...Object.entries(value.prices),
-        // TODO: phase out in the future, once all frontends update to the "safe" (losely-typed) `prices` schema
-        ...Object.entries(value.otherPrices ?? {}),
-      ].map(([symbol, price]) => [
-        symbol,
-        dnumOrNull(price, 18),
-      ]),
-    ),
-    boldYield: (value.boldYield ?? []).map((i) => ({
-      asset: i.asset,
-      weeklyApr: dnumOrNull(i.weekly_apr, 18),
-      tvl: dnumOrNull(i.tvl, 18),
-      link: i.link,
-      protocol: i.protocol,
-    })),
   })),
 );
 
