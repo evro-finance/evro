@@ -191,8 +191,10 @@ export function useEarnPool(branchId: BranchId | null) {
   const wagmiConfig = useWagmiConfig();
   const stats = useLiquityStats();
   const collateral = getCollToken(branchId);
+  const collateralSymbolVariant = collateral?.symbol === "XDAI" ? "WXDAI" : collateral?.symbol === "WBTC" ? "WWBTC" : collateral?.symbol;
+
   const { spApyAvg1d = null, spApyAvg7d = null } = (
-    collateral && stats.data?.branch[collateral?.symbol]
+    collateral && stats.data?.branch[collateralSymbolVariant]
   ) ?? {};
 
   return useQuery({
@@ -239,8 +241,10 @@ export function useEarnPools(branchIds: (BranchId | null)[]) {
           if (branchId === null) return;
           
           const collateral = getCollToken(branchId);
+          const collateralSymbolVariant = collateral?.symbol === "XDAI" ? "WXDAI" : collateral?.symbol === "WBTC" ? "WWBTC" : collateral?.symbol;
+
           const { spApyAvg1d = null, spApyAvg7d = null } = (
-            collateral && stats.data?.branch[collateral?.symbol]
+            collateral && stats.data?.branch[collateralSymbolVariant]
           ) ?? {};
           
           try {
