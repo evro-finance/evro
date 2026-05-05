@@ -11,6 +11,7 @@ import { InterestRateField } from "@/src/comps/InterestRateField/InterestRateFie
 import { LinkTextButton } from "@/src/comps/LinkTextButton/LinkTextButton";
 import { RedemptionInfo } from "@/src/comps/RedemptionInfo/RedemptionInfo";
 import { Screen } from "@/src/comps/Screen/Screen";
+import { WarningBox } from "@/src/comps/WarningBox/WarningBox";
 import { DEBT_SUGGESTIONS, ETH_MAX_RESERVE, MAX_COLLATERAL_DEPOSITS, MIN_DEBT } from "@/src/constants";
 import content from "@/src/content";
 import { WHITE_LABEL_CONFIG } from "@/src/white-label.config";
@@ -65,6 +66,7 @@ export function BorrowScreen() {
 	const branch = getBranch(collSymbol);
 	const collateral = getCollToken(branch.id);
 	const collaterals = branches.map((b) => getCollToken(b.branchId));
+	const isUnsupportedSdaiBranch = collSymbol === "SDAI";
 
 	const maxCollDeposit = MAX_COLLATERAL_DEPOSITS[collSymbol];
 	if (!maxCollDeposit) {
@@ -155,6 +157,7 @@ export function BorrowScreen() {
 	const isBelowMinDebt = debt.parsed && !debt.isEmpty && dn.lt(debt.parsed, MIN_DEBT);
 
 	const allowSubmit = account.isConnected
+		&& !isUnsupportedSdaiBranch
 		&& deposit.parsed
 		&& dn.gt(deposit.parsed, 0)
 		&& debt.parsed
@@ -207,400 +210,439 @@ export function BorrowScreen() {
 				),
 			}}
 		>
-			<Field
-				id="field-deposit"
-				field={
-					<InputField
-						id="input-deposit"
-						contextual={
-							<Dropdown
-								items={collaterals.map(({ symbol, name }) => ({
-									icon: <TokenIcon symbol={symbol} />,
-									label: name,
-									value: account.isConnected
-										? fmtnum(balances[symbol]?.data ?? 0)
-										: "−",
-								}))}
-								menuPlacement="end"
-								menuWidth={300}
-								onSelect={(index) => {
-									const coll = collaterals[index];
-									if (!coll) {
-										throw new Error(`Unknown branch: ${index}`);
-									}
+			{isUnsupportedSdaiBranch && (
+				<WarningBox>
+					<strong>sDAI borrowing is no longer supported.</strong>
+					<span>
+						This branch is no longer supported. Attempting to borrow{" "}
+						{WHITE_LABEL_CONFIG.tokens.mainToken.symbol} with sDAI could result in loss of funds.
+					</span>
+				</WarningBox>
+			)}
 
-									deposit.setValue("");
-									router.push(
-										`/borrow/${coll.symbol.toLowerCase()}`,
-										{ scroll: false },
-									);
-								}}
-								selected={branch.id}
-							/>
-						}
-						label={content.borrowScreen.depositField.label}
-						placeholder="0.00"
-						secondary={{
-							start: `€${deposit.parsed && collPrice.data
-								? fmtnum(dn.mul(collPrice.data, deposit.parsed), "2z")
-								: "0.00"
-								}`,
-							end: maxAmount && dn.gt(maxAmount, 0) && (
-								<TextButton
-									label={`Max ${fmtnum(maxAmount)} ${collateral.name}`}
-									onClick={() => {
-										deposit.setValue(dn.toString(maxAmount));
+			<div
+				className={css({
+					display: "grid",
+					gap: {
+						base: 32,
+						medium: 48,
+					},
+					minWidth: 0,
+					margin: 0,
+					padding: 0,
+					border: 0,
+				})}
+			>
+				<Field
+					id="field-deposit"
+					field={
+						<InputField
+							disabled={isUnsupportedSdaiBranch}
+							id="input-deposit"
+							contextual={
+								<Dropdown
+									items={collaterals.map(({ symbol, name }) => ({
+										icon: <TokenIcon symbol={symbol} />,
+										label: name,
+										value: account.isConnected
+											? fmtnum(balances[symbol]?.data ?? 0)
+											: "−",
+									}))}
+									menuPlacement="end"
+									menuWidth={300}
+									onSelect={(index) => {
+										const coll = collaterals[index];
+										if (!coll) {
+											throw new Error(`Unknown branch: ${index}`);
+										}
+
+										deposit.setValue("");
+										router.push(
+											`/borrow/${coll.symbol.toLowerCase()}`,
+											{ scroll: false },
+										);
 									}}
-									className={css({
-										borderRadius: 0,
-									})}
+									selected={branch.id}
+								/>
+							}
+							label={content.borrowScreen.depositField.label}
+							placeholder="0.00"
+							secondary={{
+								start: `€${deposit.parsed && collPrice.data
+									? fmtnum(dn.mul(collPrice.data, deposit.parsed), "2z")
+									: "0.00"
+									}`,
+								end: maxAmount && dn.gt(maxAmount, 0) && (
+									<TextButton
+										disabled={isUnsupportedSdaiBranch}
+										label={`Max ${fmtnum(maxAmount)} ${collateral.name}`}
+										onClick={() => {
+											deposit.setValue(dn.toString(maxAmount));
+										}}
+										className={css({
+											borderRadius: 0,
+										})}
+									/>
+								),
+							}}
+							{...deposit.inputFieldProps}
+						/>
+					}
+					footer={{
+						start: collPrice.data && (
+							<Field.FooterInfoCollPrice
+								collPriceUsd={collPrice.data}
+								collName={collateral.name}
+							/>
+						),
+						end: (
+							<Field.FooterInfoMaxLtv
+								maxLtv={loanDetails.maxLtv}
+							/>
+						),
+					}}
+				/>
+
+				<Field
+					id="field-debt"
+					field={
+						<InputField
+							disabled={isUnsupportedSdaiBranch}
+							id="input-debt"
+							contextual={
+								<InputField.Badge
+									icon={<TokenIcon symbol={WHITE_LABEL_CONFIG.tokens.mainToken.symbol} />}
+									label={WHITE_LABEL_CONFIG.tokens.mainToken.symbol}
+								/>
+							}
+							drawer={debt.isFocused || !isBelowMinDebt ? null : {
+								mode: "error",
+								message: `You must borrow at least ${fmtnum(MIN_DEBT, 2)} ${WHITE_LABEL_CONFIG.tokens.mainToken.symbol}.`,
+							}}
+							label={content.borrowScreen.borrowField.label}
+							placeholder="0.00"
+							secondary={{
+								start: `€${debt.parsed
+									? fmtnum(debt.parsed)
+									: "0.00"
+									}`,
+								end: debtSuggestions && (
+									<HFlex gap={6}>
+										{debtSuggestions.map((s) => (
+											s?.debt && s?.risk && (
+												<PillButton
+													disabled={isUnsupportedSdaiBranch}
+													key={dn.toString(s.debt)}
+													label={fmtnum(s.debt, {
+														compact: true,
+														digits: 0,
+														prefix: "€",
+													})}
+													onClick={() => {
+														if (s.debt) {
+															debt.setValue(dn.toString(s.debt, 0));
+														}
+													}}
+													warnLevel={s.risk}
+												/>
+											)
+										))}
+									</HFlex>
+								),
+							}}
+							{...debt.inputFieldProps}
+						/>
+					}
+					footer={[
+						{
+							start: (
+								<Field.FooterInfoLiquidationRisk
+									riskLevel={loanDetails.liquidationRisk}
 								/>
 							),
-						}}
-						{...deposit.inputFieldProps}
-					/>
-				}
-				footer={{
-					start: collPrice.data && (
-						<Field.FooterInfoCollPrice
-							collPriceUsd={collPrice.data}
-							collName={collateral.name}
-						/>
-					),
-					end: (
-						<Field.FooterInfoMaxLtv
-							maxLtv={loanDetails.maxLtv}
-						/>
-					),
-				}}
-			/>
-
-			<Field
-				id="field-debt"
-				field={
-					<InputField
-						id="input-debt"
-						contextual={
-							<InputField.Badge
-								icon={<TokenIcon symbol={WHITE_LABEL_CONFIG.tokens.mainToken.symbol} />}
-								label={WHITE_LABEL_CONFIG.tokens.mainToken.symbol}
-							/>
-						}
-						drawer={debt.isFocused || !isBelowMinDebt ? null : {
-							mode: "error",
-							message: `You must borrow at least ${fmtnum(MIN_DEBT, 2)} ${WHITE_LABEL_CONFIG.tokens.mainToken.symbol}.`,
-						}}
-						label={content.borrowScreen.borrowField.label}
-						placeholder="0.00"
-						secondary={{
-							start: `€${debt.parsed
-								? fmtnum(debt.parsed)
-								: "0.00"
-								}`,
-							end: debtSuggestions && (
-								<HFlex gap={6}>
-									{debtSuggestions.map((s) => (
-										s?.debt && s?.risk && (
-											<PillButton
-												key={dn.toString(s.debt)}
-												label={fmtnum(s.debt, {
-													compact: true,
-													digits: 0,
-													prefix: "€",
-												})}
-												onClick={() => {
-													if (s.debt) {
-														debt.setValue(dn.toString(s.debt, 0));
-													}
-												}}
-												warnLevel={s.risk}
-											/>
-										)
-									))}
-								</HFlex>
+							end: (
+								<Field.FooterInfoLiquidationPrice
+									liquidationPrice={loanDetails.liquidationPrice}
+								/>
 							),
-						}}
-						{...debt.inputFieldProps}
-					/>
-				}
-				footer={[
-					{
-						start: (
-							<Field.FooterInfoLiquidationRisk
-								riskLevel={loanDetails.liquidationRisk}
-							/>
-						),
-						end: (
-							<Field.FooterInfoLiquidationPrice
-								liquidationPrice={loanDetails.liquidationPrice}
-							/>
-						),
-					},
-					{
-						end: (
-							<Field.FooterInfoLoanToValue
-								ltvRatio={loanDetails.ltv}
-								maxLtvRatio={loanDetails.maxLtv}
-							/>
-						),
-					},
-				]}
-			/>
+						},
+						{
+							end: (
+								<Field.FooterInfoLoanToValue
+									ltvRatio={loanDetails.ltv}
+									maxLtvRatio={loanDetails.maxLtv}
+								/>
+							),
+						},
+					]}
+				/>
 
-			<Field
-				id="field-interest-rate"
-				field={
-					<InterestRateField
-						branchId={branch.id}
-						debt={debt.parsed}
-						delegate={interestRateDelegate}
-						inputId="input-interest-rate"
-						interestRate={interestRate}
-						mode={interestRateMode}
-						onAverageInterestRateLoad={setInterestRate}
-						onChange={setInterestRate}
-						onDelegateChange={setInterestRateDelegate}
-						onModeChange={setInterestRateMode}
-					/>
-				}
-				footer={{
-					start: (
-						<Field.FooterInfoRedemptionRisk
-							riskLevel={redemptionRisk.data ?? null}
-						/>
-					),
-					end: (
-						<div
+				<Field
+					id="field-interest-rate"
+					field={
+						<fieldset
+							disabled={isUnsupportedSdaiBranch}
 							className={css({
-								overflow: "hidden",
-								display: "flex",
-								alignItems: "center",
-								gap: 4,
-								color: "contentAlt",
-								fontSize: 14,
+								minWidth: 0,
+								margin: 0,
+								padding: 0,
+								border: 0,
 							})}
 						>
+							<InterestRateField
+								branchId={branch.id}
+								debt={debt.parsed}
+								delegate={interestRateDelegate}
+								inputId="input-interest-rate"
+								interestRate={interestRate}
+								mode={interestRateMode}
+								onAverageInterestRateLoad={setInterestRate}
+								onChange={setInterestRate}
+								onDelegateChange={setInterestRateDelegate}
+								onModeChange={setInterestRateMode}
+							/>
+						</fieldset>
+					}
+					footer={{
+						start: (
+							<Field.FooterInfoRedemptionRisk
+								riskLevel={redemptionRisk.data ?? null}
+							/>
+						),
+						end: (
 							<div
 								className={css({
-									display: "flex",
-									alignItems: "center",
-									flexShrink: 0,
-								})}
-							>
-								<IconSuggestion size={16} />
-							</div>
-							<div
-								className={css({
-									flexShrink: 1,
-									display: "inline",
 									overflow: "hidden",
-									textOverflow: "ellipsis",
-									whiteSpace: "nowrap",
-								})}
-							>
-								You can adjust this rate at any time
-							</div>
-							<div
-								className={css({
-									flexShrink: 0,
 									display: "flex",
 									alignItems: "center",
+									gap: 4,
+									color: "contentAlt",
+									fontSize: 14,
 								})}
 							>
-								<InfoTooltip {...infoTooltipProps(content.generalInfotooltips.interestRateAdjustment)} />
+								<div
+									className={css({
+										display: "flex",
+										alignItems: "center",
+										flexShrink: 0,
+									})}
+								>
+									<IconSuggestion size={16} />
+								</div>
+								<div
+									className={css({
+										flexShrink: 1,
+										display: "inline",
+										overflow: "hidden",
+										textOverflow: "ellipsis",
+										whiteSpace: "nowrap",
+									})}
+								>
+									You can adjust this rate at any time
+								</div>
+								<div
+									className={css({
+										flexShrink: 0,
+										display: "flex",
+										alignItems: "center",
+									})}
+								>
+									<InfoTooltip {...infoTooltipProps(content.generalInfotooltips.interestRateAdjustment)} />
+								</div>
 							</div>
-						</div>
-					),
-				}}
-			/>
+						),
+					}}
+				/>
 
-			<RedemptionInfo />
+				<RedemptionInfo />
 
-			{collateralRatios.data?.isBelowCcr && collateralRatios.data?.tcr && (
-				<div
-					className={css({
-						display: "flex",
-						flexDirection: "column",
-						gap: 8,
-						padding: 16,
-						fontSize: 16,
-						color: "content",
-						background: "infoSurface",
-						border: "1px solid token(colors.infoSurfaceBorder)",
-						borderRadius: 0,
-					})}
-				>
-					<div
-						className={css({
-							fontSize: 16,
-							fontWeight: 600,
-							marginBottom: 12,
-						})}
-					>
-						Borrowing Restrictions Active
-					</div>
+				{collateralRatios.data?.isBelowCcr && collateralRatios.data?.tcr && (
 					<div
 						className={css({
 							display: "flex",
 							flexDirection: "column",
 							gap: 8,
-							fontSize: 15,
-							medium: {
-								fontSize: 14,
-							},
+							padding: 16,
+							fontSize: 16,
+							color: "content",
+							background: "infoSurface",
+							border: "1px solid token(colors.infoSurfaceBorder)",
+							borderRadius: 0,
 						})}
 					>
 						<div
 							className={css({
-								display: "flex",
-								justifyContent: "space-between",
-								alignItems: "center",
+								fontSize: 16,
+								fontWeight: 600,
+								marginBottom: 12,
 							})}
 						>
-							<span>Current TCR:</span>
-							<Amount
-								value={collateralRatios.data.tcr}
-								percentage
-								format={0}
-							/>
+							Borrowing Restrictions Active
 						</div>
 						<div
 							className={css({
 								display: "flex",
-								justifyContent: "space-between",
-								alignItems: "center",
+								flexDirection: "column",
+								gap: 8,
+								fontSize: 15,
+								medium: {
+									fontSize: 14,
+								},
 							})}
 						>
-							<span>Critical Threshold (CCR):</span>
-							<Amount
-								value={collateralRatios.data.ccr}
-								percentage
-								format={0}
-							/>
-						</div>
-					</div>
-					<div
-						className={css({
-							marginTop: 12,
-							fontSize: 15,
-							color: "contentAlt",
-							lineHeight: 1.4,
-							medium: {
-								fontSize: 14,
-							},
-						})}
-					>
-						<div className={css({ marginBottom: 8 })}>
-							When the branch TCR falls below the CCR, these restrictions apply:
-						</div>
-						<ul
-							className={css({
-								margin: 0,
-								marginBottom: 8,
-								listStyle: "none",
-							})}
-						>
-							<li
-								className={css({
-									position: "relative",
-									paddingLeft: 12,
-									"&::before": {
-										content: "\"•\"",
-										position: "absolute",
-										left: 0,
-										color: "contentAlt",
-									},
-								})}
-							>
-								Opening a position: only allowed if resulting TCR {">"}{" "}
-								<Amount value={collateralRatios.data.ccr} percentage format={0} />
-							</li>
-							<li
-								className={css({
-									position: "relative",
-									paddingLeft: 12,
-									"&::before": {
-										content: "\"•\"",
-										position: "absolute",
-										left: 0,
-										color: "contentAlt",
-									},
-								})}
-							>
-								New borrowing: must bring resulting TCR {">"}{" "}
-								<Amount value={collateralRatios.data.ccr} percentage format={0} />
-							</li>
-							<li
-								className={css({
-									position: "relative",
-									paddingLeft: 12,
-									"&::before": {
-										content: "\"•\"",
-										position: "absolute",
-										left: 0,
-										color: "contentAlt",
-									},
-								})}
-							>
-								Collateral withdrawal: must be matched by debt repayment
-							</li>
-						</ul>
-					</div>
-					<LinkTextButton
-						href="https://docs.liquity.org/v2-faq/borrowing-and-liquidations#docs-internal-guid-fee4cc44-7fff-c866-9ccf-bac2da1b5222"
-						rel="noopener noreferrer"
-						target="_blank"
-						label={
-							<span
+							<div
 								className={css({
 									display: "flex",
+									justifyContent: "space-between",
 									alignItems: "center",
-									gap: 4,
-									color: "accent",
-									fontSize: 15,
-									medium: {
-										fontSize: 16,
-									},
 								})}
 							>
-								<span>Learn more about borrowing restrictions</span>
-								<IconExternal size={16} />
-							</span>
+								<span>Current TCR:</span>
+								<Amount
+									value={collateralRatios.data.tcr}
+									percentage
+									format={0}
+								/>
+							</div>
+							<div
+								className={css({
+									display: "flex",
+									justifyContent: "space-between",
+									alignItems: "center",
+								})}
+							>
+								<span>Critical Threshold (CCR):</span>
+								<Amount
+									value={collateralRatios.data.ccr}
+									percentage
+									format={0}
+								/>
+							</div>
+						</div>
+						<div
+							className={css({
+								marginTop: 12,
+								fontSize: 15,
+								color: "contentAlt",
+								lineHeight: 1.4,
+								medium: {
+									fontSize: 14,
+								},
+							})}
+						>
+							<div className={css({ marginBottom: 8 })}>
+								When the branch TCR falls below the CCR, these restrictions apply:
+							</div>
+							<ul
+								className={css({
+									margin: 0,
+									marginBottom: 8,
+									listStyle: "none",
+								})}
+							>
+								<li
+									className={css({
+										position: "relative",
+										paddingLeft: 12,
+										"&::before": {
+											content: "\"•\"",
+											position: "absolute",
+											left: 0,
+											color: "contentAlt",
+										},
+									})}
+								>
+									Opening a position: only allowed if resulting TCR {">"}{" "}
+									<Amount value={collateralRatios.data.ccr} percentage format={0} />
+								</li>
+								<li
+									className={css({
+										position: "relative",
+										paddingLeft: 12,
+										"&::before": {
+											content: "\"•\"",
+											position: "absolute",
+											left: 0,
+											color: "contentAlt",
+										},
+									})}
+								>
+									New borrowing: must bring resulting TCR {">"}{" "}
+									<Amount value={collateralRatios.data.ccr} percentage format={0} />
+								</li>
+								<li
+									className={css({
+										position: "relative",
+										paddingLeft: 12,
+										"&::before": {
+											content: "\"•\"",
+											position: "absolute",
+											left: 0,
+											color: "contentAlt",
+										},
+									})}
+								>
+									Collateral withdrawal: must be matched by debt repayment
+								</li>
+							</ul>
+						</div>
+						<LinkTextButton
+							href="https://docs.liquity.org/v2-faq/borrowing-and-liquidations#docs-internal-guid-fee4cc44-7fff-c866-9ccf-bac2da1b5222"
+							rel="noopener noreferrer"
+							target="_blank"
+							label={
+								<span
+									className={css({
+										display: "flex",
+										alignItems: "center",
+										gap: 4,
+										color: "accent",
+										fontSize: 15,
+										medium: {
+											fontSize: 16,
+										},
+									})}
+								>
+									<span>Learn more about borrowing restrictions</span>
+									<IconExternal size={16} />
+								</span>
+							}
+						/>
+					</div>
+				)}
+
+				<FlowButton
+					disabled={!allowSubmit}
+					label={content.borrowScreen.action}
+					request={!isUnsupportedSdaiBranch
+						&& interestRate
+						&& deposit.parsed
+						&& debt.parsed
+						&& account.address
+						&& typeof nextOwnerIndex.data === "number"
+						? {
+							flowId: "openBorrowPosition",
+							backLink: [
+								`/borrow/${collSymbol.toLowerCase()}`,
+								"Back to editing",
+							],
+							successLink: ["/", "Go to the Dashboard"],
+							successMessage: "The position has been created successfully.",
+
+							branchId: branch.id,
+							owner: account.address,
+							ownerIndex: nextOwnerIndex.data,
+							collAmount: deposit.parsed,
+							boldAmount: debt.parsed,
+							annualInterestRate: interestRate,
+							maxUpfrontFee: dnum18(maxUint256),
+							interestRateDelegate: interestRateMode === "manual" || !interestRateDelegate
+								? null
+								: interestRateDelegate,
 						}
+						: undefined}
 					/>
-				</div>
-			)}
-
-			<FlowButton
-				disabled={!allowSubmit}
-				label={content.borrowScreen.action}
-				request={interestRate
-					&& deposit.parsed
-					&& debt.parsed
-					&& account.address
-					&& typeof nextOwnerIndex.data === "number"
-					? {
-						flowId: "openBorrowPosition",
-						backLink: [
-							`/borrow/${collSymbol.toLowerCase()}`,
-							"Back to editing",
-						],
-						successLink: ["/", "Go to the Dashboard"],
-						successMessage: "The position has been created successfully.",
-
-						branchId: branch.id,
-						owner: account.address,
-						ownerIndex: nextOwnerIndex.data,
-						collAmount: deposit.parsed,
-						boldAmount: debt.parsed,
-						annualInterestRate: interestRate,
-						maxUpfrontFee: dnum18(maxUint256),
-						interestRateDelegate: interestRateMode === "manual" || !interestRateDelegate
-							? null
-							: interestRateDelegate,
-					}
-					: undefined}
-			/>
+			</div>
 		</Screen>
 	);
 }
