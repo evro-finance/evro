@@ -220,8 +220,7 @@ export function BorrowScreen() {
 				</WarningBox>
 			)}
 
-			<fieldset
-				disabled={isUnsupportedSdaiBranch}
+			<div
 				className={css({
 					display: "grid",
 					gap: {
@@ -232,15 +231,13 @@ export function BorrowScreen() {
 					margin: 0,
 					padding: 0,
 					border: 0,
-					_disabled: {
-						opacity: 0.55,
-					},
 				})}
 			>
 				<Field
 					id="field-deposit"
 					field={
 						<InputField
+							disabled={isUnsupportedSdaiBranch}
 							id="input-deposit"
 							contextual={
 								<Dropdown
@@ -277,6 +274,7 @@ export function BorrowScreen() {
 									}`,
 								end: maxAmount && dn.gt(maxAmount, 0) && (
 									<TextButton
+										disabled={isUnsupportedSdaiBranch}
 										label={`Max ${fmtnum(maxAmount)} ${collateral.name}`}
 										onClick={() => {
 											deposit.setValue(dn.toString(maxAmount));
@@ -309,6 +307,7 @@ export function BorrowScreen() {
 					id="field-debt"
 					field={
 						<InputField
+							disabled={isUnsupportedSdaiBranch}
 							id="input-debt"
 							contextual={
 								<InputField.Badge
@@ -332,6 +331,7 @@ export function BorrowScreen() {
 										{debtSuggestions.map((s) => (
 											s?.debt && s?.risk && (
 												<PillButton
+													disabled={isUnsupportedSdaiBranch}
 													key={dn.toString(s.debt)}
 													label={fmtnum(s.debt, {
 														compact: true,
@@ -380,18 +380,28 @@ export function BorrowScreen() {
 				<Field
 					id="field-interest-rate"
 					field={
-						<InterestRateField
-							branchId={branch.id}
-							debt={debt.parsed}
-							delegate={interestRateDelegate}
-							inputId="input-interest-rate"
-							interestRate={interestRate}
-							mode={interestRateMode}
-							onAverageInterestRateLoad={setInterestRate}
-							onChange={setInterestRate}
-							onDelegateChange={setInterestRateDelegate}
-							onModeChange={setInterestRateMode}
-						/>
+						<fieldset
+							disabled={isUnsupportedSdaiBranch}
+							className={css({
+								minWidth: 0,
+								margin: 0,
+								padding: 0,
+								border: 0,
+							})}
+						>
+							<InterestRateField
+								branchId={branch.id}
+								debt={debt.parsed}
+								delegate={interestRateDelegate}
+								inputId="input-interest-rate"
+								interestRate={interestRate}
+								mode={interestRateMode}
+								onAverageInterestRateLoad={setInterestRate}
+								onChange={setInterestRate}
+								onDelegateChange={setInterestRateDelegate}
+								onModeChange={setInterestRateMode}
+							/>
+						</fieldset>
 					}
 					footer={{
 						start: (
@@ -631,8 +641,8 @@ export function BorrowScreen() {
 								: interestRateDelegate,
 						}
 						: undefined}
-				/>
-			</fieldset>
+					/>
+			</div>
 		</Screen>
 	);
 }
